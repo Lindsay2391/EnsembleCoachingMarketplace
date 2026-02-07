@@ -1,0 +1,216 @@
+import Link from "next/link";
+import { Search, Calendar, Star, Shield, Users, Music } from "lucide-react";
+import Button from "@/components/ui/Button";
+
+export default function HomePage() {
+  return (
+    <div>
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight">
+              Find Your Perfect{" "}
+              <span className="text-indigo-600">Ensemble Coach</span>
+            </h1>
+            <p className="mt-6 text-lg sm:text-xl text-gray-600 leading-relaxed">
+              Stop wasting time on email tennis. Connect with qualified coaches
+              who specialise in your style, book with confidence, and take your
+              group to the next level.
+            </p>
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/coaches">
+                <Button size="lg">
+                  <Search className="h-5 w-5 mr-2" />
+                  Browse Coaches
+                </Button>
+              </Link>
+              <Link href="/register?type=coach">
+                <Button variant="outline" size="lg">
+                  <Music className="h-5 w-5 mr-2" />
+                  Join as a Coach
+                </Button>
+              </Link>
+            </div>
+            <p className="mt-4 text-sm text-gray-500">
+              Free to browse. Free to join. Built for the Australian ensemble
+              community.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900">How It Works</h2>
+            <p className="mt-4 text-lg text-gray-600">
+              Three simple steps to your next coaching session
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Search className="h-8 w-8 text-indigo-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                1. Discover
+              </h3>
+              <p className="text-gray-600">
+                Search coaches by specialty, location, availability, and price.
+                Read reviews from other ensembles.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Calendar className="h-8 w-8 text-indigo-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                2. Book
+              </h3>
+              <p className="text-gray-600">
+                Submit a booking request with your dates, goals, and group
+                details. The coach reviews and accepts.
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Star className="h-8 w-8 text-indigo-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                3. Grow
+              </h3>
+              <p className="text-gray-600">
+                Have a great coaching session, then leave a review to help other
+                ensembles find the right match.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* For Ensembles & Coaches */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <Users className="h-8 w-8 text-indigo-600" />
+                <h3 className="text-2xl font-bold text-gray-900">
+                  For Ensembles
+                </h3>
+              </div>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-600 text-sm font-bold">+</span>
+                  </div>
+                  <span className="text-gray-600">
+                    Find coaches who specialise in your genre and experience level
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-600 text-sm font-bold">+</span>
+                  </div>
+                  <span className="text-gray-600">
+                    Compare rates, read reviews, and book with confidence
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-600 text-sm font-bold">+</span>
+                  </div>
+                  <span className="text-gray-600">
+                    Reduce admin overhead with streamlined booking and messaging
+                  </span>
+                </li>
+              </ul>
+              <div className="mt-8">
+                <Link href="/register?type=ensemble">
+                  <Button>Register Your Ensemble</Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <Shield className="h-8 w-8 text-indigo-600" />
+                <h3 className="text-2xl font-bold text-gray-900">
+                  For Coaches
+                </h3>
+              </div>
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-600 text-sm font-bold">+</span>
+                  </div>
+                  <span className="text-gray-600">
+                    Get discovered by ensembles looking for your expertise
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-600 text-sm font-bold">+</span>
+                  </div>
+                  <span className="text-gray-600">
+                    Fill calendar gaps and manage bookings in one place
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-green-600 text-sm font-bold">+</span>
+                  </div>
+                  <span className="text-gray-600">
+                    Build credibility through reviews and a professional profile
+                  </span>
+                </li>
+              </ul>
+              <div className="mt-8">
+                <Link href="/register?type=coach">
+                  <Button>Create Coach Profile</Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-indigo-600">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold text-white">
+            Ready to find your next coach?
+          </h2>
+          <p className="mt-4 text-lg text-indigo-100">
+            Join the growing community of Australian ensembles and coaches on
+            Ensemble Coach.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/coaches">
+              <Button
+                size="lg"
+                className="bg-white text-indigo-600 hover:bg-gray-100"
+              >
+                Browse Coaches
+              </Button>
+            </Link>
+            <Link href="/register">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-white text-white hover:bg-indigo-700"
+              >
+                Sign Up Free
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

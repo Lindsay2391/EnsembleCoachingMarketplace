@@ -1,0 +1,67 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+    const user = session.user as { id: string; userType: string };
+
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      include: {
+        coach: true,
+        ensemble: true,
+        review: true,
+        messages: true,
+      },
+    });
+
+    if (!booking) {
+      return NextResponse.json(
+        { error: "Booking not found" },
+        { status: 404 }
+      );
+    }
+
+    const coachProfile = await prisma.coachProfile.findUnique({
+      where: { userId: user.id },
+    });
+
+    const ensembleProfile = await prisma.ensembleProfile.findUnique({
+      where: { userId: user.id },
+    });
+
+    const isCoach = coachProfile && booking.coachId === coachProfile.id;
+    const isEnsemble =
+      ensembleProfile && booking.ensembleId === ensembleProfile.id;
+
+    if (!isCoach && !isEnsemble) {
+      return NextResponse.json(
+        { error: "You do not have access to this booking" },
+        { status: 403 }
+      );
+    }
+
+    return NextResponse.json(booking);
+  } catch (error) {
+    console.error("Get booking error:", error);
+    return NextResponse.json(
+      { error: "Something went wrong. Please try again." },
+      { status: 500 }
+    );
+  }
+}

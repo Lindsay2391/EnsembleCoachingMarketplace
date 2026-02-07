@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  userType      String    // "coach", "ensemble", "admin"
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  coachProfile    CoachProfile?
+  ensembleProfile EnsembleProfile?
+  sentMessages    Message[]  @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model CoachProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName          String
+  city              String
+  state             String
+  country           String   @default("Australia")
+  bio               String
+  photoUrl          String?
+  videoUrl          String?
+  specialties       String   // JSON array stored as string
+  experienceLevels  String   // JSON array stored as string
+  rateHourly        Float?
+  rateHalfDay       Float?
+  rateFullDay       Float?
+  currency          String   @default("AUD")
+  availability      String?  // JSON stored as string
+  rating            Float    @default(0)
+  totalReviews      Int      @default(0)
+  totalBookings     Int      @default(0)
+  verified          Boolean  @default(false)
+  approved          Boolean  @default(false)
+  cancellationPolicy String?
+  travelSupplement  Float?
+  profileViews      Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  bookings  Booking[]
+  reviews   Review[]
+}
+
+model EnsembleProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ensembleName    String
+  ensembleType    String   // "chorus", "quartet", "octet", "a_cappella", "other"
+  size            Int
+  city            String
+  state           String
+  country         String   @default("Australia")
+  genres          String   // JSON array stored as string
+  experienceLevel String   // "beginner", "intermediate", "advanced", "elite"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  bookings Booking[]
+  reviews  Review[]
+}
+
+model Booking {
+  id                String   @id @default(cuid())
+  ensembleId        String
+  ensemble          EnsembleProfile @relation(fields: [ensembleId], references: [id], onDelete: Cascade)
+  coachId           String
+  coach             CoachProfile @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  status            String   @default("pending") // "pending", "accepted", "declined", "completed", "cancelled"
+  proposedDates     String   // JSON array of date strings
+  confirmedDate     String?
+  sessionType       String   // "hourly", "half_day", "full_day"
+  durationHours     Float?
+  rate              Float
+  travelCost        Float?
+  totalCost         Float
+  goals             String?
+  specialRequests   String?
+  cancellationReason String?
+  cancelledBy       String?  // "coach", "ensemble", "admin"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  completedAt       DateTime?
+
+  review   Review?
+  messages Message[]
+}
+
+model Review {
+  id                     String   @id @default(cuid())
+  bookingId              String   @unique
+  booking                Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reviewerId             String
+  reviewer               EnsembleProfile @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  revieweeId             String
+  reviewee               CoachProfile @relation(fields: [revieweeId], references: [id], onDelete: Cascade)
+  rating                 Int      // 1-5
+  reviewText             String?
+  preparationRating      Int?     // 1-5
+  communicationRating    Int?     // 1-5
+  teachingRating         Int?     // 1-5
+  valueRating            Int?     // 1-5
+  createdAt              DateTime @default(now())
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  bookingId   String?
+  booking     Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId String
+  recipient   User     @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+  content     String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}

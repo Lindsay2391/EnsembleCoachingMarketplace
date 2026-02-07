@@ -1,0 +1,145 @@
+"use client";
+
+import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
+import { useState } from "react";
+import { Menu, X, Music, User, LogOut } from "lucide-react";
+import Button from "./ui/Button";
+
+export default function Navbar() {
+  const { data: session } = useSession();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const getDashboardLink = () => {
+    if (!session) return "/login";
+    if (session.user.userType === "admin") return "/admin";
+    return `/dashboard/${session.user.userType}`;
+  };
+
+  return (
+    <nav className="bg-white border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center gap-2">
+              <Music className="h-8 w-8 text-indigo-600" />
+              <span className="text-xl font-bold text-gray-900">
+                Ensemble Coach
+              </span>
+            </Link>
+            <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
+              <Link
+                href="/coaches"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+              >
+                Find Coaches
+              </Link>
+              {session && (
+                <Link
+                  href={getDashboardLink()}
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                >
+                  Dashboard
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div className="hidden sm:flex sm:items-center sm:gap-3">
+            {session ? (
+              <div className="flex items-center gap-3">
+                <Link
+                  href={getDashboardLink()}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+                >
+                  <User className="h-4 w-4" />
+                  {session.user.name}
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button size="sm">Get Started</Button>
+                </Link>
+              </>
+            )}
+          </div>
+
+          <div className="sm:hidden flex items-center">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {mobileMenuOpen && (
+        <div className="sm:hidden border-t border-gray-200">
+          <div className="px-4 py-3 space-y-2">
+            <Link
+              href="/coaches"
+              className="block text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Find Coaches
+            </Link>
+            {session ? (
+              <>
+                <Link
+                  href={getDashboardLink()}
+                  className="block text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="block text-gray-600 hover:text-gray-900 py-2 text-sm font-medium w-full text-left"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="block text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="block text-indigo-600 hover:text-indigo-700 py-2 text-sm font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}

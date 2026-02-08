@@ -11,7 +11,7 @@ export default function HomePage() {
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
               Find Your Perfect{" "}
-              <span className="text-coral-300">Ensemble Coach</span>
+              <span className="text-coral-300">Coach</span>
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-gray-200 leading-relaxed">
               Connect with qualified coaches who specialise in your style
@@ -184,7 +184,7 @@ export default function HomePage() {
           </h2>
           <p className="mt-4 text-lg text-coral-100">
             Join the growing community of Australian ensembles and coaches on
-            Ensemble Coach.
+            CoachConnect.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/coaches">

@@ -23,9 +23,9 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <Image src="/logo.png" alt="Ensemble Coach" width={36} height={36} className="rounded-full" />
+              <Image src="/logo.png" alt="CoachConnect" width={36} height={36} className="rounded-full" />
               <span className="text-xl font-bold text-gray-900">
-                Ensemble Coach
+                CoachConnect
               </span>
             </Link>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-4">

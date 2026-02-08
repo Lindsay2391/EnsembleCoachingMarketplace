@@ -8,15 +8,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <Image src="/logo.png" alt="Ensemble Coach" width={28} height={28} className="rounded-full" />
+              <Image src="/logo.png" alt="CoachConnect" width={28} height={28} className="rounded-full" />
               <span className="text-lg font-bold text-gray-900">
-                Ensemble Coach
+                CoachConnect
               </span>
             </div>
             <p className="text-sm text-gray-500 max-w-md">
-              Connecting ensemble groups with qualified coaches. Find the right
-              coach, book with confidence, and take your group to the next
-              level.
+              A Thinking Barbershop project. Connecting Australian ensemble
+              groups with qualified coaches.
             </p>
           </div>
 
@@ -59,7 +58,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <span className="text-sm text-gray-500">
-                  help@ensemblecoach.com.au
+                  help@coachconnect.com.au
                 </span>
               </li>
             </ul>
@@ -68,8 +67,8 @@ export default function Footer() {
 
         <div className="mt-8 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-400 text-center">
-            &copy; {new Date().getFullYear()} Ensemble Coach. All rights
-            reserved. Built for the Australian ensemble community.
+            &copy; {new Date().getFullYear()} CoachConnect by Thinking
+            Barbershop. Built for the Australian ensemble community.
           </p>
         </div>
       </div>

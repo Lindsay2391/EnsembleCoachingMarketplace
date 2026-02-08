@@ -5,9 +5,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Ensemble Coach - Find Your Perfect Coaching Match",
+  title: "CoachConnect - Find Your Perfect Ensemble Coach",
   description:
-    "A marketplace connecting ensemble groups with qualified coaches. Find the right coach, book with confidence, and take your group to the next level.",
+    "CoachConnect by Thinking Barbershop. The one place to find qualified coaches for your Australian ensemble group.",
 };
 
 export default function RootLayout({

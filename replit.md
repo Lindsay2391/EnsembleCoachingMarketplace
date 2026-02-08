@@ -1,7 +1,7 @@
-# Ensemble Coaching Marketplace
+# CoachConnect by Thinking Barbershop
 
 ## Overview
-A Next.js 14 marketplace for connecting Australian ensemble groups with qualified vocal/music coaches. Users can browse coaches, book sessions, leave reviews, and message each other.
+A Next.js 14 platform for connecting Australian ensemble groups with qualified vocal/music coaches. Users can browse coach profiles, filter by skills/location/ensemble type, and contact coaches directly.
 
 ## Tech Stack
 - **Framework**: Next.js 14.2 (App Router)
@@ -39,6 +39,7 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - Data defined in `src/lib/utils.ts` as `COACH_SKILLS` with helper functions `groupSkillsByCategory()` and `getSkillCategory()`
 
 ## Recent Changes
+- 2026-02-08: Renamed site from "Ensemble Coach" to "CoachConnect" with "by Thinking Barbershop" branding throughout
 - 2026-02-08: Rephrased home page text to remove references to reviews, pricing, availability, and booking (not yet implemented); renamed "Book" step to "Connect"
 - 2026-02-08: Added multi-select skill filtering on browse page with match-count ranking
 - 2026-02-08: Added ensemble types selector to coach profiles

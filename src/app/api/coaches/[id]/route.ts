@@ -10,6 +10,7 @@ const updateCoachSchema = z.object({
   state: z.string().min(1).optional(),
   bio: z.string().min(1).optional(),
   specialties: z.array(z.string()).optional(),
+  ensembleTypes: z.array(z.string()).optional(),
   experienceLevels: z.array(z.string()).optional(),
   rateHourly: z.number().positive().optional().nullable(),
   rateHalfDay: z.number().positive().optional().nullable(),
@@ -118,6 +119,7 @@ export async function PUT(
     if (data.state !== undefined) updateData.state = data.state;
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.specialties !== undefined) updateData.specialties = JSON.stringify(data.specialties);
+    if (data.ensembleTypes !== undefined) updateData.ensembleTypes = JSON.stringify(data.ensembleTypes);
     if (data.experienceLevels !== undefined) updateData.experienceLevels = JSON.stringify(data.experienceLevels);
     if (data.rateHourly !== undefined) updateData.rateHourly = data.rateHourly;
     if (data.rateHalfDay !== undefined) updateData.rateHalfDay = data.rateHalfDay;

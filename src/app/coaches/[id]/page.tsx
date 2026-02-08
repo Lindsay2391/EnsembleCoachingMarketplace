@@ -22,6 +22,7 @@ interface CoachProfile {
   photoUrl: string | null;
   videoUrl: string | null;
   specialties: string;
+  ensembleTypes: string;
   experienceLevels: string;
   rateHourly: number | null;
   rateHalfDay: number | null;
@@ -87,6 +88,7 @@ export default function CoachProfilePage() {
 
   const skills = parseJsonArray(coach.specialties);
   const groupedSkills = groupSkillsByCategory(skills);
+  const ensembleTypes = parseJsonArray(coach.ensembleTypes);
   const experienceLevels = parseJsonArray(coach.experienceLevels);
 
   return (
@@ -267,6 +269,18 @@ export default function CoachProfilePage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Ensemble Types */}
+          {ensembleTypes.length > 0 && (
+            <Card>
+              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Clock className="h-4 w-4 inline mr-1" />Coaches</h2></CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {ensembleTypes.map((t) => (<Badge key={t}>{t}</Badge>))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Experience Levels */}
           <Card>

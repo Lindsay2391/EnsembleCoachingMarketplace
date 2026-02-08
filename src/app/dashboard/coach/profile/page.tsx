@@ -8,7 +8,7 @@ import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import { COACH_SKILLS, EXPERIENCE_LEVELS, AUSTRALIAN_STATES } from "@/lib/utils";
+import { COACH_SKILLS, EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
 
 export default function CoachProfileForm() {
   const { data: session, status } = useSession();
@@ -25,6 +25,7 @@ export default function CoachProfileForm() {
   const [bio, setBio] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [ensembleTypes, setEnsembleTypes] = useState<string[]>([]);
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
   const [rateHourly, setRateHourly] = useState("");
   const [rateHalfDay, setRateHalfDay] = useState("");
@@ -51,6 +52,7 @@ export default function CoachProfileForm() {
             setState(myProfile.state);
             setBio(myProfile.bio);
             setSkills(JSON.parse(myProfile.specialties || "[]"));
+            setEnsembleTypes(JSON.parse(myProfile.ensembleTypes || "[]"));
             setExperienceLevels(JSON.parse(myProfile.experienceLevels || "[]"));
             setRateHourly(myProfile.rateHourly?.toString() || "");
             setRateHalfDay(myProfile.rateHalfDay?.toString() || "");
@@ -90,6 +92,7 @@ export default function CoachProfileForm() {
       state,
       bio,
       specialties: skills,
+      ensembleTypes,
       experienceLevels,
       rateHourly: rateHourly ? parseFloat(rateHourly) : undefined,
       rateHalfDay: rateHalfDay ? parseFloat(rateHalfDay) : undefined,
@@ -193,6 +196,17 @@ export default function CoachProfileForm() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Ensemble Types You Coach *</label>
+              <div className="flex flex-wrap gap-2">
+                {ENSEMBLE_TYPES.map((t) => (
+                  <button key={t} type="button" onClick={() => toggleArrayItem(ensembleTypes, setEnsembleTypes, t)}
+                    className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                      ensembleTypes.includes(t) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
+                    }`}>{t}</button>
+                ))}
               </div>
             </div>
             <div>

@@ -35,6 +35,7 @@ model CoachProfile {
   photoUrl          String?
   videoUrl          String?
   specialties       String   // JSON array stored as string
+  ensembleTypes     String   @default("[]") // JSON array: "quartet", "chorus", etc.
   experienceLevels  String   // JSON array stored as string
   rateHourly        Float?
   rateHalfDay       Float?

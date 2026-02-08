@@ -114,7 +114,7 @@ export default function BookingDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Coach</h3>
-                <Link href={`/coaches/${booking.coach.id}`} className="text-lg font-semibold text-indigo-600 hover:underline">
+                <Link href={`/coaches/${booking.coach.id}`} className="text-lg font-semibold text-coral-500 hover:underline">
                   {booking.coach.fullName}
                 </Link>
                 <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">

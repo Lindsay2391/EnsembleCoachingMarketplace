@@ -94,11 +94,11 @@ export default function CoachProfilePage() {
       <Card>
         <CardContent className="py-6">
           <div className="flex flex-col sm:flex-row items-start gap-6">
-            <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-24 h-24 rounded-full bg-coral-100 flex items-center justify-center flex-shrink-0">
               {coach.photoUrl ? (
                 <img src={coach.photoUrl} alt={coach.fullName} className="w-24 h-24 rounded-full object-cover" />
               ) : (
-                <span className="text-indigo-600 text-3xl font-bold">{coach.fullName.charAt(0)}</span>
+                <span className="text-coral-500 text-3xl font-bold">{coach.fullName.charAt(0)}</span>
               )}
             </div>
 
@@ -162,7 +162,7 @@ export default function CoachProfilePage() {
               <CardHeader><h2 className="text-lg font-semibold text-gray-900">Video Introduction</h2></CardHeader>
               <CardContent>
                 <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                  <a href={coach.videoUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                  <a href={coach.videoUrl} target="_blank" rel="noopener noreferrer" className="text-coral-500 hover:underline">
                     Watch Video Introduction
                   </a>
                 </div>

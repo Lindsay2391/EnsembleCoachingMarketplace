@@ -228,7 +228,7 @@ export default function CoachDashboard() {
         <Link href="/dashboard/coach/profile">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="py-4 flex items-center gap-3">
-              <User className="h-5 w-5 text-indigo-600" />
+              <User className="h-5 w-5 text-coral-500" />
               <span className="font-medium text-gray-900">Edit Profile</span>
             </CardContent>
           </Card>
@@ -236,7 +236,7 @@ export default function CoachDashboard() {
         <Link href="/dashboard/coach/bookings">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="py-4 flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-indigo-600" />
+              <Calendar className="h-5 w-5 text-coral-500" />
               <span className="font-medium text-gray-900">All Bookings</span>
             </CardContent>
           </Card>
@@ -244,7 +244,7 @@ export default function CoachDashboard() {
         <Link href="/messages">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="py-4 flex items-center gap-3">
-              <MessageSquare className="h-5 w-5 text-indigo-600" />
+              <MessageSquare className="h-5 w-5 text-coral-500" />
               <span className="font-medium text-gray-900">Messages</span>
             </CardContent>
           </Card>

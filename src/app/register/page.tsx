@@ -191,7 +191,7 @@ function RegisterForm() {
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="font-medium text-coral-500 hover:text-coral-500"
               >
                 Sign in
               </Link>

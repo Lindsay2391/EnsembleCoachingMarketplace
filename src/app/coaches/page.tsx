@@ -166,7 +166,7 @@ function CoachBrowseContent() {
               <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="py-5">
                   <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <div className="w-14 h-14 rounded-full bg-coral-100 flex items-center justify-center flex-shrink-0">
                       {coach.photoUrl ? (
                         <img
                           src={coach.photoUrl}
@@ -174,7 +174,7 @@ function CoachBrowseContent() {
                           className="w-14 h-14 rounded-full object-cover"
                         />
                       ) : (
-                        <span className="text-indigo-600 text-xl font-bold">
+                        <span className="text-coral-500 text-xl font-bold">
                           {coach.fullName.charAt(0)}
                         </span>
                       )}

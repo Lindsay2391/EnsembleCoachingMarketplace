@@ -127,7 +127,7 @@ export default function EnsembleProfileForm() {
               {SPECIALTIES.slice(0, 10).map((genre) => (
                 <button key={genre} type="button" onClick={() => toggleGenre(genre)}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                    genres.includes(genre) ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-700 border-gray-300 hover:border-indigo-300"
+                    genres.includes(genre) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
                   }`}>{genre}</button>
               ))}
             </div>

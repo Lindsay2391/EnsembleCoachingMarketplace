@@ -111,7 +111,7 @@ function MessagesContent() {
                 <button key={conv.partnerId}
                   onClick={() => setSelectedPartnerId(conv.partnerId)}
                   className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                    selectedPartnerId === conv.partnerId ? "bg-indigo-50" : ""
+                    selectedPartnerId === conv.partnerId ? "bg-coral-50" : ""
                   }`}>
                   <div className="flex items-center justify-between">
                     <p className="font-medium text-gray-900 text-sm">{conv.partnerName}</p>
@@ -135,12 +135,12 @@ function MessagesContent() {
                   <div key={msg.id} className={`flex ${msg.senderId === session?.user?.id ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-xs md:max-w-md rounded-lg px-4 py-2 ${
                       msg.senderId === session?.user?.id
-                        ? "bg-indigo-600 text-white"
+                        ? "bg-coral-500 text-white"
                         : "bg-gray-100 text-gray-900"
                     }`}>
                       <p className="text-sm">{msg.content}</p>
                       <p className={`text-xs mt-1 ${
-                        msg.senderId === session?.user?.id ? "text-indigo-200" : "text-gray-400"
+                        msg.senderId === session?.user?.id ? "text-coral-200" : "text-gray-400"
                       }`}>
                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </p>
@@ -157,7 +157,7 @@ function MessagesContent() {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type a message..."
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-coral-500 focus:outline-none focus:ring-1 focus:ring-coral-400"
                   />
                   <Button type="submit" disabled={sending || !newMessage.trim()}>
                     <Send className="h-4 w-4" />

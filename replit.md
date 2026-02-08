@@ -29,5 +29,10 @@ A Next.js 14 marketplace for connecting Australian ensemble groups with qualifie
 - `NEXTAUTH_SECRET` - JWT signing secret
 - `NEXTAUTH_URL` - Base URL for NextAuth
 
+## Design
+- **Color scheme**: Warm coral/salmon palette (custom `coral` Tailwind colors), matching thinkingbarbershop.com style
+- **Primary color**: coral-500 (#e8837c)
+
 ## Recent Changes
+- 2026-02-08: Restyled entire app from indigo/purple to coral/salmon color scheme to match thinkingbarbershop.com
 - 2026-02-08: Initial Replit setup - configured port 5000, ran Prisma migrations, set environment variables

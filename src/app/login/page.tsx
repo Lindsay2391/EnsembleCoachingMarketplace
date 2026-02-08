@@ -99,7 +99,7 @@ function LoginForm() {
               Don&apos;t have an account?{" "}
               <Link
                 href="/register"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="font-medium text-coral-500 hover:text-coral-500"
               >
                 Create one
               </Link>

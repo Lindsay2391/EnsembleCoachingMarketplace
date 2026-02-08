@@ -22,7 +22,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <Music className="h-8 w-8 text-indigo-600" />
+              <Music className="h-8 w-8 text-coral-500" />
               <span className="text-xl font-bold text-gray-900">
                 Ensemble Coach
               </span>
@@ -130,7 +130,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="block text-indigo-600 hover:text-indigo-700 py-2 text-sm font-medium"
+                  className="block text-coral-500 hover:text-coral-600 py-2 text-sm font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Get Started

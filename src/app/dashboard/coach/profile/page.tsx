@@ -157,7 +157,7 @@ export default function CoachProfileForm() {
                 {SPECIALTIES.map((s) => (
                   <button key={s} type="button" onClick={() => toggleArrayItem(specialties, setSpecialties, s)}
                     className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                      specialties.includes(s) ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-700 border-gray-300 hover:border-indigo-300"
+                      specialties.includes(s) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
                     }`}>{s}</button>
                 ))}
               </div>
@@ -168,7 +168,7 @@ export default function CoachProfileForm() {
                 {EXPERIENCE_LEVELS.map((l) => (
                   <button key={l} type="button" onClick={() => toggleArrayItem(experienceLevels, setExperienceLevels, l)}
                     className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                      experienceLevels.includes(l) ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-700 border-gray-300 hover:border-indigo-300"
+                      experienceLevels.includes(l) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
                     }`}>{l}</button>
                 ))}
               </div>

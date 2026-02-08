@@ -5,13 +5,12 @@ import Button from "@/components/ui/Button";
 export default function HomePage() {
   return (
     <div>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <section className="bg-gradient-to-br from-coral-50 via-white to-coral-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight">
               Find Your Perfect{" "}
-              <span className="text-indigo-600">Ensemble Coach</span>
+              <span className="text-coral-500">Ensemble Coach</span>
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-gray-600 leading-relaxed">
               Stop wasting time on email tennis. Connect with qualified coaches
@@ -40,7 +39,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -52,8 +50,8 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Search className="h-8 w-8 text-indigo-600" />
+              <div className="w-16 h-16 bg-coral-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Search className="h-8 w-8 text-coral-500" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 1. Discover
@@ -65,8 +63,8 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Calendar className="h-8 w-8 text-indigo-600" />
+              <div className="w-16 h-16 bg-coral-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Calendar className="h-8 w-8 text-coral-500" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 2. Book
@@ -78,8 +76,8 @@ export default function HomePage() {
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Star className="h-8 w-8 text-indigo-600" />
+              <div className="w-16 h-16 bg-coral-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Star className="h-8 w-8 text-coral-500" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 3. Grow
@@ -93,13 +91,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* For Ensembles & Coaches */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <Users className="h-8 w-8 text-indigo-600" />
+                <Users className="h-8 w-8 text-coral-500" />
                 <h3 className="text-2xl font-bold text-gray-900">
                   For Ensembles
                 </h3>
@@ -139,7 +136,7 @@ export default function HomePage() {
 
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <div className="flex items-center gap-3 mb-6">
-                <Shield className="h-8 w-8 text-indigo-600" />
+                <Shield className="h-8 w-8 text-coral-500" />
                 <h3 className="text-2xl font-bold text-gray-900">
                   For Coaches
                 </h3>
@@ -180,13 +177,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-indigo-600">
+      <section className="py-20 bg-coral-500">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white">
             Ready to find your next coach?
           </h2>
-          <p className="mt-4 text-lg text-indigo-100">
+          <p className="mt-4 text-lg text-coral-100">
             Join the growing community of Australian ensembles and coaches on
             Ensemble Coach.
           </p>
@@ -194,7 +190,7 @@ export default function HomePage() {
             <Link href="/coaches">
               <Button
                 size="lg"
-                className="bg-white text-indigo-600 hover:bg-gray-100"
+                className="bg-white text-coral-600 hover:bg-gray-100"
               >
                 Browse Coaches
               </Button>
@@ -203,7 +199,7 @@ export default function HomePage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-indigo-700"
+                className="border-white text-white hover:bg-coral-600"
               >
                 Sign Up Free
               </Button>

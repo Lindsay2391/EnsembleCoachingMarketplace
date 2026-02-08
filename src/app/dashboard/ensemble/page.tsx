@@ -158,7 +158,7 @@ export default function EnsembleDashboard() {
         <Link href="/dashboard/ensemble/profile">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="py-4 flex items-center gap-3">
-              <User className="h-5 w-5 text-indigo-600" />
+              <User className="h-5 w-5 text-coral-500" />
               <span className="font-medium text-gray-900">Edit Profile</span>
             </CardContent>
           </Card>
@@ -166,7 +166,7 @@ export default function EnsembleDashboard() {
         <Link href="/coaches">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="py-4 flex items-center gap-3">
-              <Search className="h-5 w-5 text-indigo-600" />
+              <Search className="h-5 w-5 text-coral-500" />
               <span className="font-medium text-gray-900">Find Coaches</span>
             </CardContent>
           </Card>
@@ -174,7 +174,7 @@ export default function EnsembleDashboard() {
         <Link href="/messages">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="py-4 flex items-center gap-3">
-              <MessageSquare className="h-5 w-5 text-indigo-600" />
+              <MessageSquare className="h-5 w-5 text-coral-500" />
               <span className="font-medium text-gray-900">Messages</span>
             </CardContent>
           </Card>

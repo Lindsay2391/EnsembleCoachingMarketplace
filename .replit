@@ -4,3 +4,42 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.development]
+NEXTAUTH_SECRET = "C0XJ8F1U3SL2HTKCPrweiWVMY85PBNCQcKAIvx7+AaU="
+NEXTAUTH_URL = "https://b696fcda-74d9-4398-9d0c-aaef05d1ec96-00-1hfd6v06hr4dm.worf.replit.dev"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "vm"
+run = ["npm", "run", "start"]
+build = ["npm", "run", "build"]

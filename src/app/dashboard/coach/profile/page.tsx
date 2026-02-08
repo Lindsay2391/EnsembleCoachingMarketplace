@@ -193,15 +193,15 @@ export default function CoachProfileForm() {
       experienceLevels,
       contactMethod,
       contactDetail,
-      rateHourly: rateHourly ? parseFloat(rateHourly) : undefined,
-      rateHalfDay: rateHalfDay ? parseFloat(rateHalfDay) : undefined,
-      rateFullDay: rateFullDay ? parseFloat(rateFullDay) : undefined,
+      rateHourly: ratesOnEnquiry ? null : (rateHourly ? parseFloat(rateHourly) : null),
+      rateHalfDay: ratesOnEnquiry ? null : (rateHalfDay ? parseFloat(rateHalfDay) : null),
+      rateFullDay: ratesOnEnquiry ? null : (rateFullDay ? parseFloat(rateFullDay) : null),
       ratesOnEnquiry,
       currency,
-      photoUrl: photoUrl || undefined,
-      videoUrl: videoUrl || undefined,
-      cancellationPolicy: cancellationPolicy || undefined,
-      travelSupplement: travelSupplement ? parseFloat(travelSupplement) : undefined,
+      travelSupplement: ratesOnEnquiry ? null : (travelSupplement ? parseFloat(travelSupplement) : null),
+      photoUrl: photoUrl || null,
+      videoUrl: videoUrl || null,
+      cancellationPolicy: cancellationPolicy || null,
     };
 
     try {

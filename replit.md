@@ -54,6 +54,10 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - API endpoint `/api/coaches/me` returns the logged-in coach's profile ID
 
 ## Recent Changes
+- 2026-02-08: Fixed "rates on enquiry" validation error; rates/travel now sent as null when toggled on
+- 2026-02-08: Renamed profile sections: "Coaches" → "Ensemble Types", "Teaches" → "Experience Levels"
+- 2026-02-08: YouTube videos now embed directly on coach profiles; non-YouTube URLs fall back to external link
+- 2026-02-08: Unapproved/unverified coaches see a status banner on their own profile explaining visibility
 - 2026-02-08: Made preferred contact method a required field with client + server validation; contact method buttons no longer toggle off
 - 2026-02-08: Rate placeholders now dynamically show currency symbols ($, £, €) based on selected currency
 - 2026-02-08: Replaced coach dashboard with redirect to public profile (or profile creation); navbar shows "My Profile" instead of "Dashboard"

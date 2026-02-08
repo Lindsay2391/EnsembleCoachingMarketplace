@@ -14,15 +14,15 @@ const createCoachSchema = z.object({
   experienceLevels: z.array(z.string()).default([]),
   contactMethod: z.enum(["phone", "email", "website"]),
   contactDetail: z.string().min(1, "Contact detail is required"),
-  rateHourly: z.number().positive().optional(),
-  rateHalfDay: z.number().positive().optional(),
-  rateFullDay: z.number().positive().optional(),
+  rateHourly: z.number().positive().optional().nullable(),
+  rateHalfDay: z.number().positive().optional().nullable(),
+  rateFullDay: z.number().positive().optional().nullable(),
   ratesOnEnquiry: z.boolean().optional(),
   currency: z.string().optional(),
-  photoUrl: z.string().optional().or(z.literal("")),
-  videoUrl: z.string().url().optional().or(z.literal("")),
-  cancellationPolicy: z.string().optional(),
-  travelSupplement: z.number().min(0).optional(),
+  photoUrl: z.string().optional().nullable().or(z.literal("")),
+  videoUrl: z.string().url().optional().nullable().or(z.literal("")),
+  cancellationPolicy: z.string().optional().nullable(),
+  travelSupplement: z.number().min(0).optional().nullable(),
 });
 
 export async function GET(request: Request) {

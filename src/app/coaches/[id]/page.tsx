@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Clock, DollarSign, Star, Shield, Calendar, MessageSquare, Phone, Mail, Globe, Pencil } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, Shield, Calendar, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -35,6 +35,7 @@ interface CoachProfile {
   rating: number;
   totalReviews: number;
   totalBookings: number;
+  approved: boolean;
   verified: boolean;
   cancellationPolicy: string | null;
   travelSupplement: number | null;
@@ -69,6 +70,24 @@ function ContactLabel({ method }: { method: string }) {
     case "email": return <>Email</>;
     case "website": return <>Website</>;
     default: return null;
+  }
+}
+
+function getYouTubeEmbedUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    let videoId: string | null = null;
+    if (parsed.hostname === "youtu.be") {
+      videoId = parsed.pathname.slice(1);
+    } else if (parsed.hostname.includes("youtube.com")) {
+      videoId = parsed.searchParams.get("v");
+      if (!videoId && parsed.pathname.startsWith("/embed/")) {
+        videoId = parsed.pathname.split("/embed/")[1];
+      }
+    }
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+  } catch {
+    return null;
   }
 }
 
@@ -180,6 +199,21 @@ export default function CoachProfilePage() {
         </CardContent>
       </Card>
 
+      {session?.user?.id === coach.userId && (!coach.approved || !coach.verified) && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-amber-800">
+              {!coach.approved && !coach.verified
+                ? "Your profile is pending admin approval and verification. It will not be publicly visible until an admin approves it."
+                : !coach.approved
+                ? "Your profile is pending admin approval. It will not be publicly visible until an admin approves it."
+                : "Your profile is not yet verified. While it is visible, verification adds extra credibility."}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
@@ -189,18 +223,33 @@ export default function CoachProfilePage() {
             </CardContent>
           </Card>
 
-          {coach.videoUrl && (
-            <Card>
-              <CardHeader><h2 className="text-lg font-semibold text-gray-900">Video Introduction</h2></CardHeader>
-              <CardContent>
-                <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                  <a href={coach.videoUrl} target="_blank" rel="noopener noreferrer" className="text-coral-500 hover:underline">
-                    Watch Video Introduction
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {coach.videoUrl && (() => {
+            const embedUrl = getYouTubeEmbedUrl(coach.videoUrl);
+            return (
+              <Card>
+                <CardHeader><h2 className="text-lg font-semibold text-gray-900">Video Introduction</h2></CardHeader>
+                <CardContent>
+                  {embedUrl ? (
+                    <div className="aspect-video rounded-lg overflow-hidden">
+                      <iframe
+                        src={embedUrl}
+                        title="Video Introduction"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                      <a href={coach.videoUrl} target="_blank" rel="noopener noreferrer" className="text-coral-500 hover:underline">
+                        Watch Video Introduction
+                      </a>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           <Card>
             <CardHeader>
@@ -337,7 +386,7 @@ export default function CoachProfilePage() {
 
           {ensembleTypes.length > 0 && (
             <Card>
-              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Clock className="h-4 w-4 inline mr-1" />Coaches</h2></CardHeader>
+              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Clock className="h-4 w-4 inline mr-1" />Ensemble Types</h2></CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {ensembleTypes.map((t) => (<Badge key={t}>{t}</Badge>))}
@@ -347,7 +396,7 @@ export default function CoachProfilePage() {
           )}
 
           <Card>
-            <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Clock className="h-4 w-4 inline mr-1" />Teaches</h2></CardHeader>
+            <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Clock className="h-4 w-4 inline mr-1" />Experience Levels</h2></CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {experienceLevels.map((l) => (<Badge key={l}>{l}</Badge>))}

@@ -10,6 +10,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
+import BuyMeACoffee from "@/components/BuyMeACoffee";
 import { formatCurrency, parseJsonArray, groupSkillsByCategory } from "@/lib/utils";
 
 interface CoachProfile {
@@ -432,6 +433,8 @@ export default function CoachProfilePage() {
               </CardContent>
             </Card>
           )}
+
+          <BuyMeACoffee variant="inline" />
         </div>
       </div>
     </div>

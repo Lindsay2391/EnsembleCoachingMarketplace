@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import BuyMeACoffee from "@/components/BuyMeACoffee";
 
 export default function Footer() {
   return (
@@ -52,6 +53,9 @@ export default function Footer() {
                 <span className="text-sm text-gray-500">
                   help@coachconnect.com.au
                 </span>
+              </li>
+              <li>
+                <BuyMeACoffee variant="footer" />
               </li>
             </ul>
           </div>

@@ -83,6 +83,7 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - **API routes**: POST/GET `/api/reviews/invite`, GET `/api/reviews/invite/[id]`, GET `/api/reviews/invites/pending`, POST `/api/reviews`, GET `/api/coaches/[id]/reviews`, GET/DELETE `/api/admin/reviews[/id]`
 
 ## Recent Changes
+- 2026-02-08: Added "Buy Me a Coffee" support button across the site (footer, home page banner, dashboard, coach profiles) linking to buymeacoffee.com/ThinkingBarbershop with clear messaging that donations support the CoachConnect platform, not individual coaches
 - 2026-02-08: Added notification bell to navbar showing pending review invite count with dropdown for quick access
 - 2026-02-08: Cleaned up ensemble dashboard — removed KPIs and bookings section, kept review invites and quick links
 - 2026-02-08: Removed "Book This Coach" and "Message" buttons from public coach profile page

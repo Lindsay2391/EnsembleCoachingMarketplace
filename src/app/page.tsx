@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Search, MessageCircle, Star, Shield, Users, Music } from "lucide-react";
 import Button from "@/components/ui/Button";
+import BuyMeACoffee from "@/components/BuyMeACoffee";
 
 export default function HomePage() {
   return (
@@ -176,6 +177,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <BuyMeACoffee variant="banner" />
 
       <section className="py-20 bg-coral-500">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

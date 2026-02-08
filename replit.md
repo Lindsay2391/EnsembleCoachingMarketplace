@@ -83,6 +83,12 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - **API routes**: POST/GET `/api/reviews/invite`, GET `/api/reviews/invite/[id]`, GET `/api/reviews/invites/pending`, POST `/api/reviews`, GET `/api/coaches/[id]/reviews`, GET/DELETE `/api/admin/reviews[/id]`
 
 ## Recent Changes
+- 2026-02-08: Added notification bell to navbar showing pending review invite count with dropdown for quick access
+- 2026-02-08: Cleaned up ensemble dashboard — removed KPIs and bookings section, kept review invites and quick links
+- 2026-02-08: Removed "Book This Coach" and "Message" buttons from public coach profile page
+- 2026-02-08: Added hover tooltips on verified skill badges showing which ensembles validated each skill
+- 2026-02-08: Review invites now only target existing ensembles on CoachConnect (search/select UI, backend validation)
+- 2026-02-08: Added `/api/ensembles/search` endpoint for coaches to find registered ensembles
 - 2026-02-08: Implemented coach-initiated review invite system with skill validation, admin moderation, and profile verification display
 - 2026-02-08: Restructured accounts to allow dual profiles — any user can have both coach and ensemble profiles
 - 2026-02-08: Removed coach/ensemble role selection from registration; users now register as generic accounts

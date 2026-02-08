@@ -148,3 +148,7 @@ Skills are now stored in a relational `Skill` table with a `CoachSkill` junction
 
 ## Phase 2 — Future Implementations
 - **Social Login (OAuth)**: Add Google, Facebook (and potentially Apple/GitHub) sign-in via NextAuth.js providers, with account linking for existing email/password users
+- **International Roll-Out**: Expand beyond Australia with country selection, localized content, and region-appropriate defaults
+- **Time Zone Display**: Show time zone differences between ensemble and coach on profiles, especially useful for virtual coaching across regions
+- **Email Notifications**: Automated emails for review invites, profile approvals, new messages, and other key platform events
+- **Analytics Dashboard for Coaches**: Profile views, search appearances, enquiry counts, and other engagement metrics to help coaches understand their reach

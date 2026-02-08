@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
-import { Menu, X, Music, User, LogOut } from "lucide-react";
+import Image from "next/image";
+import { Menu, X, User, LogOut } from "lucide-react";
 import Button from "./ui/Button";
 
 export default function Navbar() {
@@ -22,7 +23,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <Music className="h-8 w-8 text-coral-500" />
+              <Image src="/logo.png" alt="Ensemble Coach" width={36} height={36} className="rounded-full" />
               <span className="text-xl font-bold text-gray-900">
                 Ensemble Coach
               </span>

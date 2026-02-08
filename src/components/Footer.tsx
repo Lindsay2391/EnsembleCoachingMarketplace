@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Music } from "lucide-react";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <Music className="h-6 w-6 text-coral-500" />
+              <Image src="/logo.png" alt="Ensemble Coach" width={28} height={28} className="rounded-full" />
               <span className="text-lg font-bold text-gray-900">
                 Ensemble Coach
               </span>

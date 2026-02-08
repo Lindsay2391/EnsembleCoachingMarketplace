@@ -145,3 +145,6 @@ Skills are now stored in a relational `Skill` table with a `CoachSkill` junction
 - 2026-02-08: Updated Prisma client to use @prisma/adapter-pg, removed SQLite dependencies
 - 2026-02-08: Set production environment variables (NEXTAUTH_SECRET, NEXTAUTH_URL) and configured deployment
 - 2026-02-08: Initial Replit setup - configured port 5000, ran Prisma migrations, set environment variables
+
+## Phase 2 — Future Implementations
+- **Social Login (OAuth)**: Add Google, Facebook (and potentially Apple/GitHub) sign-in via NextAuth.js providers, with account linking for existing email/password users

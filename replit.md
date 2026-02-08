@@ -6,7 +6,7 @@ A Next.js 14 platform for connecting Australian ensemble groups with qualified v
 ## Tech Stack
 - **Framework**: Next.js 14.2 (App Router)
 - **Language**: TypeScript
-- **Database**: SQLite via Prisma ORM with better-sqlite3 adapter
+- **Database**: PostgreSQL (Neon-backed) via Prisma ORM 7 with @prisma/adapter-pg
 - **Auth**: NextAuth.js with credentials provider (JWT strategy)
 - **Styling**: Tailwind CSS
 - **UI**: Lucide React icons, class-variance-authority
@@ -17,7 +17,7 @@ A Next.js 14 platform for connecting Australian ensemble groups with qualified v
 - `src/lib/` - Utilities (auth config, prisma client, types)
 - `src/generated/prisma/` - Generated Prisma client (gitignored)
 - `prisma/` - Schema and migrations
-- `dev.db` - SQLite database file
+- `prisma.config.ts` - Prisma configuration (datasource URL)
 
 ## Running
 - Dev: `npm run dev` (port 5000, bound to 0.0.0.0)
@@ -25,7 +25,7 @@ A Next.js 14 platform for connecting Australian ensemble groups with qualified v
 - Start: `npm run start` (port 5000)
 
 ## Environment Variables
-- `SQLITE_URL` - SQLite connection string (default: file:./dev.db)
+- `DATABASE_URL` - PostgreSQL connection string (auto-set by Replit)
 - `NEXTAUTH_SECRET` - JWT signing secret
 - `NEXTAUTH_URL` - Base URL for NextAuth
 - `ADMIN_SECRET` - Secret code required to register admin accounts (default: CoachConnect2026!)
@@ -93,4 +93,7 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - 2026-02-08: Added ensemble types selector to coach profiles
 - 2026-02-08: Replaced flat specialties with categorized skills system (50+ skills across 7 categories) with accordion UI on profile edit and grouped display on profile view
 - 2026-02-08: Restyled entire app from indigo/purple to coral/salmon color scheme to match thinkingbarbershop.com
+- 2026-02-08: Migrated database from SQLite to PostgreSQL (Neon-backed) for production compatibility
+- 2026-02-08: Updated Prisma client to use @prisma/adapter-pg, removed SQLite dependencies
+- 2026-02-08: Set production environment variables (NEXTAUTH_SECRET, NEXTAUTH_URL) and configured deployment
 - 2026-02-08: Initial Replit setup - configured port 5000, ran Prisma migrations, set environment variables

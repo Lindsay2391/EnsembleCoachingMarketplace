@@ -15,6 +15,10 @@ NEXTAUTH_URL = "https://b696fcda-74d9-4398-9d0c-aaef05d1ec96-00-1hfd6v06hr4dm.wo
 [userenv.shared]
 ADMIN_SECRET = "CoachConnect2026!"
 
+[userenv.production]
+NEXTAUTH_URL = "https://b696fcda-74d9-4398-9d0c-aaef05d1ec96-00-1hfd6v06hr4dm.worf.replit.dev"
+NEXTAUTH_SECRET = "JI2CxjYwQAJQL7CerAk/ByEtxwGmvdrSgmVW1dckHcA="
+
 [workflows]
 runButton = "Project"
 
@@ -44,6 +48,6 @@ localPort = 5000
 externalPort = 80
 
 [deployment]
-deploymentTarget = "vm"
+deploymentTarget = "autoscale"
 run = ["npm", "run", "start"]
 build = ["npm", "run", "build"]

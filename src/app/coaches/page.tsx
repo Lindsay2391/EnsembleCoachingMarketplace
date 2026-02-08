@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, MapPin, Filter, X, Heart } from "lucide-react";
+import { Search, MapPin, Filter, X, Heart, Plus } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
@@ -76,6 +76,10 @@ function CoachBrowseContent() {
   const [experienceLevel, setExperienceLevel] = useState(searchParams.get("experienceLevel") || "");
   const [page, setPage] = useState(1);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [skillSearchTerm, setSkillSearchTerm] = useState("");
+  const [skillSearchResults, setSkillSearchResults] = useState<Array<{ id: string; name: string; category: string; coachCount: number }>>([]);
+  const [skillSearchLoading, setSkillSearchLoading] = useState(false);
+  const [showSkillSearch, setShowSkillSearch] = useState(false);
 
   useEffect(() => {
     fetch("/api/skills")
@@ -83,6 +87,28 @@ function CoachBrowseContent() {
       .then(data => setSkillCategories(data.skills || {}))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!skillSearchTerm || skillSearchTerm.length < 2) {
+      setSkillSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSkillSearchLoading(true);
+      try {
+        const res = await fetch(`/api/skills?mode=search&search=${encodeURIComponent(skillSearchTerm)}`);
+        const data = await res.json();
+        setSkillSearchResults((data.results || []).filter(
+          (s: { name: string }) => !selectedSkills.includes(s.name)
+        ));
+      } catch {
+        setSkillSearchResults([]);
+      } finally {
+        setSkillSearchLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [skillSearchTerm, selectedSkills]);
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills(prev =>
@@ -294,6 +320,50 @@ function CoachBrowseContent() {
                     ))}
                   </div>
                 )}
+
+                <div className="relative mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search for a skill..."
+                        value={skillSearchTerm}
+                        onChange={(e) => { setSkillSearchTerm(e.target.value); setShowSkillSearch(true); }}
+                        onFocus={() => setShowSkillSearch(true)}
+                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-coral-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                  {showSkillSearch && skillSearchTerm.length >= 2 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {skillSearchLoading ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">Searching...</div>
+                      ) : skillSearchResults.length === 0 ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">No skills found</div>
+                      ) : (
+                        skillSearchResults.map(s => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => {
+                              toggleSkill(s.name);
+                              setSkillSearchTerm("");
+                              setShowSkillSearch(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-coral-50 transition-colors flex items-center justify-between"
+                          >
+                            <span>
+                              <span className="text-gray-900">{s.name}</span>
+                              <span className="text-gray-400 ml-2 text-xs">{s.category}</span>
+                            </span>
+                            <span className="text-gray-400 text-xs">{s.coachCount} coach{s.coachCount !== 1 ? "es" : ""}</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <div className="space-y-2">
                   {Object.entries(skillCategories).map(([category, categorySkills]) => {

@@ -184,6 +184,7 @@ model Skill {
   name         String
   category     String
   isCustom     Boolean  @default(false)
+  showInFilter Boolean  @default(true)
   createdAt    DateTime @default(now())
 
   coachSkills  CoachSkill[]

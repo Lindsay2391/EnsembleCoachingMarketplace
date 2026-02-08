@@ -8,9 +8,12 @@ export type AuditAction =
   | "coach_deleted"
   | "user_deleted"
   | "admin_registered"
-  | "review_deleted";
+  | "review_deleted"
+  | "skill_hidden"
+  | "skill_shown"
+  | "skill_deleted";
 
-export type AuditTargetType = "coach" | "user" | "review";
+export type AuditTargetType = "coach" | "user" | "review" | "skill";
 
 export async function logAdminAction({
   adminId,

@@ -3,8 +3,37 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+const CUSTOM_SKILL_FILTER_THRESHOLD = 5;
+
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const mode = searchParams.get("mode");
+    const search = searchParams.get("search");
+
+    if (mode === "search" && search) {
+      const skills = await prisma.skill.findMany({
+        where: {
+          name: { contains: search, mode: "insensitive" },
+        },
+        include: {
+          _count: { select: { coachSkills: true } },
+        },
+        orderBy: { name: "asc" },
+        take: 20,
+      });
+
+      return NextResponse.json({
+        results: skills.map(s => ({
+          id: s.id,
+          name: s.name,
+          category: s.category,
+          isCustom: s.isCustom,
+          coachCount: s._count.coachSkills,
+        })),
+      });
+    }
+
     const skills = await prisma.skill.findMany({
       orderBy: [
         { isCustom: "asc" },
@@ -12,6 +41,7 @@ export async function GET() {
         { name: "asc" },
       ],
       include: {
+        _count: { select: { coachSkills: true } },
         coachSkills: {
           select: {
             endorsementCount: true,
@@ -20,12 +50,22 @@ export async function GET() {
       },
     });
 
-    const grouped: Record<string, Array<{
+    const filterSkills: Record<string, Array<{
       id: string;
       name: string;
       category: string;
       isCustom: boolean;
       totalEndorsements: number;
+      coachCount: number;
+    }>> = {};
+
+    const allSkills: Record<string, Array<{
+      id: string;
+      name: string;
+      category: string;
+      isCustom: boolean;
+      totalEndorsements: number;
+      coachCount: number;
     }>> = {};
 
     for (const skill of skills) {
@@ -33,21 +73,34 @@ export async function GET() {
         (sum, cs) => sum + cs.endorsementCount,
         0
       );
+      const coachCount = skill._count.coachSkills;
 
-      if (!grouped[skill.category]) {
-        grouped[skill.category] = [];
-      }
-
-      grouped[skill.category].push({
+      const entry = {
         id: skill.id,
         name: skill.name,
         category: skill.category,
         isCustom: skill.isCustom,
         totalEndorsements,
-      });
+        coachCount,
+      };
+
+      if (!allSkills[skill.category]) {
+        allSkills[skill.category] = [];
+      }
+      allSkills[skill.category].push(entry);
+
+      const showInFilter = skill.showInFilter &&
+        (!skill.isCustom || coachCount >= CUSTOM_SKILL_FILTER_THRESHOLD);
+
+      if (showInFilter) {
+        if (!filterSkills[skill.category]) {
+          filterSkills[skill.category] = [];
+        }
+        filterSkills[skill.category].push(entry);
+      }
     }
 
-    return NextResponse.json({ skills: grouped });
+    return NextResponse.json({ skills: filterSkills, allSkills });
   } catch (error) {
     console.error("Error fetching skills:", error);
     return NextResponse.json(
@@ -103,6 +156,7 @@ export async function POST(request: Request) {
         name: name.trim(),
         category: category.trim(),
         isCustom: true,
+        showInFilter: true,
       },
     });
 

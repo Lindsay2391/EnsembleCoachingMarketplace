@@ -47,9 +47,12 @@ A Next.js 14 platform for connecting Australian ensemble groups with qualified v
 ## Coach Skills System (Database-Driven, Feb 2026)
 Skills are now stored in a relational `Skill` table with a `CoachSkill` junction table, replacing the old JSON-only approach:
 - **4 categories** (26 skills): Musicality (5), Singing (7), Performance (7), Learning & Process (7)
-- **Skill table**: id, name, category, isCustom — supports custom user-created skills
+- **Skill table**: id, name, category, isCustom, showInFilter — supports custom user-created skills
 - **CoachSkill table**: coachProfileId, skillId, displayOrder, endorsementCount — tracks which skills each coach has, their display order, and how many endorsements from reviews
-- **API**: `GET /api/skills` returns skills grouped by category; `POST /api/skills` creates custom skills
+- **Filter logic**: Predefined skills always show in browse filter (unless admin hides). Custom skills auto-appear in filter when 5+ coaches have them. `showInFilter` flag allows admin override.
+- **API**: `GET /api/skills` returns filter-eligible and all skills; `GET /api/skills?mode=search&search=X` for autocomplete; `POST /api/skills` creates custom skills
+- **Admin API**: `GET/PATCH/DELETE /api/admin/skills` — list skills with coach counts, toggle showInFilter, delete custom skills (predefined protected server-side)
+- **Browse page**: Skill search autocomplete above category accordions; searches all skills including those below threshold
 - **Backward compat**: The `specialties` JSON column on CoachProfile is still written to but coachSkills relation is preferred
 - **Review validation**: When ensembles validate coach skills in reviews, `endorsementCount` on CoachSkill is incremented
 - **Seed scripts**: `prisma/seed-skills.ts` migrates existing coaches; `prisma/seed.ts` creates test data with CoachSkill records
@@ -65,7 +68,7 @@ Skills are now stored in a relational `Skill` table with a `CoachSkill` junction
 - Admin accounts are protected from deletion (both UI and API)
 - All admin API routes under `/api/admin/` are protected with session-based auth checks
 - **Audit Log**: All admin actions are logged to `AdminAuditLog` table with admin name, action type, target, and timestamp
-  - Actions tracked: coach approve/reject/verify/unverify/delete, user delete, admin registration
+  - Actions tracked: coach approve/reject/verify/unverify/delete, user delete, admin registration, skill hide/show/delete
   - Viewable in the "Activity Log" tab of the admin panel (most recent 100 entries)
   - Helper function in `src/lib/audit.ts` used by all admin API routes
 
@@ -92,17 +95,6 @@ Skills are now stored in a relational `Skill` table with a `CoachSkill` junction
 - **Admin moderation**: Reviews tab in admin panel with delete capability; audit logged
 - **API routes**: POST/GET `/api/reviews/invite`, GET `/api/reviews/invite/[id]`, GET `/api/reviews/invites/pending`, POST `/api/reviews`, GET `/api/coaches/[id]/reviews`, GET/DELETE `/api/admin/reviews[/id]`
 
-## Coach Skills System (Database-Driven, Feb 2026)
-Skills are now stored in a relational `Skill` table with a `CoachSkill` junction table, replacing the old JSON-only approach:
-- **4 categories** (26 skills): Musicality (5), Singing (7), Performance (7), Learning & Process (7)
-- **Skill table**: id, name, category, isCustom — supports custom user-created skills
-- **CoachSkill table**: coachProfileId, skillId, displayOrder, endorsementCount — tracks which skills each coach has, their display order, and how many endorsements from reviews
-- **API**: `GET /api/skills` returns skills grouped by category; `POST /api/skills` creates custom skills
-- **Backward compat**: The `specialties` JSON column on CoachProfile is still written to but coachSkills relation is preferred
-- **Review validation**: When ensembles validate coach skills in reviews, `endorsementCount` on CoachSkill is incremented
-- **Seed scripts**: `prisma/seed-skills.ts` migrates existing coaches; `prisma/seed.ts` creates test data with CoachSkill records
-- Helper functions in `src/lib/utils.ts`: `COACH_SKILLS`, `ALL_SKILLS`, `getSkillCategory()`, `groupSkillsByCategory()`
-
 ## Favourites & Smart Sorting
 - Users can favourite coaches via heart icon on browse page and coach profile pages
 - Favourite coaches appear at the top of the "Find Coaches" page
@@ -113,6 +105,9 @@ Skills are now stored in a relational `Skill` table with a `CoachSkill` junction
 - Optimistic UI updates with rollback on failure
 
 ## Recent Changes
+- 2026-02-08: Added smart skill filter management: predefined skills always show in filter, custom skills auto-appear when 5+ coaches have them, admin can toggle visibility
+- 2026-02-08: Added skill search autocomplete to browse page filter panel that searches all skills including those below threshold
+- 2026-02-08: Created Admin Skills tab with ability to view all skills with coach counts, toggle showInFilter flag, and delete custom skills (predefined protected server-side)
 - 2026-02-08: Multiple ensemble profiles per user — users can now create and manage multiple ensembles from the dashboard; ensemble names must be unique per state; search displays state only for duplicate names
 - 2026-02-08: Updated footer and hero to say "Australian Barbershop community"; added review mention to For Ensembles card; removed bookings completed indicator from coach profiles
 - 2026-02-08: Added favourites system — users can favourite coaches with heart button; favourited coaches always appear first on browse page; smart sorting ranks nearby coaches with matching skills higher for ensemble members

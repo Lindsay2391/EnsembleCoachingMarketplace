@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star } from "lucide-react";
+import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb } from "lucide-react";
 import StarRating from "@/components/ui/StarRating";
 import { Card, CardContent } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -61,6 +61,16 @@ interface ReviewItem {
   reviewer: { ensembleName: string };
 }
 
+interface AdminSkillItem {
+  id: string;
+  name: string;
+  category: string;
+  isCustom: boolean;
+  showInFilter: boolean;
+  coachCount: number;
+  createdAt: string;
+}
+
 const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   coach_approved: { label: "Approved Coach", color: "bg-green-100 text-green-800" },
   coach_rejected: { label: "Rejected Coach", color: "bg-red-100 text-red-800" },
@@ -70,6 +80,9 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   user_deleted: { label: "Deleted User", color: "bg-red-100 text-red-800" },
   admin_registered: { label: "Admin Registered", color: "bg-purple-100 text-purple-800" },
   review_deleted: { label: "Deleted Review", color: "bg-red-100 text-red-800" },
+  skill_hidden: { label: "Hidden Skill", color: "bg-yellow-100 text-yellow-800" },
+  skill_shown: { label: "Shown Skill", color: "bg-green-100 text-green-800" },
+  skill_deleted: { label: "Deleted Skill", color: "bg-red-100 text-red-800" },
 };
 
 export default function AdminDashboard() {
@@ -80,7 +93,8 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [adminReviews, setAdminReviews] = useState<ReviewItem[]>([]);
-  const [activeTab, setActiveTab] = useState<"coaches" | "users" | "reviews" | "audit">("coaches");
+  const [adminSkills, setAdminSkills] = useState<AdminSkillItem[]>([]);
+  const [activeTab, setActiveTab] = useState<"coaches" | "users" | "reviews" | "skills" | "audit">("coaches");
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -90,6 +104,15 @@ export default function AdminDashboard() {
       if (res.ok) setAdminReviews(await res.json());
     } catch (err) {
       console.error("Error fetching reviews:", err);
+    }
+  }, []);
+
+  const fetchSkills = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/skills");
+      if (res.ok) setAdminSkills(await res.json());
+    } catch (err) {
+      console.error("Error fetching skills:", err);
     }
   }, []);
 
@@ -112,13 +135,13 @@ export default function AdminDashboard() {
         setUsers(usersData.users || usersData);
       }
       if (auditRes.ok) setAuditLogs(await auditRes.json());
-      await fetchReviews();
+      await Promise.all([fetchReviews(), fetchSkills()]);
     } catch (err) {
       console.error("Error:", err);
     } finally {
       setLoading(false);
     }
-  }, [fetchReviews]);
+  }, [fetchReviews, fetchSkills]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -189,6 +212,42 @@ export default function AdminDashboard() {
       } else {
         const data = await res.json();
         alert(data.error || "Failed to delete user");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const toggleSkillFilter = async (id: string, showInFilter: boolean) => {
+    setUpdatingId(id);
+    try {
+      const res = await fetch("/api/admin/skills", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, showInFilter }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setAdminSkills(prev => prev.map(s => s.id === id ? updated : s));
+        await refreshAuditLog();
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const deleteSkill = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete the skill "${name}"? This will remove it from all coach profiles.`)) return;
+    setUpdatingId(id);
+    try {
+      const res = await fetch(`/api/admin/skills?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setAdminSkills(prev => prev.filter(s => s.id !== id));
+        await refreshAuditLog();
       }
     } catch (err) {
       console.error("Error:", err);
@@ -315,6 +374,17 @@ export default function AdminDashboard() {
         >
           <Star className="h-4 w-4" />
           Reviews
+        </button>
+        <button
+          onClick={() => setActiveTab("skills")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 ${
+            activeTab === "skills"
+              ? "bg-coral-500 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <Lightbulb className="h-4 w-4" />
+          Skills
         </button>
         <button
           onClick={() => setActiveTab("audit")}
@@ -539,6 +609,97 @@ export default function AdminDashboard() {
                       </td>
                     </tr>
                   ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {activeTab === "skills" && (
+        <Card>
+          <CardContent className="py-4">
+            <p className="text-sm text-gray-500 mb-4">
+              Predefined skills always show in the filter. Custom skills appear automatically when 5+ coaches have them.
+              You can manually hide any skill from the filter or delete custom skills.
+            </p>
+          </CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Skill</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Coaches</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">In Filter</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {adminSkills.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      No skills found
+                    </td>
+                  </tr>
+                ) : (
+                  adminSkills.map((skill) => {
+                    const meetsThreshold = !skill.isCustom || skill.coachCount >= 5;
+                    const effectivelyInFilter = skill.showInFilter && meetsThreshold;
+                    return (
+                      <tr key={skill.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-3 font-medium text-gray-900 text-sm">{skill.name}</td>
+                        <td className="px-6 py-3 text-sm text-gray-600">{skill.category}</td>
+                        <td className="px-6 py-3">
+                          {skill.isCustom ? (
+                            <Badge variant="warning">Custom</Badge>
+                          ) : (
+                            <Badge variant="info">Predefined</Badge>
+                          )}
+                        </td>
+                        <td className="px-6 py-3 text-sm text-gray-600">{skill.coachCount}</td>
+                        <td className="px-6 py-3">
+                          {effectivelyInFilter ? (
+                            <Badge variant="success">Visible</Badge>
+                          ) : !skill.showInFilter ? (
+                            <Badge variant="danger">Hidden by admin</Badge>
+                          ) : (
+                            <Badge variant="default">Below threshold</Badge>
+                          )}
+                        </td>
+                        <td className="px-6 py-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => toggleSkillFilter(skill.id, !skill.showInFilter)}
+                              disabled={updatingId === skill.id}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${
+                                skill.showInFilter
+                                  ? "bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
+                                  : "bg-green-50 text-green-700 hover:bg-green-100"
+                              }`}
+                            >
+                              {skill.showInFilter ? (
+                                <><EyeOff className="h-3.5 w-3.5" /> Hide</>
+                              ) : (
+                                <><Eye className="h-3.5 w-3.5" /> Show</>
+                              )}
+                            </button>
+                            {skill.isCustom && (
+                              <button
+                                onClick={() => deleteSkill(skill.id, skill.name)}
+                                disabled={updatingId === skill.id}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

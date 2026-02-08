@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import Image from "next/image";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, Shield } from "lucide-react";
 import Button from "./ui/Button";
 
 export default function Navbar() {
@@ -38,9 +38,10 @@ export default function Navbar() {
               {session && (
                 <Link
                   href={getDashboardLink()}
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center gap-1.5"
                 >
-                  Dashboard
+                  {session.user.userType === "admin" && <Shield className="h-4 w-4" />}
+                  {session.user.userType === "admin" ? "Admin Panel" : "Dashboard"}
                 </Link>
               )}
             </div>
@@ -111,7 +112,7 @@ export default function Navbar() {
                   className="block text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Dashboard
+                  {session.user.userType === "admin" ? "Admin Panel" : "Dashboard"}
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}

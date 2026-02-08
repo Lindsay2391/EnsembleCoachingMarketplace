@@ -10,21 +10,16 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const [totalUsers, totalCoaches, pendingApprovals, verifiedCoaches] = await Promise.all([
-      prisma.user.count(),
-      prisma.coachProfile.count(),
-      prisma.coachProfile.count({ where: { approved: false } }),
-      prisma.coachProfile.count({ where: { verified: true } }),
-    ]);
-
-    return NextResponse.json({
-      totalUsers,
-      totalCoaches,
-      pendingApprovals,
-      verifiedCoaches,
+    const coaches = await prisma.coachProfile.findMany({
+      include: {
+        user: { select: { id: true, email: true, name: true, createdAt: true } },
+      },
+      orderBy: { createdAt: "desc" },
     });
+
+    return NextResponse.json(coaches);
   } catch (error) {
-    console.error("Admin stats error:", error);
+    console.error("Admin coaches error:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

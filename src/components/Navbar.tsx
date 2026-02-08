@@ -41,7 +41,7 @@ export default function Navbar() {
                   className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center gap-1.5"
                 >
                   {session.user.userType === "admin" && <Shield className="h-4 w-4" />}
-                  {session.user.userType === "admin" ? "Admin Panel" : "Dashboard"}
+                  {session.user.userType === "admin" ? "Admin Panel" : "My Profile"}
                 </Link>
               )}
             </div>
@@ -112,7 +112,7 @@ export default function Navbar() {
                   className="block text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {session.user.userType === "admin" ? "Admin Panel" : "Dashboard"}
+                  {session.user.userType === "admin" ? "Admin Panel" : "My Profile"}
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}

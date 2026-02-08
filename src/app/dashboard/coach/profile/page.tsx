@@ -140,6 +140,15 @@ export default function CoachProfileForm() {
     }
   };
 
+  const getCurrencySymbol = () => {
+    switch (currency) {
+      case "AUD": case "NZD": case "USD": return "$";
+      case "GBP": return "£";
+      case "EUR": return "€";
+      default: return "$";
+    }
+  };
+
   const getContactPlaceholder = () => {
     switch (contactMethod) {
       case "phone": return "+61 4XX XXX XXX";
@@ -162,6 +171,16 @@ export default function CoachProfileForm() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!contactMethod) {
+      setError("Please select a preferred contact method.");
+      return;
+    }
+    if (!contactDetail) {
+      setError("Please provide your contact details.");
+      return;
+    }
+
     setSaving(true);
 
     const payload = {
@@ -172,8 +191,8 @@ export default function CoachProfileForm() {
       specialties: skills,
       ensembleTypes,
       experienceLevels,
-      contactMethod: contactMethod || null,
-      contactDetail: contactDetail || null,
+      contactMethod,
+      contactDetail,
       rateHourly: rateHourly ? parseFloat(rateHourly) : undefined,
       rateHalfDay: rateHalfDay ? parseFloat(rateHalfDay) : undefined,
       rateFullDay: rateFullDay ? parseFloat(rateFullDay) : undefined,
@@ -269,7 +288,7 @@ export default function CoachProfileForm() {
           <CardHeader><h2 className="text-lg font-semibold">Preferred Contact Method</h2></CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">How should ensembles contact you?</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">How should ensembles contact you? <span className="text-red-500">*</span></label>
               <div className="flex flex-wrap gap-3">
                 {CONTACT_METHODS.map((m) => {
                   const Icon = m.icon;
@@ -277,7 +296,7 @@ export default function CoachProfileForm() {
                     <button
                       key={m.value}
                       type="button"
-                      onClick={() => setContactMethod(contactMethod === m.value ? "" : m.value)}
+                      onClick={() => setContactMethod(m.value)}
                       className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
                         contactMethod === m.value
                           ? "bg-coral-500 text-white border-coral-500"
@@ -294,11 +313,12 @@ export default function CoachProfileForm() {
             {contactMethod && (
               <Input
                 id="contactDetail"
-                label={getContactLabel()}
+                label={`${getContactLabel()} *`}
                 value={contactDetail}
                 onChange={(e) => setContactDetail(e.target.value)}
                 placeholder={getContactPlaceholder()}
                 type={contactMethod === "email" ? "email" : "text"}
+                required
               />
             )}
           </CardContent>
@@ -405,11 +425,11 @@ export default function CoachProfileForm() {
                   options={CURRENCIES}
                 />
                 <div className="grid grid-cols-3 gap-4">
-                  <Input id="rateHourly" label="Hourly Rate" type="number" min="0" step="0.01" value={rateHourly} onChange={(e) => setRateHourly(e.target.value)} placeholder="$150" />
-                  <Input id="rateHalfDay" label="Half Day Rate" type="number" min="0" step="0.01" value={rateHalfDay} onChange={(e) => setRateHalfDay(e.target.value)} placeholder="$500" />
-                  <Input id="rateFullDay" label="Full Day Rate" type="number" min="0" step="0.01" value={rateFullDay} onChange={(e) => setRateFullDay(e.target.value)} placeholder="$900" />
+                  <Input id="rateHourly" label="Hourly Rate" type="number" min="0" step="0.01" value={rateHourly} onChange={(e) => setRateHourly(e.target.value)} placeholder={`${getCurrencySymbol()}150`} />
+                  <Input id="rateHalfDay" label="Half Day Rate" type="number" min="0" step="0.01" value={rateHalfDay} onChange={(e) => setRateHalfDay(e.target.value)} placeholder={`${getCurrencySymbol()}500`} />
+                  <Input id="rateFullDay" label="Full Day Rate" type="number" min="0" step="0.01" value={rateFullDay} onChange={(e) => setRateFullDay(e.target.value)} placeholder={`${getCurrencySymbol()}900`} />
                 </div>
-                <Input id="travelSupplement" label="Travel Supplement (optional)" type="number" min="0" step="0.01" value={travelSupplement} onChange={(e) => setTravelSupplement(e.target.value)} placeholder="Additional travel cost" />
+                <Input id="travelSupplement" label="Travel Supplement (optional)" type="number" min="0" step="0.01" value={travelSupplement} onChange={(e) => setTravelSupplement(e.target.value)} placeholder={`${getCurrencySymbol()}0`} />
               </>
             )}
           </CardContent>
@@ -427,9 +447,11 @@ export default function CoachProfileForm() {
           <Button type="submit" disabled={saving} size="lg">
             {saving ? "Saving..." : existingId ? "Update Profile" : "Create Profile"}
           </Button>
-          <Button type="button" variant="outline" size="lg" onClick={() => router.push("/dashboard/coach")}>
-            Cancel
-          </Button>
+          {existingId && (
+            <Button type="button" variant="outline" size="lg" onClick={() => router.push(`/coaches/${existingId}`)}>
+              View Profile
+            </Button>
+          )}
         </div>
       </form>
     </div>

@@ -45,7 +45,20 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - All admin API routes under `/api/admin/` are protected with session-based auth checks
 - Admin users see "Admin Panel" link in navbar instead of "Dashboard"
 
+## Coach Navigation Flow
+- Coach users clicking "My Profile" in navbar go to `/dashboard/coach` which redirects:
+  - If they have a profile: redirects to `/coaches/{id}` (their public profile)
+  - If no profile exists: redirects to `/dashboard/coach/profile` (profile creation form)
+- Edit Profile button appears on public coach profile page when the coach is logged in
+- Profile edit form cancel button links back to public profile view
+- API endpoint `/api/coaches/me` returns the logged-in coach's profile ID
+
 ## Recent Changes
+- 2026-02-08: Made preferred contact method a required field with client + server validation; contact method buttons no longer toggle off
+- 2026-02-08: Rate placeholders now dynamically show currency symbols ($, £, €) based on selected currency
+- 2026-02-08: Replaced coach dashboard with redirect to public profile (or profile creation); navbar shows "My Profile" instead of "Dashboard"
+- 2026-02-08: Added "Edit Profile" button on public coach profile page visible only to the owning coach
+- 2026-02-08: Added `/api/coaches/me` endpoint for looking up logged-in coach's profile ID
 - 2026-02-08: Added full admin panel with registration, dashboard, coach management, and user management
 - 2026-02-08: Renamed site from "Ensemble Coach" to "CoachConnect" with "by Thinking Barbershop" branding throughout
 - 2026-02-08: Rephrased home page text to remove references to reviews, pricing, availability, and booking (not yet implemented); renamed "Book" step to "Connect"

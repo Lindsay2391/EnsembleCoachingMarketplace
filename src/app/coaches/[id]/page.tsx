@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Clock, DollarSign, Star, Shield, Calendar, MessageSquare, Phone, Mail, Globe } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, Shield, Calendar, MessageSquare, Phone, Mail, Globe, Pencil } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -149,6 +149,16 @@ export default function CoachProfilePage() {
                 </span>
               </div>
 
+              {session?.user?.id === coach.userId && (
+                <div className="flex gap-3 mt-4">
+                  <Link href="/dashboard/coach/profile">
+                    <Button>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  </Link>
+                </div>
+              )}
               {session?.user?.userType === "ensemble" && (
                 <div className="flex gap-3 mt-4">
                   <Link href={`/bookings/new?coachId=${coach.id}`}>

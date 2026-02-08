@@ -12,10 +12,14 @@ const updateCoachSchema = z.object({
   specialties: z.array(z.string()).optional(),
   ensembleTypes: z.array(z.string()).optional(),
   experienceLevels: z.array(z.string()).optional(),
+  contactMethod: z.enum(["phone", "email", "website"]).optional().nullable(),
+  contactDetail: z.string().optional().nullable(),
   rateHourly: z.number().positive().optional().nullable(),
   rateHalfDay: z.number().positive().optional().nullable(),
   rateFullDay: z.number().positive().optional().nullable(),
-  photoUrl: z.string().url().optional().nullable().or(z.literal("")),
+  ratesOnEnquiry: z.boolean().optional(),
+  currency: z.string().optional(),
+  photoUrl: z.string().optional().nullable().or(z.literal("")),
   videoUrl: z.string().url().optional().nullable().or(z.literal("")),
   cancellationPolicy: z.string().optional().nullable(),
   travelSupplement: z.number().min(0).optional().nullable(),
@@ -121,9 +125,13 @@ export async function PUT(
     if (data.specialties !== undefined) updateData.specialties = JSON.stringify(data.specialties);
     if (data.ensembleTypes !== undefined) updateData.ensembleTypes = JSON.stringify(data.ensembleTypes);
     if (data.experienceLevels !== undefined) updateData.experienceLevels = JSON.stringify(data.experienceLevels);
+    if (data.contactMethod !== undefined) updateData.contactMethod = data.contactMethod;
+    if (data.contactDetail !== undefined) updateData.contactDetail = data.contactDetail;
     if (data.rateHourly !== undefined) updateData.rateHourly = data.rateHourly;
     if (data.rateHalfDay !== undefined) updateData.rateHalfDay = data.rateHalfDay;
     if (data.rateFullDay !== undefined) updateData.rateFullDay = data.rateFullDay;
+    if (data.ratesOnEnquiry !== undefined) updateData.ratesOnEnquiry = data.ratesOnEnquiry;
+    if (data.currency !== undefined) updateData.currency = data.currency;
     if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl || null;
     if (data.videoUrl !== undefined) updateData.videoUrl = data.videoUrl || null;
     if (data.cancellationPolicy !== undefined) updateData.cancellationPolicy = data.cancellationPolicy;

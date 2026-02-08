@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 
 interface Stats {

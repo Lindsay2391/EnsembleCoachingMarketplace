@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Search, MapPin, Filter, X } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -22,6 +23,8 @@ interface Coach {
   specialties: string;
   experienceLevels: string;
   rateHourly: number | null;
+  ratesOnEnquiry: boolean;
+  currency: string;
   rating: number;
   totalReviews: number;
   totalBookings: number;
@@ -270,11 +273,13 @@ function CoachBrowseContent() {
                 <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
                   <CardContent className="py-5">
                     <div className="flex items-start gap-4">
-                      <div className="w-14 h-14 rounded-full bg-coral-100 flex items-center justify-center flex-shrink-0">
+                      <div className="w-14 h-14 rounded-full bg-coral-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                         {coach.photoUrl ? (
-                          <img
+                          <Image
                             src={coach.photoUrl}
                             alt={coach.fullName}
+                            width={56}
+                            height={56}
                             className="w-14 h-14 rounded-full object-cover"
                           />
                         ) : (
@@ -329,11 +334,13 @@ function CoachBrowseContent() {
                           ({coach.totalReviews})
                         </span>
                       </div>
-                      {coach.rateHourly && (
+                      {coach.ratesOnEnquiry ? (
+                        <span className="text-sm text-gray-500 italic">On enquiry</span>
+                      ) : coach.rateHourly ? (
                         <span className="text-sm font-medium text-gray-900">
-                          {formatCurrency(coach.rateHourly)}/hr
+                          {formatCurrency(coach.rateHourly, coach.currency)}/hr
                         </span>
-                      )}
+                      ) : null}
                     </div>
                   </CardContent>
                 </Card>

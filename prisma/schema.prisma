@@ -37,9 +37,12 @@ model CoachProfile {
   specialties       String   // JSON array stored as string
   ensembleTypes     String   @default("[]") // JSON array: "quartet", "chorus", etc.
   experienceLevels  String   // JSON array stored as string
+  contactMethod     String?  // "phone", "email", "website"
+  contactDetail     String?
   rateHourly        Float?
   rateHalfDay       Float?
   rateFullDay       Float?
+  ratesOnEnquiry    Boolean  @default(false)
   currency          String   @default("AUD")
   availability      String?  // JSON stored as string
   rating            Float    @default(0)

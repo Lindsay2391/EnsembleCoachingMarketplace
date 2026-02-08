@@ -5,14 +5,15 @@ import Button from "@/components/ui/Button";
 export default function HomePage() {
   return (
     <div>
-      <section className="bg-gradient-to-br from-coral-50 via-white to-coral-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+      <section className="relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/hero-bg.jpg')" }}>
+        <div className="absolute inset-0 bg-slate-800/60" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
               Find Your Perfect{" "}
-              <span className="text-coral-500">Ensemble Coach</span>
+              <span className="text-coral-300">Ensemble Coach</span>
             </h1>
-            <p className="mt-6 text-lg sm:text-xl text-gray-600 leading-relaxed">
+            <p className="mt-6 text-lg sm:text-xl text-gray-200 leading-relaxed">
               Stop wasting time on email tennis. Connect with qualified coaches
               who specialise in your style, book with confidence, and take your
               group to the next level.
@@ -25,13 +26,13 @@ export default function HomePage() {
                 </Button>
               </Link>
               <Link href="/register?type=coach">
-                <Button variant="outline" size="lg">
+                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
                   <Music className="h-5 w-5 mr-2" />
                   Join as a Coach
                 </Button>
               </Link>
             </div>
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-sm text-gray-300">
               Free to browse. Free to join. Built for the Australian ensemble
               community.
             </p>

@@ -27,41 +27,46 @@ export async function GET(request: Request) {
       );
     }
 
-    const user = session.user as { id: string; userType: string };
+    const user = session.user as { id: string };
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const role = searchParams.get("role");
 
     const where: Record<string, unknown> = {};
     if (status) {
       where.status = status;
     }
 
-    if (user.userType === "coach") {
-      const coachProfile = await prisma.coachProfile.findUnique({
-        where: { userId: user.id },
-      });
+    const [coachProfile, ensembleProfile] = await Promise.all([
+      prisma.coachProfile.findUnique({ where: { userId: user.id } }),
+      prisma.ensembleProfile.findUnique({ where: { userId: user.id } }),
+    ]);
 
+    if (role === "coach") {
       if (!coachProfile) {
         return NextResponse.json(
           { error: "Coach profile not found" },
           { status: 404 }
         );
       }
-
       where.coachId = coachProfile.id;
-    } else {
-      const ensembleProfile = await prisma.ensembleProfile.findUnique({
-        where: { userId: user.id },
-      });
-
+    } else if (role === "ensemble") {
       if (!ensembleProfile) {
         return NextResponse.json(
           { error: "Ensemble profile not found" },
           { status: 404 }
         );
       }
-
       where.ensembleId = ensembleProfile.id;
+    } else if (ensembleProfile) {
+      where.ensembleId = ensembleProfile.id;
+    } else if (coachProfile) {
+      where.coachId = coachProfile.id;
+    } else {
+      return NextResponse.json(
+        { error: "No profile found" },
+        { status: 404 }
+      );
     }
 
     const bookings = await prisma.booking.findMany({
@@ -94,11 +99,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = session.user as { id: string; userType: string };
+    const user = session.user as { id: string };
 
-    if (user.userType !== "ensemble") {
+    const ensembleProfile = await prisma.ensembleProfile.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!ensembleProfile) {
       return NextResponse.json(
-        { error: "Only ensemble users can create bookings" },
+        { error: "Only users with an ensemble profile can create bookings" },
         { status: 403 }
       );
     }
@@ -115,17 +124,6 @@ export async function POST(request: Request) {
 
     const { coachId, proposedDates, sessionType, goals, specialRequests } =
       validation.data;
-
-    const ensembleProfile = await prisma.ensembleProfile.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!ensembleProfile) {
-      return NextResponse.json(
-        { error: "Ensemble profile not found. Please create one first." },
-        { status: 404 }
-      );
-    }
 
     const coach = await prisma.coachProfile.findUnique({
       where: { id: coachId },

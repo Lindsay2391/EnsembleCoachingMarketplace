@@ -178,7 +178,7 @@ export default function CoachProfilePage() {
                   </Link>
                 </div>
               )}
-              {session?.user?.userType === "ensemble" && (
+              {session && session.user.id !== coach.userId && session.user.ensembleProfileId && (
                 <div className="flex gap-3 mt-4">
                   <Link href={`/bookings/new?coachId=${coach.id}`}>
                     <Button>

@@ -25,14 +25,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = session.user as { id: string; userType: string };
-
-    if (user.userType !== "ensemble") {
-      return NextResponse.json(
-        { error: "Only ensemble users can create ensemble profiles" },
-        { status: 403 }
-      );
-    }
+    const user = session.user as { id: string };
 
     const body = await request.json();
 

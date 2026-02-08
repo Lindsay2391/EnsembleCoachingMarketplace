@@ -34,6 +34,15 @@ A Next.js 14 platform for connecting Australian ensemble groups with qualified v
 - **Color scheme**: Warm coral/salmon palette (custom `coral` Tailwind colors), matching thinkingbarbershop.com style
 - **Primary color**: coral-500 (#e8837c)
 
+## Account Structure
+- Users register with just name, email, and password (no role selection)
+- Any user can create both a **coach profile** and an **ensemble profile** from their dashboard
+- The session includes `coachProfileId` and `ensembleProfileId` fields (null if not created)
+- Session is refreshed via `update()` trigger when a new profile is created
+- Admin accounts are created separately at `/admin/register` with a secret code
+- The `userType` field in the database is kept for admin identification only; non-admin users are `"user"`
+- Legacy users with `userType: "coach"` or `"ensemble"` still work — API routes check profile existence, not userType
+
 ## Coach Skills System
 Coaches select skills from 7 categories (50+ options total) stored as JSON array in the `specialties` DB field:
 - Style & Contest (8), Vocal Technique (10), Tuning & Harmony (10), Performance & Interpretation (8), Visual & Choreography (6), Learning & Process (5), Leadership & Culture (3)
@@ -42,30 +51,37 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 ## Admin Panel
 - Admin registration at `/admin/register` requires a secret admin code (ADMIN_SECRET env var)
 - Admin dashboard at `/admin` shows platform stats, coach management (approve/reject/verify/delete), and user list with delete
+- Users table shows profile badges (Coach, Ensemble) instead of a single role type
 - Deleting a coach profile removes related bookings and reviews in a transaction
 - Deleting a user account removes their profile, bookings, reviews, and messages in a transaction
 - Admin accounts are protected from deletion (both UI and API)
 - All admin API routes under `/api/admin/` are protected with session-based auth checks
 - Admin users see "Admin Panel" link in navbar instead of "Dashboard"
 
-## Coach Navigation Flow
-- Coach users clicking "My Profile" in navbar go to `/dashboard/coach` which redirects:
-  - If they have a profile: redirects to `/coaches/{id}` (their public profile)
-  - If no profile exists: redirects to `/dashboard/coach/profile` (profile creation form)
-- Edit Profile button appears on public coach profile page when the coach is logged in
-- Profile edit form cancel button links back to public profile view
-- API endpoint `/api/coaches/me` returns the logged-in coach's profile ID
+## Dashboard & Navigation
+- Unified dashboard at `/dashboard` shows both coach and ensemble profile cards
+- Each card shows profile status and links to view/edit, or a button to create if not yet set up
+- Navbar shows "Dashboard" for all logged-in non-admin users, "Admin Panel" for admins
+- Coach profile pages show "Book This Coach" / "Message" buttons when viewer has an ensemble profile
+- `/dashboard/coach` redirects to public profile or profile creation form
+- `/dashboard/ensemble` shows ensemble-specific dashboard with bookings
+- API endpoints: `/api/coaches/me` and `/api/ensembles/me` return the logged-in user's profile info
 
 ## Recent Changes
+- 2026-02-08: Restructured accounts to allow dual profiles — any user can have both coach and ensemble profiles
+- 2026-02-08: Removed coach/ensemble role selection from registration; users now register as generic accounts
+- 2026-02-08: Created unified dashboard showing both profile types with create/manage options
+- 2026-02-08: Updated all API routes to check profile existence instead of userType for authorization
+- 2026-02-08: Added session refresh (JWT update trigger) when new profiles are created
+- 2026-02-08: Admin panel users table now shows profile badges instead of single role type
+- 2026-02-08: Added `/api/ensembles/me` endpoint for looking up logged-in user's ensemble profile
 - 2026-02-08: Fixed "rates on enquiry" validation error; rates/travel now sent as null when toggled on
 - 2026-02-08: Renamed profile sections: "Coaches" → "Ensemble Types", "Teaches" → "Experience Levels"
 - 2026-02-08: YouTube videos now embed directly on coach profiles; non-YouTube URLs fall back to external link
 - 2026-02-08: Unapproved/unverified coaches see a status banner on their own profile explaining visibility
 - 2026-02-08: Made preferred contact method a required field with client + server validation; contact method buttons no longer toggle off
 - 2026-02-08: Rate placeholders now dynamically show currency symbols ($, £, €) based on selected currency
-- 2026-02-08: Replaced coach dashboard with redirect to public profile (or profile creation); navbar shows "My Profile" instead of "Dashboard"
 - 2026-02-08: Added "Edit Profile" button on public coach profile page visible only to the owning coach
-- 2026-02-08: Added `/api/coaches/me` endpoint for looking up logged-in coach's profile ID
 - 2026-02-08: Added full admin panel with registration, dashboard, coach management, and user management
 - 2026-02-08: Renamed site from "Ensemble Coach" to "CoachConnect" with "by Thinking Barbershop" branding throughout
 - 2026-02-08: Rephrased home page text to remove references to reviews, pricing, availability, and booking (not yet implemented); renamed "Book" step to "Connect"

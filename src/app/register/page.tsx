@@ -2,22 +2,16 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
-function RegisterForm() {
-  const searchParams = useSearchParams();
-  const initialType = searchParams.get("type") === "ensemble" ? "ensemble" : "coach";
-
+export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [userType, setUserType] = useState<"coach" | "ensemble">(initialType);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +52,7 @@ function RegisterForm() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, userType }),
+        body: JSON.stringify({ name, email, password }),
       });
 
       const data = await res.json();
@@ -94,7 +88,7 @@ function RegisterForm() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Create your account</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Join CoachConnect
+            Join CoachConnect to find or become a coach
           </p>
         </div>
 
@@ -109,30 +103,6 @@ function RegisterForm() {
                   {error}
                 </div>
               )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  I am a...
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    type="button"
-                    variant={userType === "coach" ? "primary" : "outline"}
-                    onClick={() => setUserType("coach")}
-                    className="w-full"
-                  >
-                    Coach
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={userType === "ensemble" ? "primary" : "outline"}
-                    onClick={() => setUserType("ensemble")}
-                    className="w-full"
-                  >
-                    Ensemble
-                  </Button>
-                </div>
-              </div>
 
               <Input
                 id="name"
@@ -200,19 +170,5 @@ function RegisterForm() {
         </Card>
       </div>
     </div>
-  );
-}
-
-export default function RegisterPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-gray-500">Loading...</div>
-        </div>
-      }
-    >
-      <RegisterForm />
-    </Suspense>
   );
 }

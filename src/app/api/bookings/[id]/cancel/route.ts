@@ -23,7 +23,7 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const user = session.user as { id: string; userType: string };
+    const user = session.user as { id: string };
 
     const booking = await prisma.booking.findUnique({
       where: { id },

@@ -55,7 +55,7 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const user = session.user as { id: string; userType: string };
+    const user = session.user as { id: string };
 
     const ensemble = await prisma.ensembleProfile.findUnique({
       where: { id },

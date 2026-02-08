@@ -27,7 +27,7 @@ const CONTACT_METHODS = [
 ];
 
 export default function CoachProfileForm() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [existingId, setExistingId] = useState<string | null>(null);
@@ -221,6 +221,9 @@ export default function CoachProfileForm() {
         const data = await res.json();
         setExistingId(data.id);
         setSuccess(existingId ? "Profile updated!" : "Profile created! It will be visible once approved by an admin.");
+        if (!existingId) {
+          await updateSession();
+        }
       }
     } catch {
       setError("Something went wrong");

@@ -46,7 +46,7 @@ export default function EnsembleDashboard() {
       }
     }
 
-    if (session?.user?.userType === "ensemble") fetchData();
+    if (session?.user) fetchData();
   }, [session, status, router]);
 
   if (loading) return <div className="max-w-6xl mx-auto px-4 py-12 text-center text-gray-500">Loading dashboard...</div>;

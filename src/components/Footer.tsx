@@ -34,18 +34,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/register?type=coach"
+                  href="/register"
                   className="text-sm text-gray-500 hover:text-gray-700"
                 >
-                  Become a Coach
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/register?type=ensemble"
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Register Ensemble
+                  Get Started
                 </Link>
               </li>
             </ul>

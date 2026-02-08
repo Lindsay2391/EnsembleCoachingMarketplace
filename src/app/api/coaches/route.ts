@@ -151,13 +151,6 @@ export async function POST(request: Request) {
       );
     }
 
-    if (session.user.userType !== "coach") {
-      return NextResponse.json(
-        { error: "Only coaches can create a coach profile" },
-        { status: 403 }
-      );
-    }
-
     const existingProfile = await prisma.coachProfile.findUnique({
       where: { userId: session.user.id },
     });

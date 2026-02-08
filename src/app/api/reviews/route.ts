@@ -21,9 +21,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    const user = session.user as { id: string; userType: string };
-    if (user.userType !== "ensemble") {
-      return NextResponse.json({ error: "Only ensembles can submit reviews" }, { status: 403 });
+    const user = session.user as { id: string };
+
+    const ensembleProfile = await prisma.ensembleProfile.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!ensembleProfile) {
+      return NextResponse.json({ error: "Only users with an ensemble profile can submit reviews" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -51,11 +56,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Review already submitted" }, { status: 400 });
     }
 
-    const ensembleProfile = await prisma.ensembleProfile.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!ensembleProfile || booking.ensembleId !== ensembleProfile.id) {
+    if (booking.ensembleId !== ensembleProfile.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

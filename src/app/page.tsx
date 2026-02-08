@@ -24,7 +24,7 @@ export default function HomePage() {
                   Browse Coaches
                 </Button>
               </Link>
-              <Link href="/register?type=coach">
+              <Link href="/register">
                 <Button variant="outline" size="lg" className="border-coral-300 text-coral-300 hover:bg-coral-300/10 bg-transparent">
                   <Music className="h-5 w-5 mr-2" />
                   Join as a Coach
@@ -128,7 +128,7 @@ export default function HomePage() {
                 </li>
               </ul>
               <div className="mt-8">
-                <Link href="/register?type=ensemble">
+                <Link href="/register">
                   <Button>Register Your Ensemble</Button>
                 </Link>
               </div>
@@ -168,7 +168,7 @@ export default function HomePage() {
                 </li>
               </ul>
               <div className="mt-8">
-                <Link href="/register?type=coach">
+                <Link href="/register">
                   <Button>Create Coach Profile</Button>
                 </Link>
               </div>

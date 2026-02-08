@@ -30,6 +30,8 @@ interface UserItem {
   name: string;
   email: string;
   userType: string;
+  hasCoachProfile: boolean;
+  hasEnsembleProfile: boolean;
   createdAt: string;
 }
 
@@ -318,7 +320,7 @@ export default function AdminDashboard() {
                 <tr className="border-b border-gray-200">
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Profiles</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -336,17 +338,20 @@ export default function AdminDashboard() {
                       <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
                       <td className="px-6 py-4">
-                        <Badge
-                          variant={
-                            user.userType === "admin"
-                              ? "danger"
-                              : user.userType === "coach"
-                              ? "info"
-                              : "default"
-                          }
-                        >
-                          {user.userType}
-                        </Badge>
+                        <div className="flex gap-1 flex-wrap">
+                          {user.userType === "admin" && (
+                            <Badge variant="danger">Admin</Badge>
+                          )}
+                          {user.hasCoachProfile && (
+                            <Badge variant="info">Coach</Badge>
+                          )}
+                          {user.hasEnsembleProfile && (
+                            <Badge variant="default">Ensemble</Badge>
+                          )}
+                          {user.userType !== "admin" && !user.hasCoachProfile && !user.hasEnsembleProfile && (
+                            <span className="text-xs text-gray-400">No profiles</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(user.createdAt).toLocaleDateString()}

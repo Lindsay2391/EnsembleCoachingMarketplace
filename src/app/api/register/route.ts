@@ -7,9 +7,6 @@ const registerSchema = z.object({
   email: z.string().email("Valid email is required"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   name: z.string().min(2, "Name must be at least 2 characters"),
-  userType: z.enum(["coach", "ensemble"], {
-    error: "User type must be 'coach' or 'ensemble'",
-  }),
 });
 
 export async function POST(request: Request) {
@@ -24,7 +21,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, password, name, userType } = validation.data;
+    const { email, password, name } = validation.data;
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -44,7 +41,7 @@ export async function POST(request: Request) {
         email,
         passwordHash,
         name,
-        userType,
+        userType: "user",
       },
     });
 

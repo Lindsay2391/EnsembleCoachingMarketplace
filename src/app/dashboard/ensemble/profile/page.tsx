@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { SPECIALTIES, EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
 
 export default function EnsembleProfileForm() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
   const [existingId, setExistingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,6 +84,9 @@ export default function EnsembleProfileForm() {
         const data = await res.json();
         setExistingId(data.id);
         setSuccess(existingId ? "Profile updated!" : "Profile created!");
+        if (!existingId) {
+          await updateSession();
+        }
       }
     } catch {
       setError("Something went wrong");
@@ -138,7 +141,7 @@ export default function EnsembleProfileForm() {
           <Button type="submit" disabled={saving} size="lg">
             {saving ? "Saving..." : existingId ? "Update Profile" : "Create Profile"}
           </Button>
-          <Button type="button" variant="outline" size="lg" onClick={() => router.push("/dashboard/ensemble")}>Cancel</Button>
+          <Button type="button" variant="outline" size="lg" onClick={() => router.push("/dashboard")}>Cancel</Button>
         </div>
       </form>
     </div>

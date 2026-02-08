@@ -59,8 +59,8 @@ export default function ReviewPage() {
     }
   };
 
-  if (!session || session.user.userType !== "ensemble") {
-    return <div className="max-w-2xl mx-auto px-4 py-12 text-center text-gray-500">Only ensembles can submit reviews.</div>;
+  if (!session || !session.user.ensembleProfileId) {
+    return <div className="max-w-2xl mx-auto px-4 py-12 text-center text-gray-500">You need an ensemble profile to submit reviews.</div>;
   }
 
   return (

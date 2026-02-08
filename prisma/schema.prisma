@@ -61,6 +61,7 @@ model CoachProfile {
   reviews        Review[]
   reviewInvites  ReviewInvite[]
   favoritedBy    FavoriteCoach[]
+  coachSkills    CoachSkill[]
 }
 
 model EnsembleProfile {
@@ -162,6 +163,31 @@ model FavoriteCoach {
   createdAt      DateTime     @default(now())
 
   @@unique([userId, coachProfileId])
+}
+
+model Skill {
+  id           String   @id @default(cuid())
+  name         String
+  category     String
+  isCustom     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  coachSkills  CoachSkill[]
+
+  @@unique([name, category])
+}
+
+model CoachSkill {
+  id               String       @id @default(cuid())
+  coachProfileId   String
+  coachProfile     CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  skillId          String
+  skill            Skill        @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  displayOrder     Int          @default(0)
+  endorsementCount Int          @default(0)
+  createdAt        DateTime     @default(now())
+
+  @@unique([coachProfileId, skillId])
 }
 
 model AdminAuditLog {

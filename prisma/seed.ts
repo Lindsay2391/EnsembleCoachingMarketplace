@@ -1,20 +1,43 @@
-import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import bcrypt from "bcryptjs";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 const ALL_SKILLS: Record<string, string[]> = {
-  "Style & Contest": ["Barbershop Style", "Scorecard Strategy", "Contest Prep", "Swing Feel", "Musicality", "Phrasing", "Dynamics", "Repertoire Curation"],
-  "Vocal Technique": ["Resonance", "Breath Support", "Registration", "Stamina", "Vocal Health", "Tone Matching", "Blend", "Vibrato Control", "Articulation", "Warmups"],
-  "Tuning & Harmony": ["Just Intonation", "Chord Locking", "Pitch Accuracy", "Interval Tuning", "Balance", "Lead Support", "Listening Skills", "Vertical Tuning", "Ensemble Timing", "Pitch Correction"],
-  "Performance & Interpretation": ["Performance Energy", "Stage Presence", "Storytelling", "Character Work", "Emotional Arc", "Micro-Expressions", "Audience Connection", "Interpretation"],
-  "Visual & Choreography": ["Choreography", "Stagecraft", "Blocking", "Movement Cleanup", "Visual Unity", "Body Alignment"],
-  "Learning & Process": ["Learning Design", "Sectionals", "Memorization", "Practice Planning", "Goal Setting"],
-  "Leadership & Culture": ["Group Dynamics", "Communication", "Accountability"],
+  "Musicality": [
+    "Barbershop Style",
+    "Rhythm & Groove",
+    "Rubato Phrasing",
+    "Interpretive Planning",
+    "Dynamic Contrast",
+  ],
+  "Singing": [
+    "Tuning",
+    "Balance & Blend",
+    "Just Intonation",
+    "Vocal Expression",
+    "Resonance Matching",
+    "Vocal Health",
+    "Vowel Unity",
+  ],
+  "Performance": [
+    "Characterisation",
+    "Storytelling",
+    "Audience Connection",
+    "Stage Presence",
+    "Emotional Arc",
+    "Blocking",
+    "Visual Unity",
+  ],
+  "Learning & Process": [
+    "Repertoire Selection",
+    "Rehearsal Methods",
+    "Contest Preparation",
+    "Goal Setting",
+    "Deliberate Practice",
+    "Feedback Loops",
+    "Culture Development",
+  ],
 };
 
 const FLAT_SKILLS = Object.values(ALL_SKILLS).flat();
@@ -44,6 +67,12 @@ function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function generateCuid(): string {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 15);
+  return `c${timestamp}${random}`;
+}
+
 const COACHES = [
   { name: "Sarah Mitchell", bio: "Experienced barbershop coach with over 15 years of working with choruses and quartets across Australia. Passionate about helping groups find their unique sound and achieve their competition goals." },
   { name: "David Chen", bio: "Vocal technique specialist with a background in classical and contemporary a cappella. Focused on building strong vocal foundations and healthy singing habits for ensembles of all levels." },
@@ -68,67 +97,105 @@ const COACHES = [
 ];
 
 async function main() {
-  console.log("Seeding 20 fictional coaches...\n");
+  const client = await pool.connect();
 
-  const passwordHash = await bcrypt.hash("CoachPass123!", 10);
+  try {
+    console.log("Seeding predefined skills...\n");
 
-  for (let i = 0; i < COACHES.length; i++) {
-    const coach = COACHES[i];
-    const state = STATES[i % STATES.length];
-    const cities = STATE_CITIES[state];
-    const city = cities[randomInt(0, cities.length - 1)];
+    const skillMap = new Map<string, string>();
 
-    const skillCount = randomInt(5, 12);
-    const skills = pick(FLAT_SKILLS, skillCount);
-    const ensembleTypes = pick(ENSEMBLE_TYPES, randomInt(1, 3));
-    const expLevels = pick(EXPERIENCE_LEVELS, randomInt(1, 3));
-    const rateHourly = randomInt(80, 250);
-    const rateHalfDay = Math.round(rateHourly * 3.5);
-    const rateFullDay = Math.round(rateHourly * 6.5);
+    for (const [category, skills] of Object.entries(ALL_SKILLS)) {
+      for (const name of skills) {
+        const existing = await client.query(
+          `SELECT id FROM "Skill" WHERE name = $1 AND category = $2`,
+          [name, category]
+        );
 
-    const email = coach.name.toLowerCase().replace(/[^a-z]/g, ".").replace(/\.+/g, ".") + "@example.com";
+        let skillId: string;
+        if (existing.rows.length > 0) {
+          skillId = existing.rows[0].id;
+        } else {
+          skillId = generateCuid();
+          await client.query(
+            `INSERT INTO "Skill" (id, name, category, "isCustom", "createdAt") VALUES ($1, $2, $3, false, NOW())`,
+            [skillId, name, category]
+          );
+        }
+        skillMap.set(name, skillId);
+      }
+    }
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        passwordHash,
-        name: coach.name,
-        userType: "coach",
-        emailVerified: true,
-      },
-    });
+    console.log(`${skillMap.size} predefined skills seeded.\n`);
 
-    await prisma.coachProfile.create({
-      data: {
-        userId: user.id,
-        fullName: coach.name,
-        city,
-        state,
-        bio: coach.bio,
-        specialties: JSON.stringify(skills),
-        ensembleTypes: JSON.stringify(ensembleTypes),
-        experienceLevels: JSON.stringify(expLevels),
-        rateHourly,
-        rateHalfDay,
-        rateFullDay,
-        approved: true,
-        verified: randomInt(0, 1) === 1,
-        rating: parseFloat((randomInt(35, 50) / 10).toFixed(1)),
-        totalReviews: randomInt(0, 25),
-      },
-    });
+    console.log("Seeding 20 fictional coaches...\n");
 
-    console.log(`  Created: ${coach.name} — ${city}, ${state} — ${skills.length} skills`);
+    const passwordHash = await bcrypt.hash("CoachPass123!", 10);
+
+    for (let i = 0; i < COACHES.length; i++) {
+      const coach = COACHES[i];
+      const state = STATES[i % STATES.length];
+      const cities = STATE_CITIES[state];
+      const city = cities[randomInt(0, cities.length - 1)];
+
+      const skillCount = randomInt(5, 12);
+      const selectedSkillNames = pick(FLAT_SKILLS, skillCount);
+      const ensembleTypes = pick(ENSEMBLE_TYPES, randomInt(1, 3));
+      const expLevels = pick(EXPERIENCE_LEVELS, randomInt(1, 3));
+      const rateHourly = randomInt(80, 250);
+      const rateHalfDay = Math.round(rateHourly * 3.5);
+      const rateFullDay = Math.round(rateHourly * 6.5);
+
+      const email = coach.name.toLowerCase().replace(/[^a-z]/g, ".").replace(/\.+/g, ".") + "@example.com";
+
+      const userId = generateCuid();
+      await client.query(
+        `INSERT INTO "User" (id, email, "passwordHash", name, "userType", "emailVerified", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, 'coach', true, NOW(), NOW())`,
+        [userId, email, passwordHash, coach.name]
+      );
+
+      const coachId = generateCuid();
+      const rating = parseFloat((randomInt(35, 50) / 10).toFixed(1));
+      const totalReviews = randomInt(0, 25);
+
+      await client.query(
+        `INSERT INTO "CoachProfile" (id, "userId", "fullName", city, state, bio, specialties, "ensembleTypes", "experienceLevels",
+          "rateHourly", "rateHalfDay", "rateFullDay", approved, verified, rating, "totalReviews", "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, true, $13, $14, $15, NOW(), NOW())`,
+        [
+          coachId, userId, coach.name, city, state, coach.bio,
+          JSON.stringify(selectedSkillNames),
+          JSON.stringify(ensembleTypes),
+          JSON.stringify(expLevels),
+          rateHourly, rateHalfDay, rateFullDay,
+          randomInt(0, 1) === 1,
+          rating, totalReviews,
+        ]
+      );
+
+      for (let j = 0; j < selectedSkillNames.length; j++) {
+        const skillId = skillMap.get(selectedSkillNames[j]);
+        if (skillId) {
+          const csId = generateCuid();
+          await client.query(
+            `INSERT INTO "CoachSkill" (id, "coachProfileId", "skillId", "displayOrder", "endorsementCount", "createdAt")
+             VALUES ($1, $2, $3, $4, 0, NOW())`,
+            [csId, coachId, skillId, j]
+          );
+        }
+      }
+
+      console.log(`  Created: ${coach.name} — ${city}, ${state} — ${selectedSkillNames.length} skills`);
+    }
+
+    console.log("\nDone! 20 coaches seeded successfully.");
+  } finally {
+    client.release();
+    await pool.end();
   }
-
-  console.log("\nDone! 20 coaches seeded successfully.");
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

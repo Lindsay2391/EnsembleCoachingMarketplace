@@ -10,10 +10,11 @@ const updateCoachSchema = z.object({
   state: z.string().min(1).optional(),
   bio: z.string().min(1).optional(),
   specialties: z.array(z.string()).optional(),
+  skills: z.array(z.string()).optional(),
   ensembleTypes: z.array(z.string()).optional(),
   experienceLevels: z.array(z.string()).optional(),
-  contactMethod: z.enum(["phone", "email", "website"]),
-  contactDetail: z.string().min(1, "Contact detail is required"),
+  contactMethod: z.enum(["phone", "email", "website"]).optional(),
+  contactDetail: z.string().min(1, "Contact detail is required").optional(),
   rateHourly: z.number().positive().optional().nullable(),
   rateHalfDay: z.number().positive().optional().nullable(),
   rateFullDay: z.number().positive().optional().nullable(),
@@ -40,6 +41,12 @@ export async function GET(
             email: true,
             name: true,
           },
+        },
+        coachSkills: {
+          include: {
+            skill: true,
+          },
+          orderBy: { displayOrder: "asc" },
         },
       },
     });
@@ -147,8 +154,50 @@ export async function PUT(
             name: true,
           },
         },
+        coachSkills: {
+          include: { skill: true },
+          orderBy: { displayOrder: "asc" },
+        },
       },
     });
+
+    if (data.skills !== undefined) {
+      const skillRecords = await prisma.skill.findMany({
+        where: { id: { in: data.skills } },
+      });
+      const validSkillIds = new Set(skillRecords.map((s) => s.id));
+
+      await prisma.$transaction(async (tx) => {
+        await tx.coachSkill.deleteMany({
+          where: { coachProfileId: id },
+        });
+
+        for (let i = 0; i < data.skills!.length; i++) {
+          if (validSkillIds.has(data.skills![i])) {
+            await tx.coachSkill.create({
+              data: {
+                coachProfileId: id,
+                skillId: data.skills![i],
+                displayOrder: i,
+              },
+            });
+          }
+        }
+      });
+
+      const refreshed = await prisma.coachProfile.findUnique({
+        where: { id },
+        include: {
+          user: { select: { email: true, name: true } },
+          coachSkills: {
+            include: { skill: true },
+            orderBy: { displayOrder: "asc" },
+          },
+        },
+      });
+
+      return NextResponse.json(refreshed);
+    }
 
     return NextResponse.json(updatedCoach);
   } catch (error) {

@@ -13,6 +13,10 @@ export async function GET() {
     const coaches = await prisma.coachProfile.findMany({
       include: {
         user: { select: { id: true, email: true, name: true, createdAt: true } },
+        coachSkills: {
+          include: { skill: true },
+          orderBy: { displayOrder: "asc" },
+        },
       },
       orderBy: { createdAt: "desc" },
     });

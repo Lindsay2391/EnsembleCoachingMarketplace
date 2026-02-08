@@ -9,8 +9,16 @@ import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import { COACH_SKILLS, EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
-import { Upload, Phone, Mail, Globe } from "lucide-react";
+import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
+import { Upload, Phone, Mail, Globe, ChevronUp, ChevronDown, Plus } from "lucide-react";
+
+interface SkillItem {
+  id: string;
+  name: string;
+  category: string;
+  isCustom: boolean;
+  totalEndorsements: number;
+}
 
 const CURRENCIES = [
   { value: "AUD", label: "AUD - Australian Dollar" },
@@ -41,7 +49,8 @@ export default function CoachProfileForm() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [bio, setBio] = useState("");
-  const [skills, setSkills] = useState<string[]>([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
+  const [availableSkills, setAvailableSkills] = useState<Record<string, SkillItem[]>>({});
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [ensembleTypes, setEnsembleTypes] = useState<string[]>([]);
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
@@ -56,16 +65,28 @@ export default function CoachProfileForm() {
   const [videoUrl, setVideoUrl] = useState("");
   const [cancellationPolicy, setCancellationPolicy] = useState("");
   const [travelSupplement, setTravelSupplement] = useState("");
+  const [customSkillName, setCustomSkillName] = useState("");
+  const [customSkillCategory, setCustomSkillCategory] = useState("");
+  const [addingCustomSkill, setAddingCustomSkill] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
     if (status === "loading") return;
 
-    async function loadProfile() {
+    async function loadData() {
       try {
-        const res = await fetch("/api/coaches?search=" + encodeURIComponent(session?.user?.name || ""));
-        if (res.ok) {
-          const data = await res.json();
+        const [skillsRes, profileRes] = await Promise.all([
+          fetch("/api/skills"),
+          fetch("/api/coaches?search=" + encodeURIComponent(session?.user?.name || "")),
+        ]);
+
+        if (skillsRes.ok) {
+          const skillsData = await skillsRes.json();
+          setAvailableSkills(skillsData.skills || {});
+        }
+
+        if (profileRes.ok) {
+          const data = await profileRes.json();
           const myProfile = data.coaches?.find((c: { userId: string }) => c.userId === session?.user?.id);
           if (myProfile) {
             setExistingId(myProfile.id);
@@ -73,7 +94,6 @@ export default function CoachProfileForm() {
             setCity(myProfile.city);
             setState(myProfile.state);
             setBio(myProfile.bio);
-            setSkills(JSON.parse(myProfile.specialties || "[]"));
             setEnsembleTypes(JSON.parse(myProfile.ensembleTypes || "[]"));
             setExperienceLevels(JSON.parse(myProfile.experienceLevels || "[]"));
             setContactMethod(myProfile.contactMethod || "");
@@ -87,6 +107,13 @@ export default function CoachProfileForm() {
             setVideoUrl(myProfile.videoUrl || "");
             setCancellationPolicy(myProfile.cancellationPolicy || "");
             setTravelSupplement(myProfile.travelSupplement?.toString() || "");
+
+            if (myProfile.coachSkills && myProfile.coachSkills.length > 0) {
+              const ids = myProfile.coachSkills
+                .sort((a: { displayOrder: number }, b: { displayOrder: number }) => a.displayOrder - b.displayOrder)
+                .map((cs: { skillId: string }) => cs.skillId);
+              setSelectedSkillIds(ids);
+            }
           } else {
             setFullName(session?.user?.name || "");
           }
@@ -98,11 +125,59 @@ export default function CoachProfileForm() {
       }
     }
 
-    loadProfile();
+    loadData();
   }, [session, status, router]);
 
   const toggleArrayItem = (arr: string[], setArr: (v: string[]) => void, item: string) => {
     setArr(arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item]);
+  };
+
+  const toggleSkillId = (skillId: string) => {
+    setSelectedSkillIds(prev =>
+      prev.includes(skillId) ? prev.filter(id => id !== skillId) : [...prev, skillId]
+    );
+  };
+
+  const moveSkill = (index: number, direction: "up" | "down") => {
+    const newIds = [...selectedSkillIds];
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= newIds.length) return;
+    [newIds[index], newIds[swapIndex]] = [newIds[swapIndex], newIds[index]];
+    setSelectedSkillIds(newIds);
+  };
+
+  const allSkillsList = Object.values(availableSkills).flat();
+  const getSkillById = (id: string) => allSkillsList.find(s => s.id === id);
+
+  const handleAddCustomSkill = async () => {
+    if (!customSkillName.trim() || !customSkillCategory.trim()) return;
+    setAddingCustomSkill(true);
+    try {
+      const res = await fetch("/api/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: customSkillName.trim(), category: customSkillCategory.trim() }),
+      });
+      if (res.ok) {
+        const newSkill = await res.json();
+        setAvailableSkills(prev => {
+          const updated = { ...prev };
+          if (!updated[newSkill.category]) updated[newSkill.category] = [];
+          updated[newSkill.category] = [...updated[newSkill.category], { ...newSkill, totalEndorsements: 0 }];
+          return updated;
+        });
+        setSelectedSkillIds(prev => [...prev, newSkill.id]);
+        setCustomSkillName("");
+        setCustomSkillCategory("");
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to add custom skill");
+      }
+    } catch {
+      setError("Failed to add custom skill");
+    } finally {
+      setAddingCustomSkill(false);
+    }
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,12 +258,17 @@ export default function CoachProfileForm() {
 
     setSaving(true);
 
+    const selectedNames = selectedSkillIds
+      .map(id => getSkillById(id)?.name)
+      .filter(Boolean) as string[];
+
     const payload = {
       fullName,
       city,
       state,
       bio,
-      specialties: skills,
+      specialties: selectedNames,
+      skills: selectedSkillIds,
       ensembleTypes,
       experienceLevels,
       contactMethod,
@@ -331,8 +411,8 @@ export default function CoachProfileForm() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Skills & Experience</h2>
-              {skills.length > 0 && (
-                <span className="text-sm text-coral-600 font-medium">{skills.length} selected</span>
+              {selectedSkillIds.length > 0 && (
+                <span className="text-sm text-coral-600 font-medium">{selectedSkillIds.length} selected</span>
               )}
             </div>
           </CardHeader>
@@ -340,8 +420,8 @@ export default function CoachProfileForm() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Skills *</label>
               <div className="space-y-3">
-                {Object.entries(COACH_SKILLS).map(([category, categorySkills]) => {
-                  const selectedCount = categorySkills.filter(s => skills.includes(s)).length;
+                {Object.entries(availableSkills).map(([category, categorySkills]) => {
+                  const selectedCount = categorySkills.filter(s => selectedSkillIds.includes(s.id)).length;
                   const isExpanded = expandedCategories[category] !== false;
                   return (
                     <div key={category} className="border border-gray-200 rounded-lg overflow-hidden">
@@ -361,10 +441,13 @@ export default function CoachProfileForm() {
                       {isExpanded && (
                         <div className="px-4 py-3 flex flex-wrap gap-2">
                           {categorySkills.map((s) => (
-                            <button key={s} type="button" onClick={() => toggleArrayItem(skills, setSkills, s)}
+                            <button key={s.id} type="button" onClick={() => toggleSkillId(s.id)}
                               className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                                skills.includes(s) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
-                              }`}>{s}</button>
+                                selectedSkillIds.includes(s.id) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
+                              }`}>
+                              {s.name}
+                              {s.isCustom && <span className="ml-1 text-xs opacity-75">✦</span>}
+                            </button>
                           ))}
                         </div>
                       )}
@@ -373,6 +456,62 @@ export default function CoachProfileForm() {
                 })}
               </div>
             </div>
+
+            <div className="border border-gray-200 rounded-lg p-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Add Custom Skill</label>
+              <div className="flex gap-2">
+                <Input
+                  id="customSkillName"
+                  placeholder="Skill name"
+                  value={customSkillName}
+                  onChange={(e) => setCustomSkillName(e.target.value)}
+                />
+                <Select
+                  id="customSkillCategory"
+                  value={customSkillCategory}
+                  onChange={(e) => setCustomSkillCategory(e.target.value)}
+                  placeholder="Category"
+                  options={Object.keys(availableSkills).map(c => ({ value: c, label: c }))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAddCustomSkill}
+                  disabled={addingCustomSkill || !customSkillName.trim() || !customSkillCategory.trim()}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {addingCustomSkill ? "Adding..." : "Add"}
+                </Button>
+              </div>
+            </div>
+
+            {selectedSkillIds.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Selected Skills (drag to reorder)</label>
+                <div className="space-y-1">
+                  {selectedSkillIds.map((skillId, index) => {
+                    const skill = getSkillById(skillId);
+                    if (!skill) return null;
+                    return (
+                      <div key={skillId} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                        <span className="text-xs text-gray-400 w-5">{index + 1}.</span>
+                        <span className="flex-1 text-sm text-gray-800">{skill.name}</span>
+                        <span className="text-xs text-gray-400">{skill.category}</span>
+                        <button type="button" onClick={() => moveSkill(index, "up")} disabled={index === 0}
+                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                          <ChevronUp className="h-4 w-4" />
+                        </button>
+                        <button type="button" onClick={() => moveSkill(index, "down")} disabled={index === selectedSkillIds.length - 1}
+                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                          <ChevronDown className="h-4 w-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Ensemble Types You Coach *</label>
               <div className="flex flex-wrap gap-2">

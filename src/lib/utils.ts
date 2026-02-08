@@ -21,80 +21,40 @@ export function parseJsonArray(value: string | null): string[] {
   }
 }
 
-export const SPECIALTIES = [
-  "Barbershop Style",
-  "Contest Prep",
-  "Vocal Technique",
-  "Tuning & Harmony",
-  "Performance & Interpretation",
-  "Choreography",
-  "Leadership & Culture",
-];
-
 export const COACH_SKILLS: Record<string, string[]> = {
-  "Style & Contest": [
+  "Musicality": [
     "Barbershop Style",
-    "Scorecard Strategy",
-    "Contest Prep",
-    "Swing Feel",
-    "Musicality",
-    "Phrasing",
-    "Dynamics",
-    "Repertoire Curation",
+    "Rhythm & Groove",
+    "Rubato Phrasing",
+    "Interpretive Planning",
+    "Dynamic Contrast",
   ],
-  "Vocal Technique": [
-    "Resonance",
-    "Breath Support",
-    "Registration",
-    "Stamina",
-    "Vocal Health",
-    "Tone Matching",
-    "Blend",
-    "Vibrato Control",
-    "Articulation",
-    "Warmups",
-  ],
-  "Tuning & Harmony": [
+  "Singing": [
+    "Tuning",
+    "Balance & Blend",
     "Just Intonation",
-    "Chord Locking",
-    "Pitch Accuracy",
-    "Interval Tuning",
-    "Balance",
-    "Lead Support",
-    "Listening Skills",
-    "Vertical Tuning",
-    "Ensemble Timing",
-    "Pitch Correction",
+    "Vocal Expression",
+    "Resonance Matching",
+    "Vocal Health",
+    "Vowel Unity",
   ],
-  "Performance & Interpretation": [
-    "Performance Energy",
-    "Stage Presence",
+  "Performance": [
+    "Characterisation",
     "Storytelling",
-    "Character Work",
-    "Emotional Arc",
-    "Micro-Expressions",
     "Audience Connection",
-    "Interpretation",
-  ],
-  "Visual & Choreography": [
-    "Choreography",
-    "Stagecraft",
+    "Stage Presence",
+    "Emotional Arc",
     "Blocking",
-    "Movement Cleanup",
     "Visual Unity",
-    "Body Alignment",
   ],
   "Learning & Process": [
-    "Learning Design",
-    "Sectionals",
-    "Memorization",
-    "Practice Planning",
+    "Repertoire Selection",
+    "Rehearsal Methods",
+    "Contest Preparation",
     "Goal Setting",
-  ],
-  "Leadership & Culture": [
-    "Group Dynamics",
-    "Communication",
-    "Accountability",
+    "Deliberate Practice",
+    "Feedback Loops",
+    "Culture Development",
   ],
 };
 

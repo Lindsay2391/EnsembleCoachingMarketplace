@@ -9,7 +9,17 @@ import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
 import Textarea from "@/components/ui/Textarea";
-import { parseJsonArray, groupSkillsByCategory } from "@/lib/utils";
+
+interface CoachSkillItem {
+  id: string;
+  displayOrder: number;
+  endorsementCount: number;
+  skill: {
+    id: string;
+    name: string;
+    category: string;
+  };
+}
 
 interface InviteDetails {
   id: string;
@@ -23,6 +33,7 @@ interface InviteDetails {
     country: string;
     photoUrl: string | null;
     specialties: string;
+    coachSkills?: CoachSkillItem[];
   };
 }
 
@@ -138,8 +149,13 @@ function WriteReviewContent() {
 
   if (!invite) return null;
 
-  const coachSkills = parseJsonArray(invite.coachProfile.specialties);
-  const groupedSkills = groupSkillsByCategory(coachSkills);
+  const coachSkills = invite.coachProfile.coachSkills || [];
+  const groupedSkills: Record<string, CoachSkillItem[]> = {};
+  for (const cs of coachSkills) {
+    const cat = cs.skill.category;
+    if (!groupedSkills[cat]) groupedSkills[cat] = [];
+    groupedSkills[cat].push(cs);
+  }
 
   const now = new Date();
   const monthOptions: { month: number; year: number; label: string }[] = [];
@@ -265,19 +281,19 @@ function WriteReviewContent() {
                 <div key={category}>
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{category}</p>
                   <div className="flex flex-wrap gap-2">
-                    {skills.map((skill) => (
+                    {skills.map((cs) => (
                       <button
-                        key={skill}
+                        key={cs.id}
                         type="button"
-                        onClick={() => toggleSkill(skill)}
+                        onClick={() => toggleSkill(cs.skill.name)}
                         className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                          validatedSkills.includes(skill)
+                          validatedSkills.includes(cs.skill.name)
                             ? "bg-coral-500 text-white"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                         }`}
                       >
-                        {validatedSkills.includes(skill) && <Star className="h-3 w-3 mr-1 fill-current" />}
-                        {skill}
+                        {validatedSkills.includes(cs.skill.name) && <Star className="h-3 w-3 mr-1 fill-current" />}
+                        {cs.skill.name}
                       </button>
                     ))}
                   </div>

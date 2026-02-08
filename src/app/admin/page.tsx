@@ -24,6 +24,7 @@ interface Coach {
   verified: boolean;
   approved: boolean;
   user: { id: string; email: string; name: string; createdAt: string };
+  coachSkills?: Array<{ skill: { name: string } }>;
 }
 
 interface UserItem {
@@ -354,7 +355,7 @@ export default function AdminDashboard() {
                         {coach.city}, {coach.state}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {parseSkills(coach.specialties).length} skills
+                        {coach.coachSkills ? coach.coachSkills.length : parseSkills(coach.specialties).length} skills
                       </td>
                       <td className="px-6 py-4">
                         {coach.verified ? (

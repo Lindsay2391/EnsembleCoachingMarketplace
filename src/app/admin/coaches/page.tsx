@@ -21,6 +21,7 @@ interface PendingCoach {
   approved: boolean;
   createdAt: string;
   user: { email: string; name: string; createdAt: string };
+  coachSkills?: Array<{ skill: { name: string } }>;
 }
 
 export default function AdminCoachesPage() {
@@ -96,7 +97,10 @@ export default function AdminCoachesPage() {
                     <p className="text-sm text-gray-500 mt-1">Email: {coach.user.email}</p>
                     <p className="text-sm text-gray-600 mt-2 line-clamp-3">{coach.bio}</p>
                     <div className="flex flex-wrap gap-1.5 mt-3">
-                      {parseJsonArray(coach.specialties).map((s) => (
+                      {(coach.coachSkills && coach.coachSkills.length > 0
+                        ? coach.coachSkills.map(cs => cs.skill.name)
+                        : parseJsonArray(coach.specialties)
+                      ).map((s) => (
                         <Badge key={s} variant="info">{s}</Badge>
                       ))}
                     </div>

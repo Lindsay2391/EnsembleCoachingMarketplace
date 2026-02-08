@@ -14,6 +14,10 @@ export async function GET() {
       where: { approved: false },
       include: {
         user: { select: { email: true, name: true, createdAt: true } },
+        coachSkills: {
+          include: { skill: true },
+          orderBy: { displayOrder: "asc" },
+        },
       },
       orderBy: { createdAt: "asc" },
     });

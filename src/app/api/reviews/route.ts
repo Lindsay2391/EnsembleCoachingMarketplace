@@ -86,6 +86,26 @@ export async function POST(request: Request) {
       },
     });
 
+    if (validatedSkills.length > 0) {
+      const skillRecords = await prisma.skill.findMany({
+        where: { name: { in: validatedSkills } },
+      });
+
+      const skillIds = skillRecords.map(s => s.id);
+
+      if (skillIds.length > 0) {
+        await prisma.coachSkill.updateMany({
+          where: {
+            coachProfileId: invite.coachProfileId,
+            skillId: { in: skillIds },
+          },
+          data: {
+            endorsementCount: { increment: 1 },
+          },
+        });
+      }
+    }
+
     const allReviews = await prisma.review.findMany({
       where: { coachProfileId: invite.coachProfileId },
       select: { rating: true },

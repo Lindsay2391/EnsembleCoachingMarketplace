@@ -11,7 +11,20 @@ import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
 import BuyMeACoffee from "@/components/BuyMeACoffee";
-import { formatCurrency, parseJsonArray, groupSkillsByCategory } from "@/lib/utils";
+import { formatCurrency, parseJsonArray } from "@/lib/utils";
+
+interface CoachSkillItem {
+  id: string;
+  skillId: string;
+  displayOrder: number;
+  endorsementCount: number;
+  skill: {
+    id: string;
+    name: string;
+    category: string;
+    isCustom: boolean;
+  };
+}
 
 interface CoachProfile {
   id: string;
@@ -42,6 +55,7 @@ interface CoachProfile {
   travelSupplement: number | null;
   profileViews: number;
   user: { email: string; name: string };
+  coachSkills?: CoachSkillItem[];
 }
 
 interface Review {
@@ -170,10 +184,21 @@ export default function CoachProfilePage() {
     return <div className="max-w-4xl mx-auto px-4 py-12 text-center text-gray-500">Coach not found</div>;
   }
 
-  const skills = parseJsonArray(coach.specialties);
-  const groupedSkills = groupSkillsByCategory(skills);
+  const coachSkills = coach.coachSkills || [];
   const ensembleTypes = parseJsonArray(coach.ensembleTypes);
   const experienceLevels = parseJsonArray(coach.experienceLevels);
+
+  const groupedSkills: Record<string, CoachSkillItem[]> = {};
+  for (const cs of coachSkills) {
+    const cat = cs.skill.category;
+    if (!groupedSkills[cat]) groupedSkills[cat] = [];
+    groupedSkills[cat].push(cs);
+  }
+
+  const topSkills = [...coachSkills]
+    .sort((a, b) => b.endorsementCount - a.endorsementCount)
+    .filter(cs => cs.endorsementCount > 0)
+    .slice(0, 5);
 
   const skillVerificationCounts: Record<string, number> = {};
   const skillVerifiers: Record<string, string[]> = {};
@@ -414,6 +439,21 @@ export default function CoachProfilePage() {
             </CardContent>
           </Card>
 
+          {topSkills.length > 0 && (
+            <Card>
+              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Star className="h-4 w-4 inline mr-1" />Top Skills</h2></CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-1.5">
+                  {topSkills.map((cs) => (
+                    <Badge key={cs.id} variant="success" className="cursor-default">
+                      {cs.skill.name} ✓{cs.endorsementCount}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Star className="h-4 w-4 inline mr-1" />Skills</h2></CardHeader>
             <CardContent>
@@ -423,24 +463,28 @@ export default function CoachProfilePage() {
                     <div key={category}>
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{category}</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {catSkills.map((s) => {
-                          const count = skillVerificationCounts[s] || 0;
-                          const verifiers = skillVerifiers[s] || [];
-                          return count > 0 ? (
-                            <span key={s} className="relative group">
-                              <Badge variant="success" className="cursor-default">{s} ✓{count}</Badge>
-                              <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 w-max max-w-xs">
-                                <span className="block rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg">
-                                  <span className="block font-semibold mb-1">Verified by:</span>
-                                  {verifiers.map((name) => (
-                                    <span key={name} className="block">{name}</span>
-                                  ))}
+                        {catSkills.map((cs) => {
+                          const count = cs.endorsementCount;
+                          const reviewCount = skillVerificationCounts[cs.skill.name] || 0;
+                          const totalCount = count || reviewCount;
+                          const verifiers = skillVerifiers[cs.skill.name] || [];
+                          return totalCount > 0 ? (
+                            <span key={cs.id} className="relative group">
+                              <Badge variant="success" className="cursor-default">{cs.skill.name} ✓{totalCount}</Badge>
+                              {verifiers.length > 0 && (
+                                <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 w-max max-w-xs">
+                                  <span className="block rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg">
+                                    <span className="block font-semibold mb-1">Verified by:</span>
+                                    {verifiers.map((name) => (
+                                      <span key={name} className="block">{name}</span>
+                                    ))}
+                                  </span>
+                                  <span className="block mx-auto w-2 h-2 bg-gray-900 rotate-45 -mt-1"></span>
                                 </span>
-                                <span className="block mx-auto w-2 h-2 bg-gray-900 rotate-45 -mt-1"></span>
-                              </span>
+                              )}
                             </span>
                           ) : (
-                            <Badge key={s} variant="info">{s}</Badge>
+                            <Badge key={cs.id} variant="info">{cs.skill.name}</Badge>
                           );
                         })}
                       </div>

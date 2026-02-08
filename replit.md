@@ -43,10 +43,16 @@ A Next.js 14 platform for connecting Australian ensemble groups with qualified v
 - The `userType` field in the database is kept for admin identification only; non-admin users are `"user"`
 - Legacy users with `userType: "coach"` or `"ensemble"` still work — API routes check profile existence, not userType
 
-## Coach Skills System
-Coaches select skills from 7 categories (50+ options total) stored as JSON array in the `specialties` DB field:
-- Style & Contest (8), Vocal Technique (10), Tuning & Harmony (10), Performance & Interpretation (8), Visual & Choreography (6), Learning & Process (5), Leadership & Culture (3)
-- Data defined in `src/lib/utils.ts` as `COACH_SKILLS` with helper functions `groupSkillsByCategory()` and `getSkillCategory()`
+## Coach Skills System (Database-Driven, Feb 2026)
+Skills are now stored in a relational `Skill` table with a `CoachSkill` junction table, replacing the old JSON-only approach:
+- **4 categories** (26 skills): Musicality (5), Singing (7), Performance (7), Learning & Process (7)
+- **Skill table**: id, name, category, isCustom — supports custom user-created skills
+- **CoachSkill table**: coachProfileId, skillId, displayOrder, endorsementCount — tracks which skills each coach has, their display order, and how many endorsements from reviews
+- **API**: `GET /api/skills` returns skills grouped by category; `POST /api/skills` creates custom skills
+- **Backward compat**: The `specialties` JSON column on CoachProfile is still written to but coachSkills relation is preferred
+- **Review validation**: When ensembles validate coach skills in reviews, `endorsementCount` on CoachSkill is incremented
+- **Seed scripts**: `prisma/seed-skills.ts` migrates existing coaches; `prisma/seed.ts` creates test data with CoachSkill records
+- Helper functions in `src/lib/utils.ts`: `COACH_SKILLS`, `ALL_SKILLS`, `getSkillCategory()`, `groupSkillsByCategory()`
 
 ## Admin Panel
 - Admin registration at `/admin/register` requires a secret admin code (ADMIN_SECRET env var)
@@ -82,6 +88,17 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - **Admin moderation**: Reviews tab in admin panel with delete capability; audit logged
 - **API routes**: POST/GET `/api/reviews/invite`, GET `/api/reviews/invite/[id]`, GET `/api/reviews/invites/pending`, POST `/api/reviews`, GET `/api/coaches/[id]/reviews`, GET/DELETE `/api/admin/reviews[/id]`
 
+## Coach Skills System (Database-Driven, Feb 2026)
+Skills are now stored in a relational `Skill` table with a `CoachSkill` junction table, replacing the old JSON-only approach:
+- **4 categories** (26 skills): Musicality (5), Singing (7), Performance (7), Learning & Process (7)
+- **Skill table**: id, name, category, isCustom — supports custom user-created skills
+- **CoachSkill table**: coachProfileId, skillId, displayOrder, endorsementCount — tracks which skills each coach has, their display order, and how many endorsements from reviews
+- **API**: `GET /api/skills` returns skills grouped by category; `POST /api/skills` creates custom skills
+- **Backward compat**: The `specialties` JSON column on CoachProfile is still written to but coachSkills relation is preferred
+- **Review validation**: When ensembles validate coach skills in reviews, `endorsementCount` on CoachSkill is incremented
+- **Seed scripts**: `prisma/seed-skills.ts` migrates existing coaches; `prisma/seed.ts` creates test data with CoachSkill records
+- Helper functions in `src/lib/utils.ts`: `COACH_SKILLS`, `ALL_SKILLS`, `getSkillCategory()`, `groupSkillsByCategory()`
+
 ## Favourites & Smart Sorting
 - Users can favourite coaches via heart icon on browse page and coach profile pages
 - Favourite coaches appear at the top of the "Find Coaches" page
@@ -93,6 +110,7 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 
 ## Recent Changes
 - 2026-02-08: Added favourites system — users can favourite coaches with heart button; favourited coaches always appear first on browse page; smart sorting ranks nearby coaches with matching skills higher for ensemble members
+- 2026-02-08: Migrated skills system from hardcoded JSON to database-driven Skill + CoachSkill tables with 4 categories (26 skills), custom skill support, endorsement counts, and display ordering
 - 2026-02-08: Added "Buy Me a Coffee" support button across the site (footer, home page banner, dashboard, coach profiles) linking to buymeacoffee.com/ThinkingBarbershop with clear messaging that donations support the CoachConnect platform, not individual coaches
 - 2026-02-08: Added notification bell to navbar showing pending review invite count with dropdown for quick access
 - 2026-02-08: Cleaned up ensemble dashboard — removed KPIs and bookings section, kept review invites and quick links

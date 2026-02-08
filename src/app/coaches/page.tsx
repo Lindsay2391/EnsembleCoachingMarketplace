@@ -12,7 +12,26 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
-import { formatCurrency, parseJsonArray, COACH_SKILLS, EXPERIENCE_LEVELS, AUSTRALIAN_STATES } from "@/lib/utils";
+import { formatCurrency, EXPERIENCE_LEVELS, AUSTRALIAN_STATES } from "@/lib/utils";
+
+interface SkillItem {
+  id: string;
+  name: string;
+  category: string;
+  isCustom: boolean;
+  totalEndorsements: number;
+}
+
+interface CoachSkillItem {
+  id: string;
+  displayOrder: number;
+  endorsementCount: number;
+  skill: {
+    id: string;
+    name: string;
+    category: string;
+  };
+}
 
 interface Coach {
   id: string;
@@ -33,6 +52,7 @@ interface Coach {
   matchCount?: number;
   isFavorite?: boolean;
   relevanceScore?: number;
+  coachSkills?: CoachSkillItem[];
 }
 
 function CoachBrowseContent() {
@@ -45,6 +65,7 @@ function CoachBrowseContent() {
   const [showFilters, setShowFilters] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [togglingFav, setTogglingFav] = useState<string | null>(null);
+  const [skillCategories, setSkillCategories] = useState<Record<string, SkillItem[]>>({});
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [selectedSkills, setSelectedSkills] = useState<string[]>(() => {
@@ -55,6 +76,13 @@ function CoachBrowseContent() {
   const [experienceLevel, setExperienceLevel] = useState(searchParams.get("experienceLevel") || "");
   const [page, setPage] = useState(1);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    fetch("/api/skills")
+      .then(r => r.json())
+      .then(data => setSkillCategories(data.skills || {}))
+      .catch(() => {});
+  }, []);
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills(prev =>
@@ -268,8 +296,8 @@ function CoachBrowseContent() {
                 )}
 
                 <div className="space-y-2">
-                  {Object.entries(COACH_SKILLS).map(([category, categorySkills]) => {
-                    const selectedCount = categorySkills.filter(s => selectedSkills.includes(s)).length;
+                  {Object.entries(skillCategories).map(([category, categorySkills]) => {
+                    const selectedCount = categorySkills.filter(s => selectedSkills.includes(s.name)).length;
                     const isExpanded = expandedCategories[category] === true;
                     return (
                       <div key={category} className="border border-gray-200 rounded-lg overflow-hidden">
@@ -289,10 +317,10 @@ function CoachBrowseContent() {
                         {isExpanded && (
                           <div className="px-3 py-2 flex flex-wrap gap-1.5">
                             {categorySkills.map((s) => (
-                              <button key={s} type="button" onClick={() => toggleSkill(s)}
+                              <button key={s.id} type="button" onClick={() => toggleSkill(s.name)}
                                 className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
-                                  selectedSkills.includes(s) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-600 border-gray-300 hover:border-coral-300"
-                                }`}>{s}</button>
+                                  selectedSkills.includes(s.name) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-600 border-gray-300 hover:border-coral-300"
+                                }`}>{s.name}</button>
                             ))}
                           </div>
                         )}
@@ -322,9 +350,11 @@ function CoachBrowseContent() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {coaches.map((coach) => {
-            const coachSkills = parseJsonArray(coach.specialties);
+            const coachSkillNames = (coach.coachSkills || [])
+              .sort((a, b) => a.displayOrder - b.displayOrder)
+              .map(cs => cs.skill.name);
             const matchCount = selectedSkills.length > 0
-              ? selectedSkills.filter(s => coachSkills.includes(s)).length
+              ? selectedSkills.filter(s => coachSkillNames.includes(s)).length
               : 0;
             const isFav = favoriteIds.has(coach.id);
             return (
@@ -390,13 +420,13 @@ function CoachBrowseContent() {
                     </p>
 
                     <div className="flex flex-wrap gap-1.5 mt-3">
-                      {coachSkills.slice(0, 4).map((s) => (
+                      {coachSkillNames.slice(0, 4).map((s) => (
                         <Badge key={s} variant={selectedSkills.includes(s) ? "default" : "info"}>
                           {s}
                         </Badge>
                       ))}
-                      {coachSkills.length > 4 && (
-                        <span className="text-xs text-gray-400 self-center">+{coachSkills.length - 4} more</span>
+                      {coachSkillNames.length > 4 && (
+                        <span className="text-xs text-gray-400 self-center">+{coachSkillNames.length - 4} more</span>
                       )}
                     </div>
 

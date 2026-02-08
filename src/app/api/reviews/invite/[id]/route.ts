@@ -28,6 +28,10 @@ export async function GET(
             country: true,
             photoUrl: true,
             specialties: true,
+            coachSkills: {
+              include: { skill: true },
+              orderBy: { displayOrder: "asc" },
+            },
           },
         },
       },

@@ -21,9 +21,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    const user = session.user as { id: string; email: string; ensembleProfileId?: string };
+    const user = session.user as { id: string; email: string };
 
-    if (!user.ensembleProfileId) {
+    const userEnsembles = await prisma.ensembleProfile.findMany({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+
+    if (userEnsembles.length === 0) {
       return NextResponse.json({ error: "Ensemble profile required to submit reviews" }, { status: 403 });
     }
 
@@ -64,10 +69,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Review already submitted for this invite" }, { status: 400 });
     }
 
+    const userEnsembleIds = userEnsembles.map(e => e.id);
+    let reviewerId = userEnsembles[0].id;
+    if (invite.ensembleProfileId && userEnsembleIds.includes(invite.ensembleProfileId)) {
+      reviewerId = invite.ensembleProfileId;
+    }
+
     const review = await prisma.review.create({
       data: {
         inviteId,
-        reviewerId: user.ensembleProfileId,
+        reviewerId,
         coachProfileId: invite.coachProfileId,
         rating,
         reviewText: reviewText ?? null,
@@ -82,7 +93,7 @@ export async function POST(request: Request) {
       where: { id: inviteId },
       data: {
         status: "completed",
-        ensembleProfileId: user.ensembleProfileId,
+        ensembleProfileId: reviewerId,
       },
     });
 

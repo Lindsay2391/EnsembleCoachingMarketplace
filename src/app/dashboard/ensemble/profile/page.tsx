@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
@@ -23,7 +23,9 @@ const GENRES = [
 export default function EnsembleProfileForm() {
   const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
-  const [existingId, setExistingId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("id");
+  const [existingId, setExistingId] = useState<string | null>(editId);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -42,21 +44,33 @@ export default function EnsembleProfileForm() {
     if (status === "loading") return;
 
     async function loadProfile() {
-      try {
-        // Try to fetch by looking up via bookings endpoint (will 404 if no profile)
-        const res = await fetch("/api/bookings");
-        if (res.ok) {
-          // Profile exists, try to get it
-          // We need a different approach - check if ensemble profile exists
+      if (editId) {
+        try {
+          const res = await fetch(`/api/ensembles/${editId}`);
+          if (res.ok) {
+            const data = await res.json();
+            setExistingId(data.id);
+            setEnsembleName(data.ensembleName || "");
+            setEnsembleType(data.ensembleType || "");
+            setSize(data.size?.toString() || "");
+            setCity(data.city || "");
+            setState(data.state || "");
+            setExperienceLevel(data.experienceLevel || "");
+            try {
+              setGenres(JSON.parse(data.genres || "[]"));
+            } catch {
+              setGenres([]);
+            }
+          }
+        } catch {
+          // Could not load profile
         }
-      } catch {
-        // No profile
       }
       setLoading(false);
     }
 
     loadProfile();
-  }, [session, status, router]);
+  }, [session, status, router, editId]);
 
   const toggleGenre = (genre: string) => {
     setGenres(genres.includes(genre) ? genres.filter((g) => g !== genre) : [...genres, genre]);
@@ -97,6 +111,7 @@ export default function EnsembleProfileForm() {
         setSuccess(existingId ? "Profile updated!" : "Profile created!");
         if (!existingId) {
           await updateSession();
+          router.push("/dashboard");
         }
       }
     } catch {

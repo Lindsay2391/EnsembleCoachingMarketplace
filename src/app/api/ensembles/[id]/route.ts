@@ -8,6 +8,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const { id } = await params;
 
     const ensemble = await prisma.ensembleProfile.findUnique({
@@ -24,19 +29,17 @@ export async function GET(
     });
 
     if (!ensemble) {
-      return NextResponse.json(
-        { error: "Ensemble not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Ensemble not found" }, { status: 404 });
+    }
+
+    if (ensemble.userId !== session.user.id) {
+      return NextResponse.json({ error: "You can only view your own ensemble profiles" }, { status: 403 });
     }
 
     return NextResponse.json(ensemble);
   } catch (error) {
     console.error("Get ensemble error:", error);
-    return NextResponse.json(
-      { error: "Something went wrong. Please try again." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
 }
 
@@ -48,10 +51,7 @@ export async function PUT(
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -62,20 +62,31 @@ export async function PUT(
     });
 
     if (!ensemble) {
-      return NextResponse.json(
-        { error: "Ensemble not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Ensemble not found" }, { status: 404 });
     }
 
     if (ensemble.userId !== user.id) {
-      return NextResponse.json(
-        { error: "You can only update your own ensemble profile" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "You can only update your own ensemble profile" }, { status: 403 });
     }
 
     const body = await request.json();
+
+    const newName = body.ensembleName !== undefined ? body.ensembleName : ensemble.ensembleName;
+    const newState = body.state !== undefined ? body.state : ensemble.state;
+
+    if (newName !== ensemble.ensembleName || newState !== ensemble.state) {
+      const duplicate = await prisma.ensembleProfile.findFirst({
+        where: {
+          ensembleName: newName,
+          state: newState,
+          id: { not: id },
+        },
+      });
+
+      if (duplicate) {
+        return NextResponse.json({ error: "An ensemble with this name already exists in that state" }, { status: 400 });
+      }
+    }
 
     const updateData: Record<string, unknown> = {};
     if (body.ensembleName !== undefined) updateData.ensembleName = body.ensembleName;
@@ -94,9 +105,46 @@ export async function PUT(
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Update ensemble error:", error);
-    return NextResponse.json(
-      { error: "Something went wrong. Please try again." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const user = session.user as { id: string };
+
+    const ensemble = await prisma.ensembleProfile.findUnique({
+      where: { id },
+    });
+
+    if (!ensemble) {
+      return NextResponse.json({ error: "Ensemble not found" }, { status: 404 });
+    }
+
+    if (ensemble.userId !== user.id) {
+      return NextResponse.json({ error: "You can only delete your own ensemble profile" }, { status: 403 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.review.deleteMany({ where: { reviewerId: id } });
+      await tx.booking.deleteMany({ where: { ensembleId: id } });
+      await tx.reviewInvite.deleteMany({ where: { ensembleProfileId: id } });
+      await tx.ensembleProfile.delete({ where: { id } });
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete ensemble error:", error);
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
 }

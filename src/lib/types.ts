@@ -8,14 +8,14 @@ declare module "next-auth" {
       name: string;
       userType: string;
       coachProfileId: string | null;
-      ensembleProfileId: string | null;
+      ensembleProfileIds: string[];
     };
   }
 
   interface User {
     userType: string;
     coachProfileId: string | null;
-    ensembleProfileId: string | null;
+    ensembleProfileIds: string[];
   }
 }
 
@@ -24,7 +24,7 @@ declare module "next-auth/jwt" {
     id: string;
     userType: string;
     coachProfileId: string | null;
-    ensembleProfileId: string | null;
+    ensembleProfileIds: string[];
   }
 }
 

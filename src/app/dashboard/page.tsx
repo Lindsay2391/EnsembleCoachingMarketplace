@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Music, Users, Search, User, Settings, Plus, Star } from "lucide-react";
+import { Music, Users, Search, User, Settings, Plus, Star, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -31,7 +31,7 @@ export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [coachProfile, setCoachProfile] = useState<CoachInfo | null>(null);
-  const [ensembleProfile, setEnsembleProfile] = useState<EnsembleInfo | null>(null);
+  const [ensembleProfiles, setEnsembleProfiles] = useState<EnsembleInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function Dashboard() {
 
         if (ensembleRes.ok) {
           const data = await ensembleRes.json();
-          if (data.profile) setEnsembleProfile(data.profile);
+          if (data.profiles) setEnsembleProfiles(data.profiles);
         }
       } catch (err) {
         console.error("Error fetching profiles:", err);
@@ -158,36 +158,46 @@ export default function Dashboard() {
                   <Users className="h-6 w-6 text-coral-500" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Ensemble Profile</h2>
-                  <p className="text-sm text-gray-500">Find coaches for your group</p>
+                  <h2 className="text-lg font-semibold text-gray-900">Ensemble Profiles</h2>
+                  <p className="text-sm text-gray-500">Find coaches for your groups</p>
                 </div>
               </div>
-              {ensembleProfile && <Badge variant="success">Active</Badge>}
+              {ensembleProfiles.length > 0 && <Badge variant="success">{ensembleProfiles.length} Active</Badge>}
             </div>
           </CardHeader>
           <CardContent>
-            {ensembleProfile ? (
-              <div className="space-y-4">
-                <div>
-                  <p className="font-medium text-gray-900">{ensembleProfile.ensembleName}</p>
-                  <p className="text-sm text-gray-500">
-                    {ensembleProfile.ensembleType} &middot; {ensembleProfile.city}, {ensembleProfile.state}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Link href="/dashboard/ensemble" className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <User className="h-4 w-4 mr-1.5" />
-                      Ensemble Dashboard
-                    </Button>
-                  </Link>
-                  <Link href="/dashboard/ensemble/profile" className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Settings className="h-4 w-4 mr-1.5" />
-                      Edit Profile
-                    </Button>
-                  </Link>
-                </div>
+            {ensembleProfiles.length > 0 ? (
+              <div className="space-y-3">
+                {ensembleProfiles.map((ep) => (
+                  <div key={ep.id} className="border border-gray-100 rounded-lg p-3">
+                    <div className="mb-2">
+                      <p className="font-medium text-gray-900">{ep.ensembleName}</p>
+                      <p className="text-sm text-gray-500">
+                        {ep.ensembleType} &middot; {ep.city}, {ep.state}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link href={`/dashboard/ensemble?id=${ep.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">
+                          <User className="h-4 w-4 mr-1.5" />
+                          Dashboard
+                        </Button>
+                      </Link>
+                      <Link href={`/dashboard/ensemble/profile?id=${ep.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Settings className="h-4 w-4 mr-1.5" />
+                          Edit
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+                <Link href="/dashboard/ensemble/profile">
+                  <Button variant="outline" className="w-full mt-2">
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Add Another Ensemble
+                  </Button>
+                </Link>
               </div>
             ) : (
               <div className="text-center py-4">

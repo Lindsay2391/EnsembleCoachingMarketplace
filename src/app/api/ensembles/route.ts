@@ -40,13 +40,13 @@ export async function POST(request: Request) {
     const { ensembleName, ensembleType, size, city, state, genres, experienceLevel } =
       validation.data;
 
-    const existingProfile = await prisma.ensembleProfile.findUnique({
-      where: { userId: user.id },
+    const existingDuplicate = await prisma.ensembleProfile.findFirst({
+      where: { ensembleName, state },
     });
 
-    if (existingProfile) {
+    if (existingDuplicate) {
       return NextResponse.json(
-        { error: "Ensemble profile already exists" },
+        { error: "An ensemble with this name already exists in that state" },
         { status: 400 }
       );
     }

@@ -22,7 +22,7 @@ export async function DELETE(
       where: { id: params.id },
       include: {
         coachProfile: { select: { id: true } },
-        ensembleProfile: { select: { id: true } },
+        ensembleProfiles: { select: { id: true } },
       },
     });
 
@@ -37,10 +37,11 @@ export async function DELETE(
         await tx.coachProfile.delete({ where: { id: user.coachProfile.id } });
       }
 
-      if (user.ensembleProfile) {
-        await tx.review.deleteMany({ where: { reviewerId: user.ensembleProfile.id } });
-        await tx.booking.deleteMany({ where: { ensembleId: user.ensembleProfile.id } });
-        await tx.ensembleProfile.delete({ where: { id: user.ensembleProfile.id } });
+      for (const ep of user.ensembleProfiles) {
+        await tx.review.deleteMany({ where: { reviewerId: ep.id } });
+        await tx.booking.deleteMany({ where: { ensembleId: ep.id } });
+        await tx.reviewInvite.deleteMany({ where: { ensembleProfileId: ep.id } });
+        await tx.ensembleProfile.delete({ where: { id: ep.id } });
       }
 
       await tx.message.deleteMany({

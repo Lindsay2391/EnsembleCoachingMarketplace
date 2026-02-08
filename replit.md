@@ -36,9 +36,10 @@ A Next.js 14 platform for connecting Australian ensemble groups with qualified v
 
 ## Account Structure
 - Users register with just name, email, and password (no role selection)
-- Any user can create both a **coach profile** and an **ensemble profile** from their dashboard
-- The session includes `coachProfileId` and `ensembleProfileId` fields (null if not created)
+- Any user can create both a **coach profile** and **multiple ensemble profiles** from their dashboard
+- The session includes `coachProfileId` (string | null) and `ensembleProfileIds` (string[]) fields
 - Session is refreshed via `update()` trigger when a new profile is created
+- Ensemble names must be unique within each state (`@@unique([ensembleName, state])`)
 - Admin accounts are created separately at `/admin/register` with a secret code
 - The `userType` field in the database is kept for admin identification only; non-admin users are `"user"`
 - Legacy users with `userType: "coach"` or `"ensemble"` still work — API routes check profile existence, not userType
@@ -69,13 +70,16 @@ Skills are now stored in a relational `Skill` table with a `CoachSkill` junction
   - Helper function in `src/lib/audit.ts` used by all admin API routes
 
 ## Dashboard & Navigation
-- Unified dashboard at `/dashboard` shows both coach and ensemble profile cards
-- Each card shows profile status and links to view/edit, or a button to create if not yet set up
+- Unified dashboard at `/dashboard` shows coach profile card and all ensemble profile cards
+- Users can create and manage multiple ensemble profiles from the dashboard
+- Each ensemble card shows name, type, location with edit/dashboard links
+- "Add Another Ensemble" button appears when user already has at least one ensemble
 - Navbar shows "Dashboard" for all logged-in users; admins also see "Admin Panel" link
-- Coach profile pages show "Book This Coach" / "Message" buttons when viewer has an ensemble profile
 - `/dashboard/coach` redirects to public profile or profile creation form
-- `/dashboard/ensemble` shows ensemble-specific dashboard with bookings
-- API endpoints: `/api/coaches/me` and `/api/ensembles/me` return the logged-in user's profile info
+- `/dashboard/ensemble` shows ensemble picker if multiple, or single ensemble dashboard
+- `/dashboard/ensemble/profile?id=xxx` edits a specific ensemble; no id = create new
+- API endpoints: `/api/coaches/me` returns coach profile; `/api/ensembles/me` returns all user's ensemble profiles (array)
+- CRUD: `/api/ensembles/[id]` supports GET/PUT/DELETE with ownership checks
 
 ## Review System
 - Coach-initiated invite-based reviews: Coaches send invites to ensemble email addresses, ensembles write reviews from pending invites
@@ -109,6 +113,8 @@ Skills are now stored in a relational `Skill` table with a `CoachSkill` junction
 - Optimistic UI updates with rollback on failure
 
 ## Recent Changes
+- 2026-02-08: Multiple ensemble profiles per user — users can now create and manage multiple ensembles from the dashboard; ensemble names must be unique per state; search displays state only for duplicate names
+- 2026-02-08: Updated footer and hero to say "Australian Barbershop community"; added review mention to For Ensembles card; removed bookings completed indicator from coach profiles
 - 2026-02-08: Added favourites system — users can favourite coaches with heart button; favourited coaches always appear first on browse page; smart sorting ranks nearby coaches with matching skills higher for ensemble members
 - 2026-02-08: Migrated skills system from hardcoded JSON to database-driven Skill + CoachSkill tables with 4 categories (26 skills), custom skill support, endorsement counts, and display ordering
 - 2026-02-08: Added "Buy Me a Coffee" support button across the site (footer, home page banner, dashboard, coach profiles) linking to buymeacoffee.com/ThinkingBarbershop with clear messaging that donations support the CoachConnect platform, not individual coaches

@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
           include: {
             coachProfile: { select: { id: true } },
-            ensembleProfile: { select: { id: true } },
+            ensembleProfiles: { select: { id: true } },
           },
         });
 
@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           userType: user.userType,
           coachProfileId: user.coachProfile?.id || null,
-          ensembleProfileId: user.ensembleProfile?.id || null,
+          ensembleProfileIds: user.ensembleProfiles.map((ep) => ep.id),
         };
       },
     }),
@@ -60,19 +60,19 @@ export const authOptions: NextAuthOptions = {
         token.userType = (user as { userType: string }).userType;
         token.id = user.id;
         token.coachProfileId = (user as { coachProfileId: string | null }).coachProfileId;
-        token.ensembleProfileId = (user as { ensembleProfileId: string | null }).ensembleProfileId;
+        token.ensembleProfileIds = (user as { ensembleProfileIds: string[] }).ensembleProfileIds;
       }
       if (trigger === "update") {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           include: {
             coachProfile: { select: { id: true } },
-            ensembleProfile: { select: { id: true } },
+            ensembleProfiles: { select: { id: true } },
           },
         });
         if (dbUser) {
           token.coachProfileId = dbUser.coachProfile?.id || null;
-          token.ensembleProfileId = dbUser.ensembleProfile?.id || null;
+          token.ensembleProfileIds = dbUser.ensembleProfiles.map((ep) => ep.id);
         }
       }
       return token;
@@ -82,7 +82,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as Record<string, unknown>).id = token.id;
         (session.user as Record<string, unknown>).userType = token.userType;
         (session.user as Record<string, unknown>).coachProfileId = token.coachProfileId || null;
-        (session.user as Record<string, unknown>).ensembleProfileId = token.ensembleProfileId || null;
+        (session.user as Record<string, unknown>).ensembleProfileIds = token.ensembleProfileIds || [];
       }
       return session;
     },

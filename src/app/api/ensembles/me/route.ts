@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const profile = await prisma.ensembleProfile.findUnique({
+    const profiles = await prisma.ensembleProfile.findMany({
       where: { userId: session.user.id },
       select: {
         id: true,
@@ -22,9 +22,9 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ profile: profile || null });
+    return NextResponse.json({ profiles });
   } catch (error) {
-    console.error("Get ensemble profile error:", error);
+    console.error("Get ensemble profiles error:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

@@ -24,7 +24,7 @@ export async function GET(request: Request) {
           userType: true,
           createdAt: true,
           coachProfile: { select: { id: true } },
-          ensembleProfile: { select: { id: true } },
+          ensembleProfiles: { select: { id: true } },
         },
         orderBy: { createdAt: "desc" },
         skip,
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
       email: u.email,
       userType: u.userType,
       hasCoachProfile: !!u.coachProfile,
-      hasEnsembleProfile: !!u.ensembleProfile,
+      hasEnsembleProfile: u.ensembleProfiles.length > 0,
       createdAt: u.createdAt,
     }));
 

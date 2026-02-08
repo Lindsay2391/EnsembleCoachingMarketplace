@@ -37,9 +37,9 @@ export async function GET(request: Request) {
       where.status = status;
     }
 
-    const [coachProfile, ensembleProfile] = await Promise.all([
+    const [coachProfile, ensembleProfiles] = await Promise.all([
       prisma.coachProfile.findUnique({ where: { userId: user.id } }),
-      prisma.ensembleProfile.findUnique({ where: { userId: user.id } }),
+      prisma.ensembleProfile.findMany({ where: { userId: user.id } }),
     ]);
 
     if (role === "coach") {
@@ -51,15 +51,15 @@ export async function GET(request: Request) {
       }
       where.coachId = coachProfile.id;
     } else if (role === "ensemble") {
-      if (!ensembleProfile) {
+      if (ensembleProfiles.length === 0) {
         return NextResponse.json(
           { error: "Ensemble profile not found" },
           { status: 404 }
         );
       }
-      where.ensembleId = ensembleProfile.id;
-    } else if (ensembleProfile) {
-      where.ensembleId = ensembleProfile.id;
+      where.ensembleId = { in: ensembleProfiles.map(ep => ep.id) };
+    } else if (ensembleProfiles.length > 0) {
+      where.ensembleId = { in: ensembleProfiles.map(ep => ep.id) };
     } else if (coachProfile) {
       where.coachId = coachProfile.id;
     } else {
@@ -101,16 +101,18 @@ export async function POST(request: Request) {
 
     const user = session.user as { id: string };
 
-    const ensembleProfile = await prisma.ensembleProfile.findUnique({
+    const ensembleProfiles = await prisma.ensembleProfile.findMany({
       where: { userId: user.id },
     });
 
-    if (!ensembleProfile) {
+    if (ensembleProfiles.length === 0) {
       return NextResponse.json(
         { error: "Only users with an ensemble profile can create bookings" },
         { status: 403 }
       );
     }
+
+    const ensembleProfile = ensembleProfiles[0];
 
     const body = await request.json();
 

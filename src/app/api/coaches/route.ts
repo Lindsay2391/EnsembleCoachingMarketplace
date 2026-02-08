@@ -100,18 +100,19 @@ export async function GET(request: Request) {
     let ensembleProfile: { ensembleType: string; experienceLevel: string; state: string; city: string } | null = null;
 
     if (session?.user?.id) {
-      const [favs, ensemble] = await Promise.all([
+      const [favs, ensembles] = await Promise.all([
         prisma.favoriteCoach.findMany({
           where: { userId: session.user.id },
           select: { coachProfileId: true },
         }),
-        prisma.ensembleProfile.findUnique({
+        prisma.ensembleProfile.findMany({
           where: { userId: session.user.id },
           select: { ensembleType: true, experienceLevel: true, state: true, city: true },
+          take: 1,
         }),
       ]);
       favs.forEach((f) => favoriteIds.add(f.coachProfileId));
-      ensembleProfile = ensemble;
+      ensembleProfile = ensembles[0] || null;
     }
 
     const needsRelevanceSort = !!ensembleProfile || favoriteIds.size > 0;

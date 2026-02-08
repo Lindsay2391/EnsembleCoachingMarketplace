@@ -18,7 +18,7 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   coachProfile    CoachProfile?
-  ensembleProfile EnsembleProfile?
+  ensembleProfiles EnsembleProfile[]
   sentMessages    Message[]  @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
   favoriteCoaches FavoriteCoach[]
@@ -70,7 +70,7 @@ model CoachProfile {
 
 model EnsembleProfile {
   id              String   @id @default(cuid())
-  userId          String   @unique
+  userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   ensembleName    String
   ensembleType    String
@@ -86,6 +86,9 @@ model EnsembleProfile {
   bookings       Booking[]
   reviews        Review[]
   reviewInvites  ReviewInvite[]
+
+  @@unique([ensembleName, state])
+  @@index([userId])
 }
 
 model Booking {

@@ -87,7 +87,7 @@ export default function BookingDetailPage() {
   if (!booking) return <div className="max-w-3xl mx-auto px-4 py-12 text-center text-gray-500">Booking not found</div>;
 
   const isCoach = !!session?.user?.coachProfileId;
-  const isEnsemble = !!session?.user?.ensembleProfileId;
+  const isEnsemble = (session?.user?.ensembleProfileIds?.length ?? 0) > 0;
   const proposedDates = parseJsonArray(booking.proposedDates);
 
   const statusVariant: Record<string, "success" | "warning" | "danger" | "info" | "default"> = {

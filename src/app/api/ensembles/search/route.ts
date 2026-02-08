@@ -40,7 +40,19 @@ export async function GET(request: Request) {
       orderBy: { ensembleName: "asc" },
     });
 
-    return NextResponse.json(ensembles);
+    const nameCounts: Record<string, number> = {};
+    for (const e of ensembles) {
+      nameCounts[e.ensembleName] = (nameCounts[e.ensembleName] || 0) + 1;
+    }
+
+    const results = ensembles.map((e) => ({
+      ...e,
+      displayName: nameCounts[e.ensembleName] > 1
+        ? `${e.ensembleName} (${e.state})`
+        : e.ensembleName,
+    }));
+
+    return NextResponse.json(results);
   } catch (error) {
     console.error("Search ensembles error:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

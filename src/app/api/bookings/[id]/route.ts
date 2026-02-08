@@ -40,13 +40,14 @@ export async function GET(
       where: { userId: user.id },
     });
 
-    const ensembleProfile = await prisma.ensembleProfile.findUnique({
+    const ensembleProfiles = await prisma.ensembleProfile.findMany({
       where: { userId: user.id },
+      select: { id: true },
     });
 
     const isCoach = coachProfile && booking.coachId === coachProfile.id;
     const isEnsemble =
-      ensembleProfile && booking.ensembleId === ensembleProfile.id;
+      ensembleProfiles.some(ep => booking.ensembleId === ep.id);
 
     if (!isCoach && !isEnsemble) {
       return NextResponse.json(

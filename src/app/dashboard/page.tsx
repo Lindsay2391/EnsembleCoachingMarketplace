@@ -27,7 +27,7 @@ interface EnsembleInfo {
 }
 
 export default function Dashboard() {
-  const { data: session, status, update: updateSession } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [coachProfile, setCoachProfile] = useState<CoachInfo | null>(null);
   const [ensembleProfile, setEnsembleProfile] = useState<EnsembleInfo | null>(null);

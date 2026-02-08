@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, MapPin, Filter, X } from "lucide-react";
+import { Search, MapPin, Filter, X, Heart } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
@@ -30,15 +31,20 @@ interface Coach {
   totalBookings: number;
   verified: boolean;
   matchCount?: number;
+  isFavorite?: boolean;
+  relevanceScore?: number;
 }
 
 function CoachBrowseContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [togglingFav, setTogglingFav] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
   const [selectedSkills, setSelectedSkills] = useState<string[]>(() => {
@@ -71,6 +77,11 @@ function CoachBrowseContent() {
       const data = await res.json();
       setCoaches(data.coaches || []);
       setTotal(data.total || 0);
+      const favIds = new Set<string>();
+      (data.coaches || []).forEach((c: Coach) => {
+        if (c.isFavorite) favIds.add(c.id);
+      });
+      setFavoriteIds(favIds);
     } catch (error) {
       console.error("Error fetching coaches:", error);
     } finally {
@@ -81,6 +92,53 @@ function CoachBrowseContent() {
   useEffect(() => {
     fetchCoaches();
   }, [fetchCoaches]);
+
+  const toggleFavorite = async (e: React.MouseEvent, coachId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!session) return;
+    const wasFav = favoriteIds.has(coachId);
+    setFavoriteIds((prev) => {
+      const next = new Set(prev);
+      if (wasFav) next.delete(coachId);
+      else next.add(coachId);
+      return next;
+    });
+    setTogglingFav(coachId);
+    try {
+      const res = await fetch("/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coachProfileId: coachId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFavoriteIds((prev) => {
+          const next = new Set(prev);
+          if (data.favorited) next.add(coachId);
+          else next.delete(coachId);
+          return next;
+        });
+      } else {
+        setFavoriteIds((prev) => {
+          const next = new Set(prev);
+          if (wasFav) next.add(coachId);
+          else next.delete(coachId);
+          return next;
+        });
+      }
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+      setFavoriteIds((prev) => {
+        const next = new Set(prev);
+        if (wasFav) next.add(coachId);
+        else next.delete(coachId);
+        return next;
+      });
+    } finally {
+      setTogglingFav(null);
+    }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,9 +326,10 @@ function CoachBrowseContent() {
             const matchCount = selectedSkills.length > 0
               ? selectedSkills.filter(s => coachSkills.includes(s)).length
               : 0;
+            const isFav = favoriteIds.has(coach.id);
             return (
               <Link key={coach.id} href={`/coaches/${coach.id}`}>
-                <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+                <Card className={`h-full hover:shadow-md transition-shadow cursor-pointer ${isFav ? "ring-2 ring-coral-200" : ""}`}>
                   <CardContent className="py-5">
                     <div className="flex items-start gap-4">
                       <div className="w-14 h-14 rounded-full bg-coral-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -302,6 +361,20 @@ function CoachBrowseContent() {
                           {coach.city}, {coach.state}
                         </div>
                       </div>
+                      {session && (
+                        <button
+                          onClick={(e) => toggleFavorite(e, coach.id)}
+                          disabled={togglingFav === coach.id}
+                          className="flex-shrink-0 p-1.5 rounded-full hover:bg-coral-50 transition-colors"
+                          title={isFav ? "Remove from favourites" : "Add to favourites"}
+                        >
+                          <Heart
+                            className={`h-5 w-5 transition-colors ${
+                              isFav ? "fill-coral-500 text-coral-500" : "text-gray-300 hover:text-coral-400"
+                            }`}
+                          />
+                        </button>
+                      )}
                     </div>
 
                     {selectedSkills.length > 0 && matchCount > 0 && (

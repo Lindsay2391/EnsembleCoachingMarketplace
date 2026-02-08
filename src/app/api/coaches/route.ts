@@ -28,6 +28,7 @@ const createCoachSchema = z.object({
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const session = await getServerSession(authOptions);
 
     const skills = searchParams.get("skills");
     const state = searchParams.get("state");
@@ -92,6 +93,24 @@ export async function GET(request: Request) {
       }
     }
 
+    const favoriteIds = new Set<string>();
+    let ensembleProfile: { ensembleType: string; experienceLevel: string; state: string; city: string } | null = null;
+
+    if (session?.user?.id) {
+      const [favs, ensemble] = await Promise.all([
+        prisma.favoriteCoach.findMany({
+          where: { userId: session.user.id },
+          select: { coachProfileId: true },
+        }),
+        prisma.ensembleProfile.findUnique({
+          where: { userId: session.user.id },
+          select: { ensembleType: true, experienceLevel: true, state: true, city: true },
+        }),
+      ]);
+      favs.forEach((f) => favoriteIds.add(f.coachProfileId));
+      ensembleProfile = ensemble;
+    }
+
     const [allCoaches, total] = await Promise.all([
       prisma.coachProfile.findMany({
         where,
@@ -111,18 +130,40 @@ export async function GET(request: Request) {
       prisma.coachProfile.count({ where }),
     ]);
 
-    let sortedCoaches = allCoaches;
-    if (skillsList.length > 1) {
-      sortedCoaches = allCoaches
-        .map(coach => {
-          const coachSkills: string[] = (() => { try { return JSON.parse(coach.specialties); } catch { return []; } })();
-          const matchCount = skillsList.filter(skill => coachSkills.includes(skill)).length;
-          return { ...coach, matchCount };
-        })
-        .sort((a, b) => b.matchCount - a.matchCount || b.rating - a.rating);
-    }
+    const parseJson = (val: string): string[] => {
+      try { return JSON.parse(val); } catch { return []; }
+    };
 
-    const paginatedCoaches = sortedCoaches.slice(skip, skip + limit);
+    const scoredCoaches = allCoaches.map((coach) => {
+      const coachSkills = parseJson(coach.specialties);
+      const coachEnsembleTypes = parseJson(coach.ensembleTypes);
+      const coachExpLevels = parseJson(coach.experienceLevels);
+
+      const isFavorite = favoriteIds.has(coach.id);
+
+      let relevanceScore = 0;
+      if (ensembleProfile) {
+        if (coach.state === ensembleProfile.state) relevanceScore += 10;
+        if (coach.city === ensembleProfile.city) relevanceScore += 5;
+        if (coachEnsembleTypes.includes(ensembleProfile.ensembleType)) relevanceScore += 10;
+        if (coachExpLevels.includes(ensembleProfile.experienceLevel)) relevanceScore += 10;
+      }
+
+      const skillMatchCount = skillsList.length > 0
+        ? skillsList.filter((skill) => coachSkills.includes(skill)).length
+        : 0;
+
+      return { ...coach, isFavorite, relevanceScore, matchCount: skillMatchCount };
+    });
+
+    scoredCoaches.sort((a, b) => {
+      if (a.isFavorite !== b.isFavorite) return a.isFavorite ? -1 : 1;
+      if (a.relevanceScore !== b.relevanceScore) return b.relevanceScore - a.relevanceScore;
+      if (skillsList.length > 0 && a.matchCount !== b.matchCount) return b.matchCount - a.matchCount;
+      return b.rating - a.rating;
+    });
+
+    const paginatedCoaches = scoredCoaches.slice(skip, skip + limit);
 
     return NextResponse.json({
       coaches: paginatedCoaches,

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle, Heart } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -103,6 +103,8 @@ export default function CoachProfilePage() {
   const [coach, setCoach] = useState<CoachProfile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [togglingFav, setTogglingFav] = useState(false);
 
   useEffect(() => {
     async function fetchCoach() {
@@ -124,6 +126,41 @@ export default function CoachProfilePage() {
     }
     if (params.id) fetchCoach();
   }, [params.id]);
+
+  useEffect(() => {
+    if (!session?.user || !params.id) return;
+    fetch("/api/favorites")
+      .then((r) => r.json())
+      .then((data) => {
+        setIsFavorite(data.favoriteIds?.includes(params.id) ?? false);
+      })
+      .catch(() => {});
+  }, [session, params.id]);
+
+  const toggleFavorite = async () => {
+    if (!session) return;
+    const prev = isFavorite;
+    setIsFavorite(!prev);
+    setTogglingFav(true);
+    try {
+      const res = await fetch("/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ coachProfileId: params.id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setIsFavorite(data.favorited);
+      } else {
+        setIsFavorite(prev);
+      }
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+      setIsFavorite(prev);
+    } finally {
+      setTogglingFav(false);
+    }
+  };
 
   if (loading) {
     return <div className="max-w-4xl mx-auto px-4 py-12 text-center text-gray-500">Loading profile...</div>;
@@ -187,16 +224,27 @@ export default function CoachProfilePage() {
                 </span>
               </div>
 
-              {session?.user?.id === coach.userId && (
-                <div className="flex gap-3 mt-4">
+              <div className="flex gap-3 mt-4">
+                {session?.user?.id === coach.userId && (
                   <Link href="/dashboard/coach/profile">
                     <Button>
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit Profile
                     </Button>
                   </Link>
-                </div>
-              )}
+                )}
+                {session && session.user?.id !== coach.userId && (
+                  <Button
+                    variant="outline"
+                    onClick={toggleFavorite}
+                    disabled={togglingFav}
+                    className={isFavorite ? "border-coral-300 text-coral-600" : ""}
+                  >
+                    <Heart className={`h-4 w-4 mr-2 ${isFavorite ? "fill-coral-500 text-coral-500" : ""}`} />
+                    {isFavorite ? "Favourited" : "Favourite"}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>

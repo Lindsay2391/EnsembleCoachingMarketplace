@@ -82,7 +82,17 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - **Admin moderation**: Reviews tab in admin panel with delete capability; audit logged
 - **API routes**: POST/GET `/api/reviews/invite`, GET `/api/reviews/invite/[id]`, GET `/api/reviews/invites/pending`, POST `/api/reviews`, GET `/api/coaches/[id]/reviews`, GET/DELETE `/api/admin/reviews[/id]`
 
+## Favourites & Smart Sorting
+- Users can favourite coaches via heart icon on browse page and coach profile pages
+- Favourite coaches appear at the top of the "Find Coaches" page
+- If the user has an ensemble profile, coaches are ranked by relevance: same state (+10), same city (+5), matching ensemble type (+10), matching experience level (+10)
+- Sort order: Favourites first → Relevance score → Skill match count → Rating
+- `FavoriteCoach` model with unique constraint on (userId, coachProfileId)
+- API: GET/POST `/api/favorites` (toggle favourite, list favourite IDs)
+- Optimistic UI updates with rollback on failure
+
 ## Recent Changes
+- 2026-02-08: Added favourites system — users can favourite coaches with heart button; favourited coaches always appear first on browse page; smart sorting ranks nearby coaches with matching skills higher for ensemble members
 - 2026-02-08: Added "Buy Me a Coffee" support button across the site (footer, home page banner, dashboard, coach profiles) linking to buymeacoffee.com/ThinkingBarbershop with clear messaging that donations support the CoachConnect platform, not individual coaches
 - 2026-02-08: Added notification bell to navbar showing pending review invite count with dropdown for quick access
 - 2026-02-08: Cleaned up ensemble dashboard — removed KPIs and bookings section, kept review invites and quick links

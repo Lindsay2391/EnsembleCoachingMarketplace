@@ -244,9 +244,6 @@ export default function CoachProfilePage() {
                     {coach.rating.toFixed(1)} ({coach.totalReviews} reviews)
                   </span>
                 </div>
-                <span className="text-sm text-gray-500">
-                  {coach.totalBookings} bookings completed
-                </span>
               </div>
 
               <div className="flex gap-3 mt-4">

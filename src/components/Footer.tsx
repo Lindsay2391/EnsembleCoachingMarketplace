@@ -64,7 +64,7 @@ export default function Footer() {
         <div className="mt-8 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-400 text-center">
             &copy; {new Date().getFullYear()} CoachConnect by Thinking
-            Barbershop. Built for the Australian ensemble community.
+            Barbershop. Built for the Australian Barbershop community.
           </p>
         </div>
       </div>

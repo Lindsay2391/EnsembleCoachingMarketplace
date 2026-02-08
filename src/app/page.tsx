@@ -33,7 +33,7 @@ export default function HomePage() {
               </Link>
             </div>
             <p className="mt-4 text-sm text-gray-300">
-              Free to browse. Free to join. Built for the Australian ensemble
+              Free to browse. Free to join. Built for the Australian Barbershop
               community.
             </p>
           </div>
@@ -125,6 +125,14 @@ export default function HomePage() {
                   </div>
                   <span className="text-gray-600">
                     Get in touch directly and arrange your next coaching session
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-sm font-bold">+</span>
+                  </div>
+                  <span className="text-gray-600">
+                    Leave reviews and validate coach skills to help the community find the best fit
                   </span>
                 </li>
               </ul>

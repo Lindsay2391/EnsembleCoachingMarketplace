@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const specialty = searchParams.get("specialty");
+    const skills = searchParams.get("skills");
     const state = searchParams.get("state");
     const city = searchParams.get("city");
     const experienceLevel = searchParams.get("experienceLevel");
@@ -37,13 +37,15 @@ export async function GET(request: Request) {
 
     const skip = (page - 1) * limit;
 
+    const skillsList = skills ? skills.split(",").map(s => s.trim()).filter(Boolean) : [];
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       approved: true,
     };
 
-    if (specialty) {
-      where.specialties = { contains: specialty };
+    if (skillsList.length > 0) {
+      where.OR = skillsList.map(skill => ({ specialties: { contains: skill } }));
     }
 
     if (state) {
@@ -69,13 +71,24 @@ export async function GET(request: Request) {
     }
 
     if (search) {
-      where.OR = [
-        { fullName: { contains: search } },
-        { bio: { contains: search } },
-      ];
+      if (where.OR) {
+        where.AND = [
+          { OR: where.OR },
+          { OR: [
+            { fullName: { contains: search } },
+            { bio: { contains: search } },
+          ] },
+        ];
+        delete where.OR;
+      } else {
+        where.OR = [
+          { fullName: { contains: search } },
+          { bio: { contains: search } },
+        ];
+      }
     }
 
-    const [coaches, total] = await Promise.all([
+    const [allCoaches, total] = await Promise.all([
       prisma.coachProfile.findMany({
         where,
         include: {
@@ -90,14 +103,25 @@ export async function GET(request: Request) {
           { rating: "desc" },
           { totalBookings: "desc" },
         ],
-        skip,
-        take: limit,
       }),
       prisma.coachProfile.count({ where }),
     ]);
 
+    let sortedCoaches = allCoaches;
+    if (skillsList.length > 1) {
+      sortedCoaches = allCoaches
+        .map(coach => {
+          const coachSkills: string[] = (() => { try { return JSON.parse(coach.specialties); } catch { return []; } })();
+          const matchCount = skillsList.filter(skill => coachSkills.includes(skill)).length;
+          return { ...coach, matchCount };
+        })
+        .sort((a, b) => b.matchCount - a.matchCount || b.rating - a.rating);
+    }
+
+    const paginatedCoaches = sortedCoaches.slice(skip, skip + limit);
+
     return NextResponse.json({
-      coaches,
+      coaches: paginatedCoaches,
       total,
       page,
       limit,

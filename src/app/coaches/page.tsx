@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, MapPin, Filter } from "lucide-react";
+import { Search, MapPin, Filter, X } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
@@ -26,6 +26,7 @@ interface Coach {
   totalReviews: number;
   totalBookings: number;
   verified: boolean;
+  matchCount?: number;
 }
 
 function CoachBrowseContent() {
@@ -37,16 +38,27 @@ function CoachBrowseContent() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
-  const [skill, setSkill] = useState(searchParams.get("specialty") || "");
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(() => {
+    const s = searchParams.get("skills");
+    return s ? s.split(",").filter(Boolean) : [];
+  });
   const [state, setState] = useState(searchParams.get("state") || "");
   const [experienceLevel, setExperienceLevel] = useState(searchParams.get("experienceLevel") || "");
   const [page, setPage] = useState(1);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills(prev =>
+      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+    );
+    setPage(1);
+  };
 
   const fetchCoaches = useCallback(async () => {
     setLoading(true);
     const params = new URLSearchParams();
     if (searchTerm) params.set("search", searchTerm);
-    if (skill) params.set("specialty", skill);
+    if (selectedSkills.length > 0) params.set("skills", selectedSkills.join(","));
     if (state) params.set("state", state);
     if (experienceLevel) params.set("experienceLevel", experienceLevel);
     params.set("page", page.toString());
@@ -61,7 +73,7 @@ function CoachBrowseContent() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, skill, state, experienceLevel, page]);
+  }, [searchTerm, selectedSkills, state, experienceLevel, page]);
 
   useEffect(() => {
     fetchCoaches();
@@ -75,7 +87,7 @@ function CoachBrowseContent() {
 
   const clearFilters = () => {
     setSearchTerm("");
-    setSkill("");
+    setSelectedSkills([]);
     setState("");
     setExperienceLevel("");
     setPage(1);
@@ -91,7 +103,6 @@ function CoachBrowseContent() {
         </p>
       </div>
 
-      {/* Search and Filters */}
       <div className="mb-8 space-y-4">
         <form onSubmit={handleSearch} className="flex gap-3">
           <div className="flex-1">
@@ -112,22 +123,40 @@ function CoachBrowseContent() {
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters
+            {(selectedSkills.length > 0 || state || experienceLevel) && (
+              <span className="ml-1.5 bg-coral-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                {(selectedSkills.length > 0 ? 1 : 0) + (state ? 1 : 0) + (experienceLevel ? 1 : 0)}
+              </span>
+            )}
           </Button>
         </form>
 
+        {selectedSkills.length > 0 && !showFilters && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-500">Filtering by:</span>
+            {selectedSkills.map(skill => (
+              <button
+                key={skill}
+                onClick={() => toggleSkill(skill)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-coral-100 text-coral-700 hover:bg-coral-200 transition-colors"
+              >
+                {skill}
+                <X className="h-3 w-3" />
+              </button>
+            ))}
+            <button
+              onClick={() => { setSelectedSkills([]); setPage(1); }}
+              className="text-xs text-gray-500 hover:text-gray-700 underline"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+
         {showFilters && (
           <Card>
-            <CardContent className="py-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Select
-                  label="Skill"
-                  value={skill}
-                  onChange={(e) => { setSkill(e.target.value); setPage(1); }}
-                  placeholder="All Skills"
-                  options={Object.entries(COACH_SKILLS).flatMap(([category, skills]) =>
-                    skills.map((s) => ({ value: s, label: `${s}` }))
-                  )}
-                />
+            <CardContent className="py-4 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
                   label="State"
                   value={state}
@@ -143,9 +172,78 @@ function CoachBrowseContent() {
                   options={EXPERIENCE_LEVELS.map((l) => ({ value: l, label: l }))}
                 />
               </div>
-              <div className="mt-4 flex justify-end">
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Skills
+                    {selectedSkills.length > 0 && (
+                      <span className="ml-2 text-coral-600">({selectedSkills.length} selected)</span>
+                    )}
+                  </label>
+                  {selectedSkills.length > 0 && (
+                    <button
+                      onClick={() => { setSelectedSkills([]); setPage(1); }}
+                      className="text-xs text-gray-500 hover:text-gray-700 underline"
+                    >
+                      Clear skills
+                    </button>
+                  )}
+                </div>
+
+                {selectedSkills.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {selectedSkills.map(skill => (
+                      <button
+                        key={skill}
+                        onClick={() => toggleSkill(skill)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-coral-500 text-white hover:bg-coral-600 transition-colors"
+                      >
+                        {skill}
+                        <X className="h-3 w-3" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {Object.entries(COACH_SKILLS).map(([category, categorySkills]) => {
+                    const selectedCount = categorySkills.filter(s => selectedSkills.includes(s)).length;
+                    const isExpanded = expandedCategories[category] === true;
+                    return (
+                      <div key={category} className="border border-gray-200 rounded-lg overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !isExpanded }))}
+                          className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-sm"
+                        >
+                          <span className="font-medium text-gray-700">{category}</span>
+                          <div className="flex items-center gap-2">
+                            {selectedCount > 0 && (
+                              <span className="bg-coral-500 text-white text-xs px-2 py-0.5 rounded-full">{selectedCount}</span>
+                            )}
+                            <span className="text-gray-400 text-xs">{isExpanded ? "▲" : "▼"}</span>
+                          </div>
+                        </button>
+                        {isExpanded && (
+                          <div className="px-3 py-2 flex flex-wrap gap-1.5">
+                            {categorySkills.map((s) => (
+                              <button key={s} type="button" onClick={() => toggleSkill(s)}
+                                className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                                  selectedSkills.includes(s) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-600 border-gray-300 hover:border-coral-300"
+                                }`}>{s}</button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Clear Filters
+                  Clear All Filters
                 </Button>
               </div>
             </CardContent>
@@ -153,7 +251,6 @@ function CoachBrowseContent() {
         )}
       </div>
 
-      {/* Results */}
       {loading ? (
         <div className="text-center py-12 text-gray-500">Loading coaches...</div>
       ) : coaches.length === 0 ? (
@@ -163,71 +260,89 @@ function CoachBrowseContent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {coaches.map((coach) => (
-            <Link key={coach.id} href={`/coaches/${coach.id}`}>
-              <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="py-5">
-                  <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 rounded-full bg-coral-100 flex items-center justify-center flex-shrink-0">
-                      {coach.photoUrl ? (
-                        <img
-                          src={coach.photoUrl}
-                          alt={coach.fullName}
-                          className="w-14 h-14 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-coral-500 text-xl font-bold">
-                          {coach.fullName.charAt(0)}
+          {coaches.map((coach) => {
+            const coachSkills = parseJsonArray(coach.specialties);
+            const matchCount = selectedSkills.length > 0
+              ? selectedSkills.filter(s => coachSkills.includes(s)).length
+              : 0;
+            return (
+              <Link key={coach.id} href={`/coaches/${coach.id}`}>
+                <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="py-5">
+                    <div className="flex items-start gap-4">
+                      <div className="w-14 h-14 rounded-full bg-coral-100 flex items-center justify-center flex-shrink-0">
+                        {coach.photoUrl ? (
+                          <img
+                            src={coach.photoUrl}
+                            alt={coach.fullName}
+                            className="w-14 h-14 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-coral-500 text-xl font-bold">
+                            {coach.fullName.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-gray-900 truncate">
+                            {coach.fullName}
+                          </h3>
+                          {coach.verified && (
+                            <Badge variant="success">Verified</Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {coach.city}, {coach.state}
+                        </div>
+                      </div>
+                    </div>
+
+                    {selectedSkills.length > 0 && matchCount > 0 && (
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-coral-600">
+                          Matches {matchCount} of {selectedSkills.length} selected skill{selectedSkills.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    )}
+
+                    <p className="text-sm text-gray-600 mt-3 line-clamp-2">
+                      {coach.bio}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {coachSkills.slice(0, 4).map((s) => (
+                        <Badge key={s} variant={selectedSkills.includes(s) ? "default" : "info"}>
+                          {s}
+                        </Badge>
+                      ))}
+                      {coachSkills.length > 4 && (
+                        <span className="text-xs text-gray-400 self-center">+{coachSkills.length - 4} more</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <StarRating rating={coach.rating} size={14} />
+                        <span className="text-sm text-gray-500">
+                          ({coach.totalReviews})
+                        </span>
+                      </div>
+                      {coach.rateHourly && (
+                        <span className="text-sm font-medium text-gray-900">
+                          {formatCurrency(coach.rateHourly)}/hr
                         </span>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900 truncate">
-                          {coach.fullName}
-                        </h3>
-                        {coach.verified && (
-                          <Badge variant="success">Verified</Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {coach.city}, {coach.state}
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-gray-600 mt-3 line-clamp-2">
-                    {coach.bio}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {parseJsonArray(coach.specialties).slice(0, 4).map((s) => (
-                      <Badge key={s} variant="info">{s}</Badge>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <StarRating rating={coach.rating} size={14} />
-                      <span className="text-sm text-gray-500">
-                        ({coach.totalReviews})
-                      </span>
-                    </div>
-                    {coach.rateHourly && (
-                      <span className="text-sm font-medium text-gray-900">
-                        {formatCurrency(coach.rateHourly)}/hr
-                      </span>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                  </CardContent>
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       )}
 
-      {/* Pagination */}
       {total > 12 && (
         <div className="mt-8 flex justify-center gap-2">
           <Button

@@ -62,6 +62,10 @@ model CoachProfile {
   reviewInvites  ReviewInvite[]
   favoritedBy    FavoriteCoach[]
   coachSkills    CoachSkill[]
+
+  @@index([approved, rating, totalBookings])
+  @@index([state])
+  @@index([city])
 }
 
 model EnsembleProfile {
@@ -107,6 +111,9 @@ model Booking {
   completedAt       DateTime?
 
   messages Message[]
+
+  @@index([coachId, status])
+  @@index([ensembleId, status])
 }
 
 model ReviewInvite {
@@ -152,6 +159,10 @@ model Message {
   content     String
   read        Boolean  @default(false)
   createdAt   DateTime @default(now())
+
+  @@index([senderId, createdAt])
+  @@index([recipientId, createdAt])
+  @@index([recipientId, read])
 }
 
 model FavoriteCoach {

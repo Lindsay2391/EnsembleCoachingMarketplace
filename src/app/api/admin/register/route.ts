@@ -25,7 +25,14 @@ export async function POST(request: Request) {
 
     const { email, password, name, adminCode } = validation.data;
 
-    const adminSecret = process.env.ADMIN_SECRET || "CoachConnect2026!";
+    const adminSecret = process.env.ADMIN_SECRET;
+    if (!adminSecret) {
+      console.error("ADMIN_SECRET environment variable is not set");
+      return NextResponse.json(
+        { error: "Admin registration is not configured" },
+        { status: 503 }
+      );
+    }
     if (adminCode !== adminSecret) {
       return NextResponse.json(
         { error: "Invalid admin code" },

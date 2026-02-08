@@ -39,6 +39,9 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - Data defined in `src/lib/utils.ts` as `COACH_SKILLS` with helper functions `groupSkillsByCategory()` and `getSkillCategory()`
 
 ## Recent Changes
+- 2026-02-08: Rephrased home page text to remove references to reviews, pricing, availability, and booking (not yet implemented); renamed "Book" step to "Connect"
+- 2026-02-08: Added multi-select skill filtering on browse page with match-count ranking
+- 2026-02-08: Added ensemble types selector to coach profiles
 - 2026-02-08: Replaced flat specialties with categorized skills system (50+ skills across 7 categories) with accordion UI on profile edit and grouped display on profile view
 - 2026-02-08: Restyled entire app from indigo/purple to coral/salmon color scheme to match thinkingbarbershop.com
 - 2026-02-08: Initial Replit setup - configured port 5000, ran Prisma migrations, set environment variables

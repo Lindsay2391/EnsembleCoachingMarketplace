@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search, Calendar, Star, Shield, Users, Music } from "lucide-react";
+import { Search, MessageCircle, Star, Shield, Users, Music } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 export default function HomePage() {
@@ -14,9 +14,8 @@ export default function HomePage() {
               <span className="text-coral-300">Ensemble Coach</span>
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-gray-200 leading-relaxed">
-              Stop wasting time on email tennis. Connect with qualified coaches
-              who specialise in your style, book with confidence, and take your
-              group to the next level.
+              Connect with qualified coaches who specialise in your style
+              and take your group to the next level.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/coaches">
@@ -45,7 +44,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900">How It Works</h2>
             <p className="mt-4 text-lg text-gray-600">
-              Three simple steps to your next coaching session
+              Three simple steps to finding your next coach
             </p>
           </div>
 
@@ -58,21 +57,21 @@ export default function HomePage() {
                 1. Discover
               </h3>
               <p className="text-gray-600">
-                Search coaches by specialty, location, availability, and price.
-                Read reviews from other ensembles.
+                Search coaches to match your ensemble's needs — by location,
+                skills, experience level, and more.
               </p>
             </div>
 
             <div className="text-center">
               <div className="w-16 h-16 bg-coral-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <Calendar className="h-8 w-8 text-coral-500" />
+                <MessageCircle className="h-8 w-8 text-coral-500" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                2. Book
+                2. Connect
               </h3>
               <p className="text-gray-600">
-                Submit a booking request with your dates, goals, and group
-                details. The coach reviews and accepts.
+                Found the right coach? Use their contact details to get in
+                touch and arrange your next session.
               </p>
             </div>
 
@@ -84,8 +83,8 @@ export default function HomePage() {
                 3. Grow
               </h3>
               <p className="text-gray-600">
-                Have a great coaching session, then leave a review to help other
-                ensembles find the right match.
+                Have a great coaching session and take your ensemble's
+                performance to the next level.
               </p>
             </div>
           </div>
@@ -116,7 +115,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Compare rates, read reviews, and book with confidence
+                    Browse detailed profiles and find the right coach for your group
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -124,7 +123,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Reduce admin overhead with streamlined booking and messaging
+                    Reach out directly using the coach's contact details
                   </span>
                 </li>
               </ul>
@@ -156,7 +155,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Fill calendar gaps and manage bookings in one place
+                    Showcase your skills, experience, and coaching style
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -164,7 +163,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Build credibility through reviews and a professional profile
+                    Build credibility through a detailed professional profile
                   </span>
                 </li>
               </ul>

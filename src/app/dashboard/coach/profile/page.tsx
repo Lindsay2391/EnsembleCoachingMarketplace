@@ -10,7 +10,7 @@ import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
-import { Upload, Phone, Mail, Globe, ChevronUp, ChevronDown, Plus } from "lucide-react";
+import { Upload, Phone, Mail, Globe, ChevronUp, ChevronDown, Plus, X } from "lucide-react";
 
 interface SkillItem {
   id: string;
@@ -65,9 +65,9 @@ export default function CoachProfileForm() {
   const [videoUrl, setVideoUrl] = useState("");
   const [cancellationPolicy, setCancellationPolicy] = useState("");
   const [travelSupplement, setTravelSupplement] = useState("");
-  const [customSkillName, setCustomSkillName] = useState("");
-  const [customSkillCategory, setCustomSkillCategory] = useState("");
-  const [addingCustomSkill, setAddingCustomSkill] = useState(false);
+  const [customSkillInputs, setCustomSkillInputs] = useState<Record<string, string>>({});
+  const [addingCustomCategory, setAddingCustomCategory] = useState<string | null>(null);
+  const [savingCustomSkill, setSavingCustomSkill] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -149,26 +149,27 @@ export default function CoachProfileForm() {
   const allSkillsList = Object.values(availableSkills).flat();
   const getSkillById = (id: string) => allSkillsList.find(s => s.id === id);
 
-  const handleAddCustomSkill = async () => {
-    if (!customSkillName.trim() || !customSkillCategory.trim()) return;
-    setAddingCustomSkill(true);
+  const handleAddCustomSkill = async (category: string) => {
+    const name = customSkillInputs[category]?.trim();
+    if (!name) return;
+    setSavingCustomSkill(true);
     try {
       const res = await fetch("/api/skills", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: customSkillName.trim(), category: customSkillCategory.trim() }),
+        body: JSON.stringify({ name, category }),
       });
       if (res.ok) {
         const newSkill = await res.json();
         setAvailableSkills(prev => {
           const updated = { ...prev };
-          if (!updated[newSkill.category]) updated[newSkill.category] = [];
-          updated[newSkill.category] = [...updated[newSkill.category], { ...newSkill, totalEndorsements: 0 }];
+          if (!updated[category]) updated[category] = [];
+          updated[category] = [...updated[category], { ...newSkill, totalEndorsements: 0 }];
           return updated;
         });
         setSelectedSkillIds(prev => [...prev, newSkill.id]);
-        setCustomSkillName("");
-        setCustomSkillCategory("");
+        setCustomSkillInputs(prev => ({ ...prev, [category]: "" }));
+        setAddingCustomCategory(null);
       } else {
         const data = await res.json();
         setError(data.error || "Failed to add custom skill");
@@ -176,7 +177,7 @@ export default function CoachProfileForm() {
     } catch {
       setError("Failed to add custom skill");
     } finally {
-      setAddingCustomSkill(false);
+      setSavingCustomSkill(false);
     }
   };
 
@@ -439,49 +440,64 @@ export default function CoachProfileForm() {
                         </div>
                       </button>
                       {isExpanded && (
-                        <div className="px-4 py-3 flex flex-wrap gap-2">
-                          {categorySkills.map((s) => (
-                            <button key={s.id} type="button" onClick={() => toggleSkillId(s.id)}
-                              className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                                selectedSkillIds.includes(s.id) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
-                              }`}>
-                              {s.name}
-                              {s.isCustom && <span className="ml-1 text-xs opacity-75">✦</span>}
-                            </button>
-                          ))}
+                        <div className="px-4 py-3">
+                          <div className="flex flex-wrap gap-2">
+                            {categorySkills.map((s) => (
+                              <button key={s.id} type="button" onClick={() => toggleSkillId(s.id)}
+                                className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                                  selectedSkillIds.includes(s.id) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
+                                }`}>
+                                {s.name}
+                                {s.isCustom && <span className="ml-1 text-xs opacity-75">✦</span>}
+                              </button>
+                            ))}
+                            {addingCustomCategory === category ? (
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="text"
+                                  value={customSkillInputs[category] || ""}
+                                  onChange={(e) => setCustomSkillInputs(prev => ({ ...prev, [category]: e.target.value }))}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") { e.preventDefault(); handleAddCustomSkill(category); }
+                                    if (e.key === "Escape") setAddingCustomCategory(null);
+                                  }}
+                                  placeholder="Skill name..."
+                                  autoFocus
+                                  className="px-3 py-1.5 rounded-full text-sm border border-coral-300 focus:outline-none focus:ring-2 focus:ring-coral-200 w-40"
+                                  disabled={savingCustomSkill}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddCustomSkill(category)}
+                                  disabled={savingCustomSkill || !customSkillInputs[category]?.trim()}
+                                  className="px-2.5 py-1.5 rounded-full text-sm bg-coral-500 text-white border border-coral-500 hover:bg-coral-600 disabled:opacity-50 transition-colors"
+                                >
+                                  {savingCustomSkill ? "..." : "Add"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setAddingCustomCategory(null)}
+                                  className="p-1.5 text-gray-400 hover:text-gray-600"
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setAddingCustomCategory(category)}
+                                className="px-3 py-1.5 rounded-full text-sm border border-dashed border-gray-300 text-gray-500 hover:border-coral-300 hover:text-coral-500 transition-colors flex items-center gap-1"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                                Add
+                              </button>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
                   );
                 })}
-              </div>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Add Custom Skill</label>
-              <div className="flex gap-2">
-                <Input
-                  id="customSkillName"
-                  placeholder="Skill name"
-                  value={customSkillName}
-                  onChange={(e) => setCustomSkillName(e.target.value)}
-                />
-                <Select
-                  id="customSkillCategory"
-                  value={customSkillCategory}
-                  onChange={(e) => setCustomSkillCategory(e.target.value)}
-                  placeholder="Category"
-                  options={Object.keys(availableSkills).map(c => ({ value: c, label: c }))}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddCustomSkill}
-                  disabled={addingCustomSkill || !customSkillName.trim() || !customSkillCategory.trim()}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  {addingCustomSkill ? "Adding..." : "Add"}
-                </Button>
               </div>
             </div>
 

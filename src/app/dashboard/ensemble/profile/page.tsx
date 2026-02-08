@@ -7,7 +7,18 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import { SPECIALTIES, EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
+import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
+
+const GENRES = [
+  "Barbershop",
+  "A Cappella",
+  "Contemporary",
+  "Jazz",
+  "Pop",
+  "Gospel",
+  "Classical",
+  "Folk",
+];
 
 export default function EnsembleProfileForm() {
   const { data: session, status, update: updateSession } = useSession();
@@ -127,7 +138,7 @@ export default function EnsembleProfileForm() {
           <CardHeader><h2 className="text-lg font-semibold">Genres / Styles</h2></CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {SPECIALTIES.slice(0, 10).map((genre) => (
+              {GENRES.map((genre) => (
                 <button key={genre} type="button" onClick={() => toggleGenre(genre)}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                     genres.includes(genre) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"

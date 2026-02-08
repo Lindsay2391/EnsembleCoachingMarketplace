@@ -83,16 +83,12 @@ export const EXPERIENCE_LEVELS = [
   "Beginner",
   "Intermediate",
   "Advanced",
-  "Elite/Competition",
+  "Elite",
 ];
 
 export const ENSEMBLE_TYPES = [
   "Chorus",
   "Quartet",
-  "Octet",
-  "A Cappella Group",
-  "Chamber Ensemble",
-  "Other",
 ];
 
 export const SESSION_TYPES = [

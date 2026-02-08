@@ -42,8 +42,8 @@ const ALL_SKILLS: Record<string, string[]> = {
 
 const FLAT_SKILLS = Object.values(ALL_SKILLS).flat();
 
-const ENSEMBLE_TYPES = ["Chorus", "Quartet", "Octet", "A Cappella Group", "Chamber Ensemble", "Other"];
-const EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Advanced", "Elite/Competition"];
+const ENSEMBLE_TYPES = ["Chorus", "Quartet"];
+const EXPERIENCE_LEVELS = ["Beginner", "Intermediate", "Advanced", "Elite"];
 
 const STATE_CITIES: Record<string, string[]> = {
   NSW: ["Sydney", "Newcastle", "Wollongong", "Central Coast", "Parramatta"],

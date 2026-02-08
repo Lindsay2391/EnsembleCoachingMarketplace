@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2 } from "lucide-react";
+import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 
@@ -35,27 +35,52 @@ interface UserItem {
   createdAt: string;
 }
 
+interface AuditLogEntry {
+  id: string;
+  adminId: string;
+  adminName: string;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  targetName: string | null;
+  details: string | null;
+  createdAt: string;
+}
+
+const ACTION_LABELS: Record<string, { label: string; color: string }> = {
+  coach_approved: { label: "Approved Coach", color: "bg-green-100 text-green-800" },
+  coach_rejected: { label: "Rejected Coach", color: "bg-red-100 text-red-800" },
+  coach_verified: { label: "Verified Coach", color: "bg-blue-100 text-blue-800" },
+  coach_unverified: { label: "Unverified Coach", color: "bg-yellow-100 text-yellow-800" },
+  coach_deleted: { label: "Deleted Coach", color: "bg-red-100 text-red-800" },
+  user_deleted: { label: "Deleted User", color: "bg-red-100 text-red-800" },
+  admin_registered: { label: "Admin Registered", color: "bg-purple-100 text-purple-800" },
+};
+
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [users, setUsers] = useState<UserItem[]>([]);
-  const [activeTab, setActiveTab] = useState<"coaches" | "users">("coaches");
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [activeTab, setActiveTab] = useState<"coaches" | "users" | "audit">("coaches");
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
-      const [statsRes, coachesRes, usersRes] = await Promise.all([
+      const [statsRes, coachesRes, usersRes, auditRes] = await Promise.all([
         fetch("/api/admin/stats"),
         fetch("/api/admin/coaches"),
         fetch("/api/admin/users"),
+        fetch("/api/admin/audit-log"),
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
       if (coachesRes.ok) setCoaches(await coachesRes.json());
       if (usersRes.ok) setUsers(await usersRes.json());
+      if (auditRes.ok) setAuditLogs(await auditRes.json());
     } catch (err) {
       console.error("Error:", err);
     } finally {
@@ -73,6 +98,11 @@ export default function AdminDashboard() {
     fetchData();
   }, [session, status, router, fetchData]);
 
+  const refreshAuditLog = async () => {
+    const res = await fetch("/api/admin/audit-log");
+    if (res.ok) setAuditLogs(await res.json());
+  };
+
   const updateCoach = async (id: string, data: { approved?: boolean; verified?: boolean }) => {
     setUpdatingId(id);
     try {
@@ -86,6 +116,7 @@ export default function AdminDashboard() {
         setCoaches((prev) => prev.map((c) => (c.id === id ? updated : c)));
         const statsRes = await fetch("/api/admin/stats");
         if (statsRes.ok) setStats(await statsRes.json());
+        await refreshAuditLog();
       }
     } catch (err) {
       console.error("Error:", err);
@@ -103,6 +134,7 @@ export default function AdminDashboard() {
         setCoaches((prev) => prev.filter((c) => c.id !== id));
         const statsRes = await fetch("/api/admin/stats");
         if (statsRes.ok) setStats(await statsRes.json());
+        await refreshAuditLog();
       }
     } catch (err) {
       console.error("Error:", err);
@@ -121,6 +153,7 @@ export default function AdminDashboard() {
         setCoaches((prev) => prev.filter((c) => c.user.id !== id));
         const statsRes = await fetch("/api/admin/stats");
         if (statsRes.ok) setStats(await statsRes.json());
+        await refreshAuditLog();
       } else {
         const data = await res.json();
         alert(data.error || "Failed to delete user");
@@ -138,6 +171,17 @@ export default function AdminDashboard() {
     } catch {
       return [];
     }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-AU", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   if (loading) {
@@ -209,6 +253,17 @@ export default function AdminDashboard() {
           }`}
         >
           Users
+        </button>
+        <button
+          onClick={() => setActiveTab("audit")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 ${
+            activeTab === "audit"
+              ? "bg-coral-500 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <ClipboardList className="h-4 w-4" />
+          Activity Log
         </button>
       </div>
 
@@ -372,6 +427,68 @@ export default function AdminDashboard() {
                       </td>
                     </tr>
                   ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {activeTab === "audit" && (
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {auditLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      No activity recorded yet
+                    </td>
+                  </tr>
+                ) : (
+                  auditLogs.map((log) => {
+                    const actionInfo = ACTION_LABELS[log.action] || {
+                      label: log.action,
+                      color: "bg-gray-100 text-gray-800",
+                    };
+                    return (
+                      <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
+                          {formatDate(log.createdAt)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm font-medium text-gray-900">{log.adminName}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${actionInfo.color}`}>
+                            {actionInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {log.targetName ? (
+                            <div>
+                              <span className="text-sm text-gray-900">{log.targetName}</span>
+                              <span className="text-xs text-gray-400 ml-1">({log.targetType})</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {log.details || "-"}
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

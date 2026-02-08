@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { logAdminAction } from "@/lib/audit";
 
 const registerSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -52,6 +53,16 @@ export async function POST(request: Request) {
         name,
         userType: "admin",
       },
+    });
+
+    await logAdminAction({
+      adminId: user.id,
+      adminName: user.name,
+      action: "admin_registered",
+      targetType: "user",
+      targetId: user.id,
+      targetName: user.name,
+      details: `New admin account created: ${user.email}`,
     });
 
     return NextResponse.json({

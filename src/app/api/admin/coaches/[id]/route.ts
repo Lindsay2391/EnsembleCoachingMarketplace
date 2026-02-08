@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAdminAction } from "@/lib/audit";
 
 export async function PATCH(
   request: Request,
@@ -39,6 +40,27 @@ export async function PATCH(
       },
     });
 
+    if (typeof data.approved === "boolean") {
+      await logAdminAction({
+        adminId: session.user.id,
+        adminName: session.user.name || "Unknown",
+        action: data.approved ? "coach_approved" : "coach_rejected",
+        targetType: "coach",
+        targetId: params.id,
+        targetName: coach.fullName,
+      });
+    }
+    if (typeof data.verified === "boolean") {
+      await logAdminAction({
+        adminId: session.user.id,
+        adminName: session.user.name || "Unknown",
+        action: data.verified ? "coach_verified" : "coach_unverified",
+        targetType: "coach",
+        targetId: params.id,
+        targetName: coach.fullName,
+      });
+    }
+
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Admin update coach error:", error);
@@ -68,6 +90,15 @@ export async function DELETE(
       await tx.review.deleteMany({ where: { revieweeId: params.id } });
       await tx.booking.deleteMany({ where: { coachId: params.id } });
       await tx.coachProfile.delete({ where: { id: params.id } });
+    });
+
+    await logAdminAction({
+      adminId: session.user.id,
+      adminName: session.user.name || "Unknown",
+      action: "coach_deleted",
+      targetType: "coach",
+      targetId: params.id,
+      targetName: coach.fullName,
     });
 
     return NextResponse.json({ success: true });

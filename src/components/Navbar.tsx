@@ -4,24 +4,14 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import Image from "next/image";
-import { Menu, X, User, LogOut, Shield } from "lucide-react";
+import { Menu, X, User, LogOut, Shield, LayoutDashboard } from "lucide-react";
 import Button from "./ui/Button";
 
 export default function Navbar() {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const getDashboardLink = () => {
-    if (!session) return "/login";
-    if (session.user.userType === "admin") return "/admin";
-    return "/dashboard";
-  };
-
-  const getDashboardLabel = () => {
-    if (!session) return "Dashboard";
-    if (session.user.userType === "admin") return "Admin Panel";
-    return "Dashboard";
-  };
+  const isAdmin = session?.user?.userType === "admin";
 
   return (
     <nav className="bg-white border-b border-gray-200">
@@ -43,11 +33,20 @@ export default function Navbar() {
               </Link>
               {session && (
                 <Link
-                  href={getDashboardLink()}
+                  href="/dashboard"
                   className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center gap-1.5"
                 >
-                  {session.user.userType === "admin" && <Shield className="h-4 w-4" />}
-                  {getDashboardLabel()}
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard
+                </Link>
+              )}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center gap-1.5"
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin Panel
                 </Link>
               )}
             </div>
@@ -57,7 +56,7 @@ export default function Navbar() {
             {session ? (
               <div className="flex items-center gap-3">
                 <Link
-                  href={getDashboardLink()}
+                  href="/dashboard"
                   className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
                 >
                   <User className="h-4 w-4" />
@@ -114,12 +113,22 @@ export default function Navbar() {
             {session ? (
               <>
                 <Link
-                  href={getDashboardLink()}
+                  href="/dashboard"
                   className="block text-gray-600 hover:text-gray-900 py-2 text-sm font-medium"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {getDashboardLabel()}
+                  Dashboard
                 </Link>
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="block text-gray-600 hover:text-gray-900 py-2 text-sm font-medium flex items-center gap-1.5"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Shield className="h-4 w-4" />
+                    Admin Panel
+                  </Link>
+                )}
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
                   className="block text-gray-600 hover:text-gray-900 py-2 text-sm font-medium w-full text-left"

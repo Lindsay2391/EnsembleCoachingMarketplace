@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logAdminAction } from "@/lib/audit";
 
 export async function PUT(
   _request: Request,
@@ -24,6 +25,15 @@ export async function PUT(
     const updated = await prisma.coachProfile.update({
       where: { id: params.id },
       data: { approved: true },
+    });
+
+    await logAdminAction({
+      adminId: session.user.id,
+      adminName: session.user.name || "Unknown",
+      action: "coach_approved",
+      targetType: "coach",
+      targetId: params.id,
+      targetName: coach.fullName,
     });
 
     return NextResponse.json(updated);

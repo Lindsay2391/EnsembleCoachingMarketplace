@@ -50,18 +50,22 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 
 ## Admin Panel
 - Admin registration at `/admin/register` requires a secret admin code (ADMIN_SECRET env var)
-- Admin dashboard at `/admin` shows platform stats, coach management (approve/reject/verify/delete), and user list with delete
+- Admin accounts can also create coach and ensemble profiles from the regular dashboard
+- Admin dashboard at `/admin` shows platform stats, coach management (approve/reject/verify/delete), user list with delete, and activity log
 - Users table shows profile badges (Coach, Ensemble) instead of a single role type
 - Deleting a coach profile removes related bookings and reviews in a transaction
 - Deleting a user account removes their profile, bookings, reviews, and messages in a transaction
 - Admin accounts are protected from deletion (both UI and API)
 - All admin API routes under `/api/admin/` are protected with session-based auth checks
-- Admin users see "Admin Panel" link in navbar instead of "Dashboard"
+- **Audit Log**: All admin actions are logged to `AdminAuditLog` table with admin name, action type, target, and timestamp
+  - Actions tracked: coach approve/reject/verify/unverify/delete, user delete, admin registration
+  - Viewable in the "Activity Log" tab of the admin panel (most recent 100 entries)
+  - Helper function in `src/lib/audit.ts` used by all admin API routes
 
 ## Dashboard & Navigation
 - Unified dashboard at `/dashboard` shows both coach and ensemble profile cards
 - Each card shows profile status and links to view/edit, or a button to create if not yet set up
-- Navbar shows "Dashboard" for all logged-in non-admin users, "Admin Panel" for admins
+- Navbar shows "Dashboard" for all logged-in users; admins also see "Admin Panel" link
 - Coach profile pages show "Book This Coach" / "Message" buttons when viewer has an ensemble profile
 - `/dashboard/coach` redirects to public profile or profile creation form
 - `/dashboard/ensemble` shows ensemble-specific dashboard with bookings

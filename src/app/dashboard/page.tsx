@@ -40,11 +40,6 @@ export default function Dashboard() {
     }
     if (status === "loading") return;
 
-    if (session?.user?.userType === "admin") {
-      router.push("/admin");
-      return;
-    }
-
     async function fetchProfiles() {
       try {
         const [coachRes, ensembleRes] = await Promise.all([

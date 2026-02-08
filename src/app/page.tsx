@@ -107,7 +107,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Find coaches who specialise in your genre and experience level
+                    Filter by location, skills, and ensemble type to find coaches who fit your group
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -115,7 +115,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Browse detailed profiles and find the right coach for your group
+                    Browse detailed profiles covering skills, experience, and coaching style
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -123,7 +123,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Reach out directly using the coach's contact details
+                    Get in touch directly and arrange your next coaching session
                   </span>
                 </li>
               </ul>
@@ -147,7 +147,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Get discovered by ensembles looking for your expertise
+                    Be found by Australian ensembles actively searching for coaching
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -155,7 +155,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Showcase your skills, experience, and coaching style
+                    Highlight the skills and ensemble types you specialise in
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -163,7 +163,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Build credibility through a detailed professional profile
+                    Create a professional profile that shows groups exactly what you offer
                   </span>
                 </li>
               </ul>

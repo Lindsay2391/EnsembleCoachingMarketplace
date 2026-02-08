@@ -26,7 +26,7 @@ export default function HomePage() {
                 </Button>
               </Link>
               <Link href="/register?type=coach">
-                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                <Button variant="outline" size="lg" className="border-coral-300 text-coral-300 hover:bg-coral-300/10 bg-transparent">
                   <Music className="h-5 w-5 mr-2" />
                   Join as a Coach
                 </Button>
@@ -200,7 +200,7 @@ export default function HomePage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-white text-white hover:bg-coral-600"
+                className="border-white text-white hover:bg-white/20 bg-transparent"
               >
                 Sign Up Free
               </Button>

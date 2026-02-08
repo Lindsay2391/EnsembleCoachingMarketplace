@@ -41,7 +41,6 @@ interface BookingDetail {
     size: number;
     userId: string;
   };
-  review: { id: string; rating: number } | null;
 }
 
 export default function BookingDetailPage() {
@@ -199,9 +198,9 @@ export default function BookingDetailPage() {
             <Button variant="outline" onClick={() => handleAction("cancel")} disabled={actionLoading}>Cancel Booking</Button>
           )}
 
-          {isEnsemble && booking.status === "completed" && !booking.review && (
-            <Link href={`/bookings/${booking.id}/review`}>
-              <Button>Leave a Review</Button>
+          {isEnsemble && booking.status === "completed" && (
+            <Link href="/dashboard/ensemble">
+              <Button>Check Review Invites</Button>
             </Link>
           )}
 

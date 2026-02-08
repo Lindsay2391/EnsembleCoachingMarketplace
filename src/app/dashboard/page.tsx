@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Music, Users, Search, User, Settings, Plus } from "lucide-react";
+import { Music, Users, Search, User, Settings, Plus, Star } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -112,7 +112,7 @@ export default function Dashboard() {
                   <p className="font-medium text-gray-900">{coachProfile.fullName}</p>
                   <p className="text-sm text-gray-500">{coachProfile.city}, {coachProfile.state}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Link href={`/coaches/${coachProfile.id}`} className="flex-1">
                     <Button variant="outline" size="sm" className="w-full">
                       <User className="h-4 w-4 mr-1.5" />
@@ -123,6 +123,12 @@ export default function Dashboard() {
                     <Button variant="outline" size="sm" className="w-full">
                       <Settings className="h-4 w-4 mr-1.5" />
                       Edit Profile
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/coach/reviews" className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Star className="h-4 w-4 mr-1.5" />
+                      Manage Reviews
                     </Button>
                   </Link>
                 </div>

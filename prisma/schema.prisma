@@ -56,8 +56,9 @@ model CoachProfile {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  bookings  Booking[]
-  reviews   Review[]
+  bookings       Booking[]
+  reviews        Review[]
+  reviewInvites  ReviewInvite[]
 }
 
 model EnsembleProfile {
@@ -75,8 +76,9 @@ model EnsembleProfile {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  bookings Booking[]
-  reviews  Review[]
+  bookings       Booking[]
+  reviews        Review[]
+  reviewInvites  ReviewInvite[]
 }
 
 model Booking {
@@ -101,24 +103,38 @@ model Booking {
   updatedAt         DateTime @updatedAt
   completedAt       DateTime?
 
-  review   Review?
   messages Message[]
+}
+
+model ReviewInvite {
+  id              String   @id @default(cuid())
+  coachProfileId  String
+  coachProfile    CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  ensembleEmail   String
+  ensembleName    String
+  token           String   @unique @default(cuid())
+  status          String   @default("pending")
+  ensembleProfileId String?
+  ensembleProfile   EnsembleProfile? @relation(fields: [ensembleProfileId], references: [id])
+  review          Review?
+  createdAt       DateTime @default(now())
+  expiresAt       DateTime
 }
 
 model Review {
   id                     String   @id @default(cuid())
-  bookingId              String   @unique
-  booking                Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  inviteId               String   @unique
+  invite                 ReviewInvite @relation(fields: [inviteId], references: [id], onDelete: Cascade)
   reviewerId             String
   reviewer               EnsembleProfile @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
-  revieweeId             String
-  reviewee               CoachProfile @relation(fields: [revieweeId], references: [id], onDelete: Cascade)
+  coachProfileId         String
+  coachProfile           CoachProfile @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
   rating                 Int
   reviewText             String?
-  preparationRating      Int?
-  communicationRating    Int?
-  teachingRating         Int?
-  valueRating            Int?
+  sessionMonth           Int
+  sessionYear            Int
+  sessionFormat          String
+  validatedSkills        String   @default("[]")
   createdAt              DateTime @default(now())
 }
 

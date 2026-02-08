@@ -71,7 +71,19 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - `/dashboard/ensemble` shows ensemble-specific dashboard with bookings
 - API endpoints: `/api/coaches/me` and `/api/ensembles/me` return the logged-in user's profile info
 
+## Review System
+- Coach-initiated invite-based reviews: Coaches send invites to ensemble email addresses, ensembles write reviews from pending invites
+- **Models**: `ReviewInvite` (pending/completed/expired, 90-day expiry) and `Review` (linked to invite, not booking)
+- **Review fields**: rating (1-5), reviewText, sessionMonth/Year, sessionFormat (in_person/virtual), validatedSkills (JSON array)
+- **Skill verification**: Reviewers validate coach skills they can vouch for; coach profiles show verification counts (e.g., "Pitch Accuracy ✓3")
+- **Coach dashboard**: `/dashboard/coach/reviews` — send invites, track status
+- **Ensemble dashboard**: Pending invites section with "Write Review" links
+- **Review submission**: `/reviews/write?inviteId=XXX` — star rating, testimonial, session details, skill validation checkboxes
+- **Admin moderation**: Reviews tab in admin panel with delete capability; audit logged
+- **API routes**: POST/GET `/api/reviews/invite`, GET `/api/reviews/invite/[id]`, GET `/api/reviews/invites/pending`, POST `/api/reviews`, GET `/api/coaches/[id]/reviews`, GET/DELETE `/api/admin/reviews[/id]`
+
 ## Recent Changes
+- 2026-02-08: Implemented coach-initiated review invite system with skill validation, admin moderation, and profile verification display
 - 2026-02-08: Restructured accounts to allow dual profiles — any user can have both coach and ensemble profiles
 - 2026-02-08: Removed coach/ensemble role selection from registration; users now register as generic accounts
 - 2026-02-08: Created unified dashboard showing both profile types with create/manage options

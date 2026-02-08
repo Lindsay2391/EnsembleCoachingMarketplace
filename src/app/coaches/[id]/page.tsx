@@ -47,13 +47,18 @@ interface Review {
   id: string;
   rating: number;
   reviewText: string | null;
-  preparationRating: number | null;
-  communicationRating: number | null;
-  teachingRating: number | null;
-  valueRating: number | null;
+  sessionMonth: number;
+  sessionYear: number;
+  sessionFormat: string;
+  validatedSkills: string;
   createdAt: string;
   reviewer: { ensembleName: string; ensembleType: string };
 }
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 
 function ContactIcon({ method }: { method: string }) {
   switch (method) {
@@ -131,6 +136,14 @@ export default function CoachProfilePage() {
   const groupedSkills = groupSkillsByCategory(skills);
   const ensembleTypes = parseJsonArray(coach.ensembleTypes);
   const experienceLevels = parseJsonArray(coach.experienceLevels);
+
+  const skillVerificationCounts: Record<string, number> = {};
+  reviews.forEach((review) => {
+    const validated = parseJsonArray(review.validatedSkills);
+    validated.forEach((skill) => {
+      skillVerificationCounts[skill] = (skillVerificationCounts[skill] || 0) + 1;
+    });
+  });
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -274,15 +287,14 @@ export default function CoachProfilePage() {
                       {review.reviewText && (
                         <p className="text-gray-600 mt-2">{review.reviewText}</p>
                       )}
-                      <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
-                        {review.preparationRating && <span>Preparation: {review.preparationRating}/5</span>}
-                        {review.communicationRating && <span>Communication: {review.communicationRating}/5</span>}
-                        {review.teachingRating && <span>Teaching: {review.teachingRating}/5</span>}
-                        {review.valueRating && <span>Value: {review.valueRating}/5</span>}
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <span className="text-sm text-gray-500">
+                          {MONTH_NAMES[review.sessionMonth - 1]} {review.sessionYear}
+                        </span>
+                        <Badge variant={review.sessionFormat === "in_person" ? "info" : "default"}>
+                          {review.sessionFormat === "in_person" ? "In Person" : "Virtual"}
+                        </Badge>
                       </div>
-                      <p className="text-xs text-gray-400 mt-2">
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </p>
                     </div>
                   ))}
                 </div>
@@ -373,7 +385,14 @@ export default function CoachProfilePage() {
                     <div key={category}>
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{category}</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {catSkills.map((s) => (<Badge key={s} variant="info">{s}</Badge>))}
+                        {catSkills.map((s) => {
+                          const count = skillVerificationCounts[s] || 0;
+                          return count > 0 ? (
+                            <Badge key={s} variant="success">{s} ✓{count}</Badge>
+                          ) : (
+                            <Badge key={s} variant="info">{s}</Badge>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

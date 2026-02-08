@@ -26,7 +26,7 @@ export async function GET(
 
     const [reviews, total] = await Promise.all([
       prisma.review.findMany({
-        where: { revieweeId: id },
+        where: { coachProfileId: id },
         include: {
           reviewer: {
             select: {
@@ -41,7 +41,7 @@ export async function GET(
         skip,
         take: limit,
       }),
-      prisma.review.count({ where: { revieweeId: id } }),
+      prisma.review.count({ where: { coachProfileId: id } }),
     ]);
 
     return NextResponse.json({

@@ -25,7 +25,6 @@ export async function GET(
       include: {
         coach: true,
         ensemble: true,
-        review: true,
         messages: true,
       },
     });

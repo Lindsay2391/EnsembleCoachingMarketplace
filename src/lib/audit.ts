@@ -7,9 +7,10 @@ export type AuditAction =
   | "coach_unverified"
   | "coach_deleted"
   | "user_deleted"
-  | "admin_registered";
+  | "admin_registered"
+  | "review_deleted";
 
-export type AuditTargetType = "coach" | "user";
+export type AuditTargetType = "coach" | "user" | "review";
 
 export async function logAdminAction({
   adminId,

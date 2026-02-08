@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList } from "lucide-react";
+import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star } from "lucide-react";
+import StarRating from "@/components/ui/StarRating";
 import { Card, CardContent } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 
@@ -47,6 +48,18 @@ interface AuditLogEntry {
   createdAt: string;
 }
 
+interface ReviewItem {
+  id: string;
+  rating: number;
+  reviewText: string | null;
+  sessionMonth: number;
+  sessionYear: number;
+  sessionFormat: string;
+  createdAt: string;
+  coachProfile: { id: string; fullName: string };
+  reviewer: { ensembleName: string };
+}
+
 const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   coach_approved: { label: "Approved Coach", color: "bg-green-100 text-green-800" },
   coach_rejected: { label: "Rejected Coach", color: "bg-red-100 text-red-800" },
@@ -55,6 +68,7 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   coach_deleted: { label: "Deleted Coach", color: "bg-red-100 text-red-800" },
   user_deleted: { label: "Deleted User", color: "bg-red-100 text-red-800" },
   admin_registered: { label: "Admin Registered", color: "bg-purple-100 text-purple-800" },
+  review_deleted: { label: "Deleted Review", color: "bg-red-100 text-red-800" },
 };
 
 export default function AdminDashboard() {
@@ -64,9 +78,19 @@ export default function AdminDashboard() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [users, setUsers] = useState<UserItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
-  const [activeTab, setActiveTab] = useState<"coaches" | "users" | "audit">("coaches");
+  const [adminReviews, setAdminReviews] = useState<ReviewItem[]>([]);
+  const [activeTab, setActiveTab] = useState<"coaches" | "users" | "reviews" | "audit">("coaches");
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const fetchReviews = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/reviews");
+      if (res.ok) setAdminReviews(await res.json());
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+    }
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -81,12 +105,13 @@ export default function AdminDashboard() {
       if (coachesRes.ok) setCoaches(await coachesRes.json());
       if (usersRes.ok) setUsers(await usersRes.json());
       if (auditRes.ok) setAuditLogs(await auditRes.json());
+      await fetchReviews();
     } catch (err) {
       console.error("Error:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchReviews]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -157,6 +182,25 @@ export default function AdminDashboard() {
       } else {
         const data = await res.json();
         alert(data.error || "Failed to delete user");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const deleteReview = async (id: string, coachName: string, ensembleName: string) => {
+    if (!confirm(`Are you sure you want to delete the review by "${ensembleName}" for "${coachName}"? This cannot be undone.`)) return;
+    setUpdatingId(id);
+    try {
+      const res = await fetch(`/api/admin/reviews/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setAdminReviews((prev) => prev.filter((r) => r.id !== id));
+        await refreshAuditLog();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete review");
       }
     } catch (err) {
       console.error("Error:", err);
@@ -253,6 +297,17 @@ export default function AdminDashboard() {
           }`}
         >
           Users
+        </button>
+        <button
+          onClick={() => setActiveTab("reviews")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 ${
+            activeTab === "reviews"
+              ? "bg-coral-500 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <Star className="h-4 w-4" />
+          Reviews
         </button>
         <button
           onClick={() => setActiveTab("audit")}
@@ -424,6 +479,56 @@ export default function AdminDashboard() {
                         ) : (
                           <span className="text-xs text-gray-400">Protected</span>
                         )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {activeTab === "reviews" && (
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Coach</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Ensemble</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {adminReviews.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      No reviews found
+                    </td>
+                  </tr>
+                ) : (
+                  adminReviews.map((review) => (
+                    <tr key={review.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900">{review.coachProfile.fullName}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600">{review.reviewer.ensembleName}</td>
+                      <td className="px-6 py-4">
+                        <StarRating rating={review.rating} size={14} />
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => deleteReview(review.id, review.coachProfile.fullName, review.reviewer.ensembleName)}
+                          disabled={updatingId === review.id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))

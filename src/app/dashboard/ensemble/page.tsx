@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, Search, MessageSquare } from "lucide-react";
+import { User, Search, MessageSquare, Star } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -19,10 +19,24 @@ interface Booking {
   createdAt: string;
 }
 
+interface PendingInvite {
+  id: string;
+  ensembleName: string;
+  createdAt: string;
+  coachProfile: {
+    id: string;
+    fullName: string;
+    photoUrl: string | null;
+    city: string;
+    state: string;
+  };
+}
+
 export default function EnsembleDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,12 +46,18 @@ export default function EnsembleDashboard() {
 
     async function fetchData() {
       try {
-        const bookingsRes = await fetch("/api/bookings");
+        const [bookingsRes, invitesRes] = await Promise.all([
+          fetch("/api/bookings"),
+          fetch("/api/reviews/invites/pending"),
+        ]);
         if (bookingsRes.ok) {
           setBookings(await bookingsRes.json());
           setHasProfile(true);
         } else {
           setHasProfile(false);
+        }
+        if (invitesRes.ok) {
+          setPendingInvites(await invitesRes.json());
         }
       } catch {
         setHasProfile(false);
@@ -152,6 +172,40 @@ export default function EnsembleDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {pendingInvites.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-coral-500" />
+              <h2 className="text-lg font-semibold text-gray-900">Pending Review Invites</h2>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {pendingInvites.map((invite) => (
+                <div key={invite.id} className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-0 last:pb-0">
+                  <div>
+                    <p className="font-medium text-gray-900">{invite.coachProfile.fullName}</p>
+                    <p className="text-sm text-gray-500">
+                      {invite.coachProfile.city}, {invite.coachProfile.state}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Invited {new Date(invite.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Link href={`/reviews/write?inviteId=${invite.id}`}>
+                    <Button size="sm">
+                      <Star className="h-4 w-4 mr-1.5" />
+                      Write Review
+                    </Button>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Links */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

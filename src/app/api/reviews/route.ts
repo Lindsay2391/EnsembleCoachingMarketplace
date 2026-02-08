@@ -5,13 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const reviewSchema = z.object({
-  bookingId: z.string().min(1),
+  inviteId: z.string().min(1, "Invite ID is required"),
   rating: z.number().int().min(1).max(5),
   reviewText: z.string().optional(),
-  preparationRating: z.number().int().min(1).max(5).optional(),
-  communicationRating: z.number().int().min(1).max(5).optional(),
-  teachingRating: z.number().int().min(1).max(5).optional(),
-  valueRating: z.number().int().min(1).max(5).optional(),
+  sessionMonth: z.number().int().min(1).max(12),
+  sessionYear: z.number().int().min(2020).max(2030),
+  sessionFormat: z.enum(["in_person", "virtual"]),
+  validatedSkills: z.array(z.string()).default([]),
 });
 
 export async function POST(request: Request) {
@@ -21,14 +21,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
-    const user = session.user as { id: string };
+    const user = session.user as { id: string; email: string; ensembleProfileId?: string };
 
-    const ensembleProfile = await prisma.ensembleProfile.findUnique({
-      where: { userId: user.id },
-    });
-
-    if (!ensembleProfile) {
-      return NextResponse.json({ error: "Only users with an ensemble profile can submit reviews" }, { status: 403 });
+    if (!user.ensembleProfileId) {
+      return NextResponse.json({ error: "Ensemble profile required to submit reviews" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -37,53 +33,68 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
     }
 
-    const { bookingId, rating, reviewText, preparationRating, communicationRating, teachingRating, valueRating } = validation.data;
+    const { inviteId, rating, reviewText, sessionMonth, sessionYear, sessionFormat, validatedSkills } = validation.data;
 
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
+    const invite = await prisma.reviewInvite.findUnique({
+      where: { id: inviteId },
       include: { review: true },
     });
 
-    if (!booking) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    if (!invite) {
+      return NextResponse.json({ error: "Invite not found" }, { status: 404 });
     }
 
-    if (booking.status !== "completed") {
-      return NextResponse.json({ error: "Can only review completed bookings" }, { status: 400 });
+    if (invite.ensembleEmail !== user.email?.toLowerCase()) {
+      return NextResponse.json({ error: "This invite is not for your account" }, { status: 403 });
     }
 
-    if (booking.review) {
-      return NextResponse.json({ error: "Review already submitted" }, { status: 400 });
+    if (invite.status !== "pending") {
+      return NextResponse.json({ error: "This invite has already been used or expired" }, { status: 400 });
     }
 
-    if (booking.ensembleId !== ensembleProfile.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (new Date() > invite.expiresAt) {
+      await prisma.reviewInvite.update({
+        where: { id: inviteId },
+        data: { status: "expired" },
+      });
+      return NextResponse.json({ error: "This invite has expired" }, { status: 400 });
+    }
+
+    if (invite.review) {
+      return NextResponse.json({ error: "Review already submitted for this invite" }, { status: 400 });
     }
 
     const review = await prisma.review.create({
       data: {
-        bookingId,
-        reviewerId: ensembleProfile.id,
-        revieweeId: booking.coachId,
+        inviteId,
+        reviewerId: user.ensembleProfileId,
+        coachProfileId: invite.coachProfileId,
         rating,
         reviewText: reviewText ?? null,
-        preparationRating: preparationRating ?? null,
-        communicationRating: communicationRating ?? null,
-        teachingRating: teachingRating ?? null,
-        valueRating: valueRating ?? null,
+        sessionMonth,
+        sessionYear,
+        sessionFormat,
+        validatedSkills: JSON.stringify(validatedSkills),
       },
     });
 
-    // Update coach average rating
+    await prisma.reviewInvite.update({
+      where: { id: inviteId },
+      data: {
+        status: "completed",
+        ensembleProfileId: user.ensembleProfileId,
+      },
+    });
+
     const allReviews = await prisma.review.findMany({
-      where: { revieweeId: booking.coachId },
+      where: { coachProfileId: invite.coachProfileId },
       select: { rating: true },
     });
 
-    const avgRating = allReviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / allReviews.length;
+    const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
 
     await prisma.coachProfile.update({
-      where: { id: booking.coachId },
+      where: { id: invite.coachProfileId },
       data: {
         rating: Math.round(avgRating * 10) / 10,
         totalReviews: allReviews.length,

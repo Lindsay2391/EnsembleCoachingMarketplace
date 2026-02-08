@@ -87,7 +87,7 @@ export async function DELETE(
     }
 
     await prisma.$transaction(async (tx) => {
-      await tx.review.deleteMany({ where: { revieweeId: params.id } });
+      await tx.review.deleteMany({ where: { coachProfileId: params.id } });
       await tx.booking.deleteMany({ where: { coachId: params.id } });
       await tx.coachProfile.delete({ where: { id: params.id } });
     });

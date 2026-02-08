@@ -12,6 +12,9 @@ channel = "stable-25_05"
 NEXTAUTH_SECRET = "C0XJ8F1U3SL2HTKCPrweiWVMY85PBNCQcKAIvx7+AaU="
 NEXTAUTH_URL = "https://b696fcda-74d9-4398-9d0c-aaef05d1ec96-00-1hfd6v06hr4dm.worf.replit.dev"
 
+[userenv.shared]
+ADMIN_SECRET = "CoachConnect2026!"
+
 [workflows]
 runButton = "Project"
 

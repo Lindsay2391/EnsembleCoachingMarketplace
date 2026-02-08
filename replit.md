@@ -25,9 +25,10 @@ A Next.js 14 platform for connecting Australian ensemble groups with qualified v
 - Start: `npm run start` (port 5000)
 
 ## Environment Variables
-- `DATABASE_URL` - SQLite connection string (file:./dev.db)
+- `SQLITE_URL` - SQLite connection string (default: file:./dev.db)
 - `NEXTAUTH_SECRET` - JWT signing secret
 - `NEXTAUTH_URL` - Base URL for NextAuth
+- `ADMIN_SECRET` - Secret code required to register admin accounts (default: CoachConnect2026!)
 
 ## Design
 - **Color scheme**: Warm coral/salmon palette (custom `coral` Tailwind colors), matching thinkingbarbershop.com style
@@ -38,7 +39,14 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 - Style & Contest (8), Vocal Technique (10), Tuning & Harmony (10), Performance & Interpretation (8), Visual & Choreography (6), Learning & Process (5), Leadership & Culture (3)
 - Data defined in `src/lib/utils.ts` as `COACH_SKILLS` with helper functions `groupSkillsByCategory()` and `getSkillCategory()`
 
+## Admin Panel
+- Admin registration at `/admin/register` requires a secret admin code (ADMIN_SECRET env var)
+- Admin dashboard at `/admin` shows platform stats, coach management (approve/reject/verify), and user list
+- All admin API routes under `/api/admin/` are protected with session-based auth checks
+- Admin users see "Admin Panel" link in navbar instead of "Dashboard"
+
 ## Recent Changes
+- 2026-02-08: Added full admin panel with registration, dashboard, coach management, and user management
 - 2026-02-08: Renamed site from "Ensemble Coach" to "CoachConnect" with "by Thinking Barbershop" branding throughout
 - 2026-02-08: Rephrased home page text to remove references to reviews, pricing, availability, and booking (not yet implemented); renamed "Book" step to "Connect"
 - 2026-02-08: Added multi-select skill filtering on browse page with match-count ranking

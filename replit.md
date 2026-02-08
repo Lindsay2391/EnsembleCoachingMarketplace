@@ -41,7 +41,10 @@ Coaches select skills from 7 categories (50+ options total) stored as JSON array
 
 ## Admin Panel
 - Admin registration at `/admin/register` requires a secret admin code (ADMIN_SECRET env var)
-- Admin dashboard at `/admin` shows platform stats, coach management (approve/reject/verify), and user list
+- Admin dashboard at `/admin` shows platform stats, coach management (approve/reject/verify/delete), and user list with delete
+- Deleting a coach profile removes related bookings and reviews in a transaction
+- Deleting a user account removes their profile, bookings, reviews, and messages in a transaction
+- Admin accounts are protected from deletion (both UI and API)
 - All admin API routes under `/api/admin/` are protected with session-based auth checks
 - Admin users see "Admin Panel" link in navbar instead of "Dashboard"
 

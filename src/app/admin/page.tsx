@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3 } from "lucide-react";
+import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 
@@ -84,6 +84,44 @@ export default function AdminDashboard() {
         setCoaches((prev) => prev.map((c) => (c.id === id ? updated : c)));
         const statsRes = await fetch("/api/admin/stats");
         if (statsRes.ok) setStats(await statsRes.json());
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const deleteCoach = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete the coach profile for "${name}"? This cannot be undone.`)) return;
+    setUpdatingId(id);
+    try {
+      const res = await fetch(`/api/admin/coaches/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setCoaches((prev) => prev.filter((c) => c.id !== id));
+        const statsRes = await fetch("/api/admin/stats");
+        if (statsRes.ok) setStats(await statsRes.json());
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const deleteUser = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete the account for "${name}"? This will also remove any associated coach profile. This cannot be undone.`)) return;
+    setUpdatingId(id);
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setUsers((prev) => prev.filter((u) => u.id !== id));
+        setCoaches((prev) => prev.filter((c) => c.user.id !== id));
+        const statsRes = await fetch("/api/admin/stats");
+        if (statsRes.ok) setStats(await statsRes.json());
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete user");
       }
     } catch (err) {
       console.error("Error:", err);
@@ -253,6 +291,14 @@ export default function AdminDashboard() {
                               Approve
                             </button>
                           )}
+                          <button
+                            onClick={() => deleteCoach(coach.id, coach.fullName)}
+                            disabled={updatingId === coach.id}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -274,12 +320,13 @@ export default function AdminDashboard() {
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                       No users found
                     </td>
                   </tr>
@@ -303,6 +350,20 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {new Date(user.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        {user.userType !== "admin" ? (
+                          <button
+                            onClick={() => deleteUser(user.id, user.name)}
+                            disabled={updatingId === user.id}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-400">Protected</span>
+                        )}
                       </td>
                     </tr>
                   ))

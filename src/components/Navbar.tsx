@@ -6,6 +6,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Menu, X, User, LogOut, Shield, LayoutDashboard } from "lucide-react";
 import Button from "./ui/Button";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -55,6 +56,7 @@ export default function Navbar() {
           <div className="hidden sm:flex sm:items-center sm:gap-3">
             {session ? (
               <div className="flex items-center gap-3">
+                {session.user.ensembleProfileId && <NotificationBell />}
                 <Link
                   href="/dashboard"
                   className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
@@ -85,7 +87,8 @@ export default function Navbar() {
             )}
           </div>
 
-          <div className="sm:hidden flex items-center">
+          <div className="sm:hidden flex items-center gap-2">
+            {session?.user?.ensembleProfileId && <NotificationBell />}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-gray-600 hover:text-gray-900"

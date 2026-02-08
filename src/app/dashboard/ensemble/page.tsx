@@ -7,17 +7,6 @@ import Link from "next/link";
 import { User, Search, MessageSquare, Star } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
-
-interface Booking {
-  id: string;
-  status: string;
-  proposedDates: string;
-  sessionType: string;
-  totalCost: number;
-  coach: { fullName: string; city: string; state: string };
-  createdAt: string;
-}
 
 interface PendingInvite {
   id: string;
@@ -35,7 +24,6 @@ interface PendingInvite {
 export default function EnsembleDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,16 +34,11 @@ export default function EnsembleDashboard() {
 
     async function fetchData() {
       try {
-        const [bookingsRes, invitesRes] = await Promise.all([
-          fetch("/api/bookings"),
+        const [profileRes, invitesRes] = await Promise.all([
+          fetch("/api/ensembles/me"),
           fetch("/api/reviews/invites/pending"),
         ]);
-        if (bookingsRes.ok) {
-          setBookings(await bookingsRes.json());
-          setHasProfile(true);
-        } else {
-          setHasProfile(false);
-        }
+        setHasProfile(profileRes.ok);
         if (invitesRes.ok) {
           setPendingInvites(await invitesRes.json());
         }
@@ -70,13 +53,6 @@ export default function EnsembleDashboard() {
   }, [session, status, router]);
 
   if (loading) return <div className="max-w-6xl mx-auto px-4 py-12 text-center text-gray-500">Loading dashboard...</div>;
-
-  const statusBadge = (s: string) => {
-    const variants: Record<string, "success" | "warning" | "danger" | "info" | "default"> = {
-      pending: "warning", accepted: "success", declined: "danger", completed: "info", cancelled: "danger",
-    };
-    return <Badge variant={variants[s] || "default"}>{s}</Badge>;
-  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -99,7 +75,7 @@ export default function EnsembleDashboard() {
         <Card className="mb-6 border-yellow-200 bg-yellow-50">
           <CardContent className="py-4">
             <p className="text-yellow-800">
-              Create your ensemble profile to start booking coaches.{" "}
+              Create your ensemble profile to get started.{" "}
               <Link href="/dashboard/ensemble/profile" className="font-semibold underline">
                 Create profile
               </Link>
@@ -107,71 +83,6 @@ export default function EnsembleDashboard() {
           </CardContent>
         </Card>
       )}
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Card>
-          <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
-            <p className="text-sm text-gray-500">Total Bookings</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{bookings.filter((b) => b.status === "pending").length}</p>
-            <p className="text-sm text-gray-500">Pending</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{bookings.filter((b) => b.status === "accepted").length}</p>
-            <p className="text-sm text-gray-500">Upcoming</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-4 text-center">
-            <p className="text-2xl font-bold text-gray-900">{bookings.filter((b) => b.status === "completed").length}</p>
-            <p className="text-sm text-gray-500">Completed</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Bookings */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Bookings</h2>
-            <Link href="/dashboard/ensemble/bookings"><Button variant="ghost" size="sm">View All</Button></Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {bookings.length === 0 ? (
-            <div className="text-center py-6">
-              <p className="text-gray-500">No bookings yet</p>
-              <Link href="/coaches"><Button variant="outline" size="sm" className="mt-3">Browse Coaches</Button></Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {bookings.slice(0, 5).map((booking) => (
-                <Link key={booking.id} href={`/bookings/${booking.id}`} className="block">
-                  <div className="flex items-center justify-between hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">{booking.coach.fullName}</p>
-                      <p className="text-sm text-gray-500">
-                        {booking.coach.city}, {booking.coach.state} &middot; {booking.sessionType.replace("_", " ")}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">${booking.totalCost}</span>
-                      {statusBadge(booking.status)}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {pendingInvites.length > 0 && (
         <Card className="mb-6">
@@ -207,7 +118,6 @@ export default function EnsembleDashboard() {
         </Card>
       )}
 
-      {/* Quick Links */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link href="/dashboard/ensemble/profile">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">

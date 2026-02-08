@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Clock, DollarSign, Star, Shield, Calendar, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -138,10 +138,15 @@ export default function CoachProfilePage() {
   const experienceLevels = parseJsonArray(coach.experienceLevels);
 
   const skillVerificationCounts: Record<string, number> = {};
+  const skillVerifiers: Record<string, string[]> = {};
   reviews.forEach((review) => {
     const validated = parseJsonArray(review.validatedSkills);
     validated.forEach((skill) => {
       skillVerificationCounts[skill] = (skillVerificationCounts[skill] || 0) + 1;
+      if (!skillVerifiers[skill]) skillVerifiers[skill] = [];
+      if (!skillVerifiers[skill].includes(review.reviewer.ensembleName)) {
+        skillVerifiers[skill].push(review.reviewer.ensembleName);
+      }
     });
   });
 
@@ -187,22 +192,6 @@ export default function CoachProfilePage() {
                     <Button>
                       <Pencil className="h-4 w-4 mr-2" />
                       Edit Profile
-                    </Button>
-                  </Link>
-                </div>
-              )}
-              {session && session.user.id !== coach.userId && session.user.ensembleProfileId && (
-                <div className="flex gap-3 mt-4">
-                  <Link href={`/bookings/new?coachId=${coach.id}`}>
-                    <Button>
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Book This Coach
-                    </Button>
-                  </Link>
-                  <Link href={`/messages?to=${coach.userId}`}>
-                    <Button variant="outline">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Message
                     </Button>
                   </Link>
                 </div>
@@ -387,8 +376,20 @@ export default function CoachProfilePage() {
                       <div className="flex flex-wrap gap-1.5">
                         {catSkills.map((s) => {
                           const count = skillVerificationCounts[s] || 0;
+                          const verifiers = skillVerifiers[s] || [];
                           return count > 0 ? (
-                            <Badge key={s} variant="success">{s} ✓{count}</Badge>
+                            <span key={s} className="relative group">
+                              <Badge variant="success" className="cursor-default">{s} ✓{count}</Badge>
+                              <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20 w-max max-w-xs">
+                                <span className="block rounded-lg bg-gray-900 px-3 py-2 text-xs text-white shadow-lg">
+                                  <span className="block font-semibold mb-1">Verified by:</span>
+                                  {verifiers.map((name) => (
+                                    <span key={name} className="block">{name}</span>
+                                  ))}
+                                </span>
+                                <span className="block mx-auto w-2 h-2 bg-gray-900 rotate-45 -mt-1"></span>
+                              </span>
+                            </span>
                           ) : (
                             <Badge key={s} variant="info">{s}</Badge>
                           );

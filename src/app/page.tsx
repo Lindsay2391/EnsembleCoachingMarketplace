@@ -57,7 +57,7 @@ export default function HomePage() {
                 1. Discover
               </h3>
               <p className="text-gray-600">
-                Search coaches to match your ensemble's needs — by location,
+                Search coaches to match your ensemble&apos;s needs — by location,
                 skills, experience level, and more.
               </p>
             </div>
@@ -83,7 +83,7 @@ export default function HomePage() {
                 3. Grow
               </h3>
               <p className="text-gray-600">
-                Have a great coaching session and take your ensemble's
+                Have a great coaching session and take your ensemble&apos;s
                 performance to the next level.
               </p>
             </div>

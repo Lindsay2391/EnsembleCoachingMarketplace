@@ -246,6 +246,18 @@ export async function POST(request: Request) {
       );
     }
 
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: "Your session has expired. Please log out and log back in." },
+        { status: 401 }
+      );
+    }
+
     const existingProfile = await prisma.coachProfile.findUnique({
       where: { userId: session.user.id },
     });

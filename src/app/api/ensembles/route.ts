@@ -40,6 +40,18 @@ export async function POST(request: Request) {
     const { ensembleName, ensembleType, size, city, state, genres, experienceLevel } =
       validation.data;
 
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true },
+    });
+
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: "Your session has expired. Please log out and log back in." },
+        { status: 401 }
+      );
+    }
+
     const existingDuplicate = await prisma.ensembleProfile.findFirst({
       where: { ensembleName, state },
     });

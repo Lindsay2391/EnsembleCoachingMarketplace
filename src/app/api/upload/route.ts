@@ -5,7 +5,7 @@ import { writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 
-const MAX_SIZE = 2 * 1024 * 1024;
+const MAX_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export async function POST(request: Request) {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "File size must be under 2MB" }, { status: 400 });
+      return NextResponse.json({ error: "File size must be under 5MB" }, { status: 400 });
     }
 
     const ext = file.type.split("/")[1] === "jpeg" ? "jpg" : file.type.split("/")[1];

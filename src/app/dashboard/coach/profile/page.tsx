@@ -9,6 +9,7 @@ import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import ImageCropper from "@/components/ui/ImageCropper";
 import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
 import { Upload, Phone, Mail, Globe, ChevronUp, ChevronDown, Plus, X } from "lucide-react";
 
@@ -68,6 +69,7 @@ export default function CoachProfileForm() {
   const [customSkillInputs, setCustomSkillInputs] = useState<Record<string, string>>({});
   const [addingCustomCategory, setAddingCustomCategory] = useState<string | null>(null);
   const [savingCustomSkill, setSavingCustomSkill] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -181,12 +183,12 @@ export default function CoachProfileForm() {
     }
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Photo must be under 2MB");
+    if (file.size > 8 * 1024 * 1024) {
+      setError("Photo must be under 8MB");
       return;
     }
 
@@ -195,12 +197,23 @@ export default function CoachProfileForm() {
       return;
     }
 
+    setError("");
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleCroppedUpload = async (croppedBlob: Blob) => {
+    setCropImageSrc(null);
     setUploading(true);
     setError("");
 
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", croppedBlob, "profile-photo.jpg");
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await res.json();
 
@@ -341,7 +354,7 @@ export default function CoachProfileForm() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  onChange={handlePhotoUpload}
+                  onChange={handlePhotoSelect}
                   className="hidden"
                 />
                 <Button
@@ -354,7 +367,7 @@ export default function CoachProfileForm() {
                   <Upload className="h-3 w-3 mr-1" />
                   {uploading ? "Uploading..." : "Upload Photo"}
                 </Button>
-                <p className="text-xs text-gray-400">Max 2MB. JPG, PNG, WebP</p>
+                <p className="text-xs text-gray-400">Max 8MB. JPG, PNG, WebP</p>
               </div>
               <div className="flex-1 space-y-4">
                 <Input id="fullName" label="Full Name *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
@@ -612,6 +625,16 @@ export default function CoachProfileForm() {
           )}
         </div>
       </form>
+
+      {cropImageSrc && (
+        <ImageCropper
+          imageSrc={cropImageSrc}
+          onCropComplete={handleCroppedUpload}
+          onCancel={() => setCropImageSrc(null)}
+          aspectRatio={1}
+          cropShape="round"
+        />
+      )}
     </div>
   );
 }

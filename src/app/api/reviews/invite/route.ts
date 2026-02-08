@@ -5,8 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const inviteSchema = z.object({
-  ensembleEmail: z.string().email("Invalid email address"),
-  ensembleName: z.string().min(1, "Ensemble name is required"),
+  ensembleProfileId: z.string().min(1, "Ensemble selection is required"),
 });
 
 export async function POST(request: Request) {
@@ -27,18 +26,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
     }
 
-    const { ensembleEmail, ensembleName } = validation.data;
+    const { ensembleProfileId } = validation.data;
+
+    const ensemble = await prisma.ensembleProfile.findUnique({
+      where: { id: ensembleProfileId },
+      include: { user: { select: { email: true } } },
+    });
+
+    if (!ensemble) {
+      return NextResponse.json({ error: "Ensemble not found on CoachConnect" }, { status: 404 });
+    }
 
     const existing = await prisma.reviewInvite.findFirst({
       where: {
         coachProfileId: user.coachProfileId,
-        ensembleEmail: ensembleEmail.toLowerCase(),
+        ensembleProfileId: ensembleProfileId,
         status: "pending",
       },
     });
 
     if (existing) {
-      return NextResponse.json({ error: "A pending invite already exists for this email" }, { status: 400 });
+      return NextResponse.json({ error: "A pending invite already exists for this ensemble" }, { status: 400 });
     }
 
     const expiresAt = new Date();
@@ -47,8 +55,9 @@ export async function POST(request: Request) {
     const invite = await prisma.reviewInvite.create({
       data: {
         coachProfileId: user.coachProfileId,
-        ensembleEmail: ensembleEmail.toLowerCase(),
-        ensembleName,
+        ensembleEmail: ensemble.user.email.toLowerCase(),
+        ensembleName: ensemble.ensembleName,
+        ensembleProfileId: ensemble.id,
         expiresAt,
       },
     });

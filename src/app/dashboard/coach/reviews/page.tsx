@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Star, Send, Mail, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Star, Send, Search, CheckCircle, Clock, AlertCircle, X } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -23,6 +23,14 @@ interface ReviewInvite {
   } | null;
 }
 
+interface EnsembleResult {
+  id: string;
+  ensembleName: string;
+  ensembleType: string;
+  city: string;
+  state: string;
+}
+
 export default function CoachReviewsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -31,8 +39,14 @@ export default function CoachReviewsPage() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [ensembleName, setEnsembleName] = useState("");
-  const [ensembleEmail, setEnsembleEmail] = useState("");
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<EnsembleResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedEnsemble, setSelectedEnsemble] = useState<EnsembleResult | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -50,6 +64,50 @@ export default function CoachReviewsPage() {
     fetchInvites();
   }, [session, status, router]);
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (selectedEnsemble) return;
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      searchEnsembles(searchQuery.trim());
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchQuery, selectedEnsemble]);
+
+  async function searchEnsembles(q: string) {
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/ensembles/search?q=${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResults(data);
+        setShowDropdown(true);
+      }
+    } catch (err) {
+      console.error("Search error:", err);
+    } finally {
+      setSearching(false);
+    }
+  }
+
   async function fetchInvites() {
     try {
       const res = await fetch("/api/reviews/invite");
@@ -63,13 +121,26 @@ export default function CoachReviewsPage() {
     }
   }
 
+  function handleSelectEnsemble(ensemble: EnsembleResult) {
+    setSelectedEnsemble(ensemble);
+    setSearchQuery(ensemble.ensembleName);
+    setShowDropdown(false);
+    setSearchResults([]);
+  }
+
+  function handleClearSelection() {
+    setSelectedEnsemble(null);
+    setSearchQuery("");
+    setSearchResults([]);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    if (!ensembleName.trim() || !ensembleEmail.trim()) {
-      setError("Please fill in both fields");
+    if (!selectedEnsemble) {
+      setError("Please search for and select an ensemble from the list");
       return;
     }
 
@@ -78,13 +149,12 @@ export default function CoachReviewsPage() {
       const res = await fetch("/api/reviews/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ensembleName: ensembleName.trim(), ensembleEmail: ensembleEmail.trim() }),
+        body: JSON.stringify({ ensembleProfileId: selectedEnsemble.id }),
       });
 
       if (res.ok) {
-        setSuccess("Review invite sent successfully!");
-        setEnsembleName("");
-        setEnsembleEmail("");
+        setSuccess(`Review invite sent to ${selectedEnsemble.ensembleName}!`);
+        handleClearSelection();
         fetchInvites();
       } else {
         const data = await res.json();
@@ -116,7 +186,7 @@ export default function CoachReviewsPage() {
         <Star className="h-8 w-8 text-coral-500" />
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Review Invites</h1>
-          <p className="mt-1 text-gray-600">Invite ensembles to leave reviews for your coaching</p>
+          <p className="mt-1 text-gray-600">Invite ensembles registered on CoachConnect to leave reviews</p>
         </div>
       </div>
 
@@ -126,6 +196,7 @@ export default function CoachReviewsPage() {
             <Send className="h-5 w-5 text-coral-500" />
             Invite a Review
           </h2>
+          <p className="text-sm text-gray-500 mt-1">Search for an ensemble that&apos;s registered on CoachConnect</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -141,37 +212,72 @@ export default function CoachReviewsPage() {
                 {success}
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="ensembleName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Ensemble Name
-                </label>
-                <input
-                  id="ensembleName"
-                  type="text"
-                  value={ensembleName}
-                  onChange={(e) => setEnsembleName(e.target.value)}
-                  placeholder="e.g. Harmony Heights Chorus"
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-coral-500 focus:outline-none focus:ring-1 focus:ring-coral-500 sm:text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="ensembleEmail" className="block text-sm font-medium text-gray-700 mb-1">
-                  Ensemble Email
-                </label>
-                <input
-                  id="ensembleEmail"
-                  type="email"
-                  value={ensembleEmail}
-                  onChange={(e) => setEnsembleEmail(e.target.value)}
-                  placeholder="ensemble@example.com"
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-coral-500 focus:outline-none focus:ring-1 focus:ring-coral-500 sm:text-sm"
-                />
-              </div>
+
+            <div ref={searchRef} className="relative">
+              <label htmlFor="ensembleSearch" className="block text-sm font-medium text-gray-700 mb-1">
+                Search Ensemble
+              </label>
+              {selectedEnsemble ? (
+                <div className="flex items-center justify-between rounded-lg border border-coral-300 bg-coral-50 px-3 py-2.5">
+                  <div>
+                    <span className="font-medium text-gray-900">{selectedEnsemble.ensembleName}</span>
+                    <span className="text-sm text-gray-500 ml-2">
+                      {selectedEnsemble.ensembleType} &middot; {selectedEnsemble.city}, {selectedEnsemble.state}
+                    </span>
+                  </div>
+                  <button type="button" onClick={handleClearSelection} className="text-gray-400 hover:text-gray-600">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    id="ensembleSearch"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSelectedEnsemble(null);
+                    }}
+                    placeholder="Type at least 2 characters to search..."
+                    className="block w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-gray-900 placeholder-gray-400 focus:border-coral-500 focus:outline-none focus:ring-1 focus:ring-coral-500 sm:text-sm"
+                    autoComplete="off"
+                  />
+                  {searching && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Searching...</div>
+                  )}
+                </div>
+              )}
+
+              {showDropdown && searchResults.length > 0 && !selectedEnsemble && (
+                <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-60 overflow-auto">
+                  {searchResults.map((ensemble) => (
+                    <button
+                      key={ensemble.id}
+                      type="button"
+                      onClick={() => handleSelectEnsemble(ensemble)}
+                      className="w-full text-left px-4 py-3 hover:bg-coral-50 border-b border-gray-100 last:border-0 transition-colors"
+                    >
+                      <p className="font-medium text-gray-900">{ensemble.ensembleName}</p>
+                      <p className="text-sm text-gray-500">
+                        {ensemble.ensembleType} &middot; {ensemble.city}, {ensemble.state}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {showDropdown && searchResults.length === 0 && searchQuery.trim().length >= 2 && !searching && !selectedEnsemble && (
+                <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+                  <p className="px-4 py-3 text-sm text-gray-500">No ensembles found matching &ldquo;{searchQuery}&rdquo;</p>
+                </div>
+              )}
             </div>
-            <Button type="submit" disabled={sending}>
-              <Mail className="h-4 w-4 mr-2" />
-              {sending ? "Sending..." : "Send Invite"}
+
+            <Button type="submit" disabled={sending || !selectedEnsemble}>
+              <Send className="h-4 w-4 mr-2" />
+              {sending ? "Sending..." : "Send Review Invite"}
             </Button>
           </form>
         </CardContent>

@@ -103,8 +103,14 @@ export default function AdminDashboard() {
       ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
-      if (coachesRes.ok) setCoaches(await coachesRes.json());
-      if (usersRes.ok) setUsers(await usersRes.json());
+      if (coachesRes.ok) {
+        const coachesData = await coachesRes.json();
+        setCoaches(coachesData.coaches || coachesData);
+      }
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        setUsers(usersData.users || usersData);
+      }
       if (auditRes.ok) setAuditLogs(await auditRes.json());
       await fetchReviews();
     } catch (err) {

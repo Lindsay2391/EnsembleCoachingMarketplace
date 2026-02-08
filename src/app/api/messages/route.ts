@@ -12,8 +12,22 @@ export async function GET() {
 
     const userId = (session.user as { id: string }).id;
 
-    // Get all unique conversations (grouped by the other user)
-    const messages = await prisma.message.findMany({
+    // Get distinct conversation partners by finding the latest message per partner
+    // Step 1: Get unread counts per sender (DB-level aggregation instead of loading all messages)
+    const unreadCounts = await prisma.message.groupBy({
+      by: ["senderId"],
+      where: {
+        recipientId: userId,
+        read: false,
+      },
+      _count: { id: true },
+    });
+    const unreadMap = new Map(unreadCounts.map((u) => [u.senderId, u._count.id]));
+
+    // Step 2: Get the latest message per conversation partner
+    // Fetch recent messages ordered by date, then deduplicate by partner in JS
+    // Limit to a reasonable window to avoid full table scans
+    const recentMessages = await prisma.message.findMany({
       where: {
         OR: [{ senderId: userId }, { recipientId: userId }],
       },
@@ -22,9 +36,10 @@ export async function GET() {
         recipient: { select: { id: true, name: true, userType: true } },
       },
       orderBy: { createdAt: "desc" },
+      take: 500, // Cap to avoid loading unbounded messages
     });
 
-    // Group messages by conversation partner
+    // Deduplicate: keep only the first (most recent) message per partner
     const conversationMap = new Map<string, {
       partnerId: string;
       partnerName: string;
@@ -35,22 +50,18 @@ export async function GET() {
       bookingId: string | null;
     }>();
 
-    for (const msg of messages) {
+    for (const msg of recentMessages) {
       const partnerId = msg.senderId === userId ? msg.recipientId : msg.senderId;
       const partner = msg.senderId === userId ? msg.recipient : msg.sender;
 
       if (!conversationMap.has(partnerId)) {
-        const unreadCount = messages.filter(
-          (m: typeof messages[number]) => m.senderId === partnerId && m.recipientId === userId && !m.read
-        ).length;
-
         conversationMap.set(partnerId, {
           partnerId,
           partnerName: partner.name,
           partnerType: partner.userType,
           lastMessage: msg.content,
           lastMessageAt: msg.createdAt.toISOString(),
-          unreadCount,
+          unreadCount: unreadMap.get(partnerId) || 0,
           bookingId: msg.bookingId,
         });
       }

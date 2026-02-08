@@ -114,7 +114,79 @@ export async function GET(request: Request) {
       ensembleProfile = ensemble;
     }
 
-    const [allCoaches, total] = await Promise.all([
+    const needsRelevanceSort = !!ensembleProfile || favoriteIds.size > 0;
+
+    if (needsRelevanceSort) {
+      // When we need relevance scoring, fetch all matching coaches but only IDs + scoring fields
+      // then paginate in memory (unavoidable for custom relevance sorting)
+      const allCoaches = await prisma.coachProfile.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              email: true,
+              name: true,
+            },
+          },
+          coachSkills: {
+            include: { skill: true },
+            orderBy: { displayOrder: "asc" },
+          },
+        },
+        orderBy: [
+          { rating: "desc" },
+          { totalBookings: "desc" },
+        ],
+      });
+
+      const total = allCoaches.length;
+
+      const parseJson = (val: string): string[] => {
+        try { return JSON.parse(val); } catch { return []; }
+      };
+
+      const scoredCoaches = allCoaches.map((coach) => {
+        const coachSkillNames = coach.coachSkills.map(cs => cs.skill.name);
+        const coachEnsembleTypes = parseJson(coach.ensembleTypes);
+        const coachExpLevels = parseJson(coach.experienceLevels);
+
+        const isFavorite = favoriteIds.has(coach.id);
+
+        let relevanceScore = 0;
+        if (ensembleProfile) {
+          if (coach.state === ensembleProfile.state) relevanceScore += 10;
+          if (coach.city === ensembleProfile.city) relevanceScore += 5;
+          if (coachEnsembleTypes.includes(ensembleProfile.ensembleType)) relevanceScore += 10;
+          if (coachExpLevels.includes(ensembleProfile.experienceLevel)) relevanceScore += 10;
+        }
+
+        const skillMatchCount = skillsList.length > 0
+          ? skillsList.filter((skill) => coachSkillNames.includes(skill)).length
+          : 0;
+
+        return { ...coach, isFavorite, relevanceScore, matchCount: skillMatchCount };
+      });
+
+      scoredCoaches.sort((a, b) => {
+        if (a.isFavorite !== b.isFavorite) return a.isFavorite ? -1 : 1;
+        if (a.relevanceScore !== b.relevanceScore) return b.relevanceScore - a.relevanceScore;
+        if (skillsList.length > 0 && a.matchCount !== b.matchCount) return b.matchCount - a.matchCount;
+        return b.rating - a.rating;
+      });
+
+      const paginatedCoaches = scoredCoaches.slice(skip, skip + limit);
+
+      return NextResponse.json({
+        coaches: paginatedCoaches,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      });
+    }
+
+    // For unauthenticated/non-ensemble users: use DB-level pagination (much cheaper)
+    const [coaches, total] = await Promise.all([
       prisma.coachProfile.findMany({
         where,
         include: {
@@ -133,44 +205,18 @@ export async function GET(request: Request) {
           { rating: "desc" },
           { totalBookings: "desc" },
         ],
+        skip,
+        take: limit,
       }),
       prisma.coachProfile.count({ where }),
     ]);
 
-    const parseJson = (val: string): string[] => {
-      try { return JSON.parse(val); } catch { return []; }
-    };
-
-    const scoredCoaches = allCoaches.map((coach) => {
-      const coachSkillNames = coach.coachSkills.map(cs => cs.skill.name);
-      const coachEnsembleTypes = parseJson(coach.ensembleTypes);
-      const coachExpLevels = parseJson(coach.experienceLevels);
-
-      const isFavorite = favoriteIds.has(coach.id);
-
-      let relevanceScore = 0;
-      if (ensembleProfile) {
-        if (coach.state === ensembleProfile.state) relevanceScore += 10;
-        if (coach.city === ensembleProfile.city) relevanceScore += 5;
-        if (coachEnsembleTypes.includes(ensembleProfile.ensembleType)) relevanceScore += 10;
-        if (coachExpLevels.includes(ensembleProfile.experienceLevel)) relevanceScore += 10;
-      }
-
-      const skillMatchCount = skillsList.length > 0
-        ? skillsList.filter((skill) => coachSkillNames.includes(skill)).length
-        : 0;
-
-      return { ...coach, isFavorite, relevanceScore, matchCount: skillMatchCount };
-    });
-
-    scoredCoaches.sort((a, b) => {
-      if (a.isFavorite !== b.isFavorite) return a.isFavorite ? -1 : 1;
-      if (a.relevanceScore !== b.relevanceScore) return b.relevanceScore - a.relevanceScore;
-      if (skillsList.length > 0 && a.matchCount !== b.matchCount) return b.matchCount - a.matchCount;
-      return b.rating - a.rating;
-    });
-
-    const paginatedCoaches = scoredCoaches.slice(skip, skip + limit);
+    const paginatedCoaches = coaches.map((coach) => ({
+      ...coach,
+      isFavorite: false,
+      relevanceScore: 0,
+      matchCount: 0,
+    }));
 
     return NextResponse.json({
       coaches: paginatedCoaches,
@@ -260,16 +306,12 @@ export async function POST(request: Request) {
       });
       const validSkillIds = new Set(skillRecords.map((s) => s.id));
 
-      for (let i = 0; i < d.skills.length; i++) {
-        if (validSkillIds.has(d.skills[i])) {
-          await prisma.coachSkill.create({
-            data: {
-              coachProfileId: coach.id,
-              skillId: d.skills[i],
-              displayOrder: i,
-            },
-          });
-        }
+      const skillData = d.skills
+        .map((skillId, i) => ({ coachProfileId: coach.id, skillId, displayOrder: i }))
+        .filter((s) => validSkillIds.has(s.skillId));
+
+      if (skillData.length > 0) {
+        await prisma.coachSkill.createMany({ data: skillData });
       }
     }
 

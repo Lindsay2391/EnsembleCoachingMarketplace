@@ -8,7 +8,7 @@ import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import { SPECIALTIES, EXPERIENCE_LEVELS, AUSTRALIAN_STATES } from "@/lib/utils";
+import { COACH_SKILLS, EXPERIENCE_LEVELS, AUSTRALIAN_STATES } from "@/lib/utils";
 
 export default function CoachProfileForm() {
   const { data: session, status } = useSession();
@@ -23,7 +23,8 @@ export default function CoachProfileForm() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [bio, setBio] = useState("");
-  const [specialties, setSpecialties] = useState<string[]>([]);
+  const [skills, setSkills] = useState<string[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
   const [rateHourly, setRateHourly] = useState("");
   const [rateHalfDay, setRateHalfDay] = useState("");
@@ -49,7 +50,7 @@ export default function CoachProfileForm() {
             setCity(myProfile.city);
             setState(myProfile.state);
             setBio(myProfile.bio);
-            setSpecialties(JSON.parse(myProfile.specialties || "[]"));
+            setSkills(JSON.parse(myProfile.specialties || "[]"));
             setExperienceLevels(JSON.parse(myProfile.experienceLevels || "[]"));
             setRateHourly(myProfile.rateHourly?.toString() || "");
             setRateHalfDay(myProfile.rateHalfDay?.toString() || "");
@@ -88,7 +89,7 @@ export default function CoachProfileForm() {
       city,
       state,
       bio,
-      specialties,
+      specialties: skills,
       experienceLevels,
       rateHourly: rateHourly ? parseFloat(rateHourly) : undefined,
       rateHalfDay: rateHalfDay ? parseFloat(rateHalfDay) : undefined,
@@ -149,17 +150,49 @@ export default function CoachProfileForm() {
         </Card>
 
         <Card>
-          <CardHeader><h2 className="text-lg font-semibold">Specialties & Experience</h2></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Skills & Experience</h2>
+              {skills.length > 0 && (
+                <span className="text-sm text-coral-600 font-medium">{skills.length} selected</span>
+              )}
+            </div>
+          </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Specialties *</label>
-              <div className="flex flex-wrap gap-2">
-                {SPECIALTIES.map((s) => (
-                  <button key={s} type="button" onClick={() => toggleArrayItem(specialties, setSpecialties, s)}
-                    className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                      specialties.includes(s) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
-                    }`}>{s}</button>
-                ))}
+              <label className="block text-sm font-medium text-gray-700 mb-3">Skills *</label>
+              <div className="space-y-3">
+                {Object.entries(COACH_SKILLS).map(([category, categorySkills]) => {
+                  const selectedCount = categorySkills.filter(s => skills.includes(s)).length;
+                  const isExpanded = expandedCategories[category] !== false;
+                  return (
+                    <div key={category} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !isExpanded }))}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        <span className="font-medium text-gray-800">{category}</span>
+                        <div className="flex items-center gap-2">
+                          {selectedCount > 0 && (
+                            <span className="bg-coral-500 text-white text-xs px-2 py-0.5 rounded-full">{selectedCount}</span>
+                          )}
+                          <span className="text-gray-400 text-sm">{isExpanded ? "▲" : "▼"}</span>
+                        </div>
+                      </button>
+                      {isExpanded && (
+                        <div className="px-4 py-3 flex flex-wrap gap-2">
+                          {categorySkills.map((s) => (
+                            <button key={s} type="button" onClick={() => toggleArrayItem(skills, setSkills, s)}
+                              className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                                skills.includes(s) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
+                              }`}>{s}</button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <div>

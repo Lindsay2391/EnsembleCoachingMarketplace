@@ -9,7 +9,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
-import { formatCurrency, parseJsonArray } from "@/lib/utils";
+import { formatCurrency, parseJsonArray, groupSkillsByCategory } from "@/lib/utils";
 
 interface CoachProfile {
   id: string;
@@ -85,7 +85,8 @@ export default function CoachProfilePage() {
     return <div className="max-w-4xl mx-auto px-4 py-12 text-center text-gray-500">Coach not found</div>;
   }
 
-  const specialties = parseJsonArray(coach.specialties);
+  const skills = parseJsonArray(coach.specialties);
+  const groupedSkills = groupSkillsByCategory(skills);
   const experienceLevels = parseJsonArray(coach.experienceLevels);
 
   return (
@@ -246,13 +247,24 @@ export default function CoachProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Specialties */}
+          {/* Skills */}
           <Card>
-            <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Star className="h-4 w-4 inline mr-1" />Specialties</h2></CardHeader>
+            <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Star className="h-4 w-4 inline mr-1" />Skills</h2></CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {specialties.map((s) => (<Badge key={s} variant="info">{s}</Badge>))}
-              </div>
+              {Object.keys(groupedSkills).length > 0 ? (
+                <div className="space-y-3">
+                  {Object.entries(groupedSkills).map(([category, catSkills]) => (
+                    <div key={category}>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{category}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {catSkills.map((s) => (<Badge key={s} variant="info">{s}</Badge>))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm">No skills listed</p>
+              )}
             </CardContent>
           </Card>
 

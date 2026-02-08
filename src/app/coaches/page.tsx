@@ -10,7 +10,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
-import { formatCurrency, parseJsonArray, SPECIALTIES, EXPERIENCE_LEVELS, AUSTRALIAN_STATES } from "@/lib/utils";
+import { formatCurrency, parseJsonArray, COACH_SKILLS, EXPERIENCE_LEVELS, AUSTRALIAN_STATES } from "@/lib/utils";
 
 interface Coach {
   id: string;
@@ -37,7 +37,7 @@ function CoachBrowseContent() {
   const [showFilters, setShowFilters] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
-  const [specialty, setSpecialty] = useState(searchParams.get("specialty") || "");
+  const [skill, setSkill] = useState(searchParams.get("specialty") || "");
   const [state, setState] = useState(searchParams.get("state") || "");
   const [experienceLevel, setExperienceLevel] = useState(searchParams.get("experienceLevel") || "");
   const [page, setPage] = useState(1);
@@ -46,7 +46,7 @@ function CoachBrowseContent() {
     setLoading(true);
     const params = new URLSearchParams();
     if (searchTerm) params.set("search", searchTerm);
-    if (specialty) params.set("specialty", specialty);
+    if (skill) params.set("specialty", skill);
     if (state) params.set("state", state);
     if (experienceLevel) params.set("experienceLevel", experienceLevel);
     params.set("page", page.toString());
@@ -61,7 +61,7 @@ function CoachBrowseContent() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, specialty, state, experienceLevel, page]);
+  }, [searchTerm, skill, state, experienceLevel, page]);
 
   useEffect(() => {
     fetchCoaches();
@@ -75,7 +75,7 @@ function CoachBrowseContent() {
 
   const clearFilters = () => {
     setSearchTerm("");
-    setSpecialty("");
+    setSkill("");
     setState("");
     setExperienceLevel("");
     setPage(1);
@@ -120,11 +120,13 @@ function CoachBrowseContent() {
             <CardContent className="py-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Select
-                  label="Specialty"
-                  value={specialty}
-                  onChange={(e) => { setSpecialty(e.target.value); setPage(1); }}
-                  placeholder="All Specialties"
-                  options={SPECIALTIES.map((s) => ({ value: s, label: s }))}
+                  label="Skill"
+                  value={skill}
+                  onChange={(e) => { setSkill(e.target.value); setPage(1); }}
+                  placeholder="All Skills"
+                  options={Object.entries(COACH_SKILLS).flatMap(([category, skills]) =>
+                    skills.map((s) => ({ value: s, label: `${s}` }))
+                  )}
                 />
                 <Select
                   label="State"
@@ -200,7 +202,7 @@ function CoachBrowseContent() {
                   </p>
 
                   <div className="flex flex-wrap gap-1.5 mt-3">
-                    {parseJsonArray(coach.specialties).slice(0, 3).map((s) => (
+                    {parseJsonArray(coach.specialties).slice(0, 4).map((s) => (
                       <Badge key={s} variant="info">{s}</Badge>
                     ))}
                   </div>

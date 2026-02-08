@@ -33,6 +33,12 @@ A Next.js 14 marketplace for connecting Australian ensemble groups with qualifie
 - **Color scheme**: Warm coral/salmon palette (custom `coral` Tailwind colors), matching thinkingbarbershop.com style
 - **Primary color**: coral-500 (#e8837c)
 
+## Coach Skills System
+Coaches select skills from 7 categories (50+ options total) stored as JSON array in the `specialties` DB field:
+- Style & Contest (8), Vocal Technique (10), Tuning & Harmony (10), Performance & Interpretation (8), Visual & Choreography (6), Learning & Process (5), Leadership & Culture (3)
+- Data defined in `src/lib/utils.ts` as `COACH_SKILLS` with helper functions `groupSkillsByCategory()` and `getSkillCategory()`
+
 ## Recent Changes
+- 2026-02-08: Replaced flat specialties with categorized skills system (50+ skills across 7 categories) with accordion UI on profile edit and grouped display on profile view
 - 2026-02-08: Restyled entire app from indigo/purple to coral/salmon color scheme to match thinkingbarbershop.com
 - 2026-02-08: Initial Replit setup - configured port 5000, ran Prisma migrations, set environment variables

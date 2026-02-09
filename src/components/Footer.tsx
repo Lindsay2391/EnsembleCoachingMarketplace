@@ -51,7 +51,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <span className="text-sm text-gray-500">
-                  help@coachconnect.com.au
+                  support@ThinkingBarbershop.com
                 </span>
               </li>
               <li>

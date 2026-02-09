@@ -89,6 +89,9 @@ export const EXPERIENCE_LEVELS = [
 export const ENSEMBLE_TYPES = [
   "Chorus",
   "Quartet",
+  "Upper Voice Groups",
+  "Mixed Voice Groups",
+  "Lower Voice Groups",
 ];
 
 export const SESSION_TYPES = [

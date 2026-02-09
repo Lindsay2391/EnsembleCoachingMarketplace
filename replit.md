@@ -49,7 +49,18 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Notification bell in the navbar shows pending review invites for ensemble users and pending coach approval counts for admins.
 - Admins see the bell even without ensemble profiles; notifications link to the admin panel.
 
+**Email Verification & Password Reset:**
+- Registration generates a verification token and sends a branded HTML email via Resend.
+- Dashboard shows an amber banner prompting unverified users to verify their email, with a "Resend Email" button.
+- `/verify-email` page handles token verification from email links.
+- `/forgot-password` page lets users request a password reset email (generic response to prevent account enumeration).
+- `/reset-password` page allows setting a new password from a reset link (tokens expire after 1 hour).
+- Email utility at `src/lib/email.ts` with coral-branded HTML templates.
+
 ## Recent Changes
+- 2026-02-09: Implemented email verification system with Resend (verification on registration, dashboard banner, resend option)
+- 2026-02-09: Implemented password reset flow (forgot-password page, reset email with 1-hour expiry, reset-password page)
+- 2026-02-09: Added "Forgot password?" link to login page
 - 2026-02-09: Full internationalization for 8 countries with COUNTRIES config, dynamic region dropdowns, country filters on browse page, locale-aware currency formatting, smart sorting with country matching (+15 points), ensemble uniqueness constraint updated to [ensembleName, state, country]
 - 2026-02-09: Added in-app feedback system with FeedbackModal component and admin Feedback tab
 - 2026-02-09: Added admin notifications for pending coach profile approvals in notification bell
@@ -59,4 +70,5 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 ## External Dependencies
 - **Database**: PostgreSQL (Neon-backed) managed with Prisma ORM 7 (`@prisma/adapter-pg`).
 - **Authentication**: NextAuth.js with a credentials provider (JWT strategy).
+- **Email**: Resend for transactional emails (verification, password reset) via `RESEND_API_KEY` secret.
 - **External Links**: Integration with `buymeacoffee.com` for platform support donations.

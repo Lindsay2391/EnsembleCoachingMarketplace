@@ -56,7 +56,7 @@ export default function Navbar() {
           <div className="hidden sm:flex sm:items-center sm:gap-3">
             {session ? (
               <div className="flex items-center gap-3">
-                {session.user.ensembleProfileIds?.length > 0 && <NotificationBell />}
+                {(session.user.ensembleProfileIds?.length > 0 || isAdmin) && <NotificationBell isAdmin={isAdmin} />}
                 <Link
                   href="/dashboard"
                   className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
@@ -88,7 +88,7 @@ export default function Navbar() {
           </div>
 
           <div className="sm:hidden flex items-center gap-2">
-            {(session?.user?.ensembleProfileIds?.length ?? 0) > 0 && <NotificationBell />}
+            {((session?.user?.ensembleProfileIds?.length ?? 0) > 0 || isAdmin) && <NotificationBell isAdmin={isAdmin} />}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-gray-600 hover:text-gray-900"

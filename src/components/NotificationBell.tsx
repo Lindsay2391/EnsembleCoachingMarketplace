@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, Star, X } from "lucide-react";
+import { Bell, Star, ShieldAlert, X } from "lucide-react";
 import Link from "next/link";
 
 interface PendingInvite {
@@ -16,16 +16,25 @@ interface PendingInvite {
   };
 }
 
-export default function NotificationBell() {
+interface NotificationBellProps {
+  isAdmin?: boolean;
+}
+
+export default function NotificationBell({ isAdmin = false }: NotificationBellProps) {
   const [invites, setInvites] = useState<PendingInvite[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState(0);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchInvites();
-    const interval = setInterval(fetchInvites, 60000);
+    if (isAdmin) fetchPendingApprovals();
+    const interval = setInterval(() => {
+      fetchInvites();
+      if (isAdmin) fetchPendingApprovals();
+    }, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -44,11 +53,21 @@ export default function NotificationBell() {
         setInvites(await res.json());
       }
     } catch {
-      // silent fail
     }
   }
 
-  const count = invites.length;
+  async function fetchPendingApprovals() {
+    try {
+      const res = await fetch("/api/admin/pending-count");
+      if (res.ok) {
+        const data = await res.json();
+        setPendingApprovals(data.count);
+      }
+    } catch {
+    }
+  }
+
+  const count = invites.length + pendingApprovals;
 
   return (
     <div ref={ref} className="relative">
@@ -77,39 +96,73 @@ export default function NotificationBell() {
             {count === 0 ? (
               <p className="px-4 py-6 text-sm text-gray-500 text-center">No new notifications</p>
             ) : (
-              invites.map((invite) => (
-                <Link
-                  key={invite.id}
-                  href={`/reviews/write?inviteId=${invite.id}`}
-                  onClick={() => setOpen(false)}
-                  className="block px-4 py-3 hover:bg-coral-50 border-b border-gray-50 last:border-0 transition-colors"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-coral-100 flex-shrink-0">
-                      <Star className="h-4 w-4 text-coral-500" />
+              <>
+                {isAdmin && pendingApprovals > 0 && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setOpen(false)}
+                    className="block px-4 py-3 hover:bg-coral-50 border-b border-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 flex-shrink-0">
+                        <ShieldAlert className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm text-gray-900">
+                          <span className="font-medium">{pendingApprovals} coach {pendingApprovals === 1 ? "profile" : "profiles"}</span> pending approval
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Review in Admin Panel
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm text-gray-900">
-                        <span className="font-medium">{invite.coachProfile.fullName}</span> invited you to write a review
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {invite.coachProfile.city}, {invite.coachProfile.state} &middot; {new Date(invite.createdAt).toLocaleDateString()}
-                      </p>
+                  </Link>
+                )}
+                {invites.map((invite) => (
+                  <Link
+                    key={invite.id}
+                    href={`/reviews/write?inviteId=${invite.id}`}
+                    onClick={() => setOpen(false)}
+                    className="block px-4 py-3 hover:bg-coral-50 border-b border-gray-50 last:border-0 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-coral-100 flex-shrink-0">
+                        <Star className="h-4 w-4 text-coral-500" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm text-gray-900">
+                          <span className="font-medium">{invite.coachProfile.fullName}</span> invited you to write a review
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {invite.coachProfile.city}, {invite.coachProfile.state} &middot; {new Date(invite.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))
+                  </Link>
+                ))}
+              </>
             )}
           </div>
           {count > 0 && (
-            <div className="border-t border-gray-100 px-4 py-2">
-              <Link
-                href="/dashboard/ensemble"
-                onClick={() => setOpen(false)}
-                className="text-xs text-coral-500 hover:text-coral-600 font-medium"
-              >
-                View all in dashboard
-              </Link>
+            <div className="border-t border-gray-100 px-4 py-2 flex gap-3">
+              {invites.length > 0 && (
+                <Link
+                  href="/dashboard/ensemble"
+                  onClick={() => setOpen(false)}
+                  className="text-xs text-coral-500 hover:text-coral-600 font-medium"
+                >
+                  View invites
+                </Link>
+              )}
+              {isAdmin && pendingApprovals > 0 && (
+                <Link
+                  href="/admin"
+                  onClick={() => setOpen(false)}
+                  className="text-xs text-coral-500 hover:text-coral-600 font-medium"
+                >
+                  Admin Panel
+                </Link>
+              )}
             </div>
           )}
         </div>

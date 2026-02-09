@@ -6,6 +6,8 @@ export type AuditAction =
   | "coach_verified"
   | "coach_unverified"
   | "coach_deleted"
+  | "user_verified"
+  | "user_unverified"
   | "user_deleted"
   | "admin_registered"
   | "review_deleted"

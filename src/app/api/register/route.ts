@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
+import { sendVerificationEmail } from "@/lib/email";
 
 const registerSchema = z.object({
   email: z.string().email("Valid email is required"),
@@ -36,14 +38,23 @@ export async function POST(request: Request) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
+    const verificationToken = crypto.randomUUID();
+
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
         name,
         userType: "user",
+        verificationToken,
       },
     });
+
+    try {
+      await sendVerificationEmail(email, name, verificationToken);
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+    }
 
     return NextResponse.json({
       id: user.id,

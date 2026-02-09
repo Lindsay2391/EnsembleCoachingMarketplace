@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Music, Users, Search, User, Settings, Plus, Star } from "lucide-react";
+import { Music, Users, Search, User, Settings, Plus, Star, Mail } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -34,6 +34,8 @@ export default function Dashboard() {
   const [coachProfile, setCoachProfile] = useState<CoachInfo | null>(null);
   const [ensembleProfiles, setEnsembleProfiles] = useState<EnsembleInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [emailVerified, setEmailVerified] = useState(true);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -58,6 +60,11 @@ export default function Dashboard() {
           const data = await ensembleRes.json();
           if (data.profiles) setEnsembleProfiles(data.profiles);
         }
+        const verifyRes = await fetch("/api/verify-status");
+        if (verifyRes.ok) {
+          const verifyData = await verifyRes.json();
+          setEmailVerified(verifyData.emailVerified);
+        }
       } catch (err) {
         console.error("Error fetching profiles:", err);
       } finally {
@@ -67,6 +74,14 @@ export default function Dashboard() {
 
     fetchProfiles();
   }, [session, status, router]);
+
+  const handleResendVerification = async () => {
+    setResending(true);
+    try {
+      await fetch("/api/resend-verification", { method: "POST" });
+    } catch {}
+    setResending(false);
+  };
 
   if (status === "loading" || loading) {
     return (
@@ -82,6 +97,24 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-gray-600">Welcome back, {session?.user?.name}</p>
       </div>
+
+      {!emailVerified && (
+        <Card className="mb-6 border-amber-200 bg-amber-50">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <Mail className="h-5 w-5 text-amber-600" />
+                <p className="text-amber-800 text-sm">
+                  Please verify your email address. Check your inbox for a verification link.
+                </p>
+              </div>
+              <Button size="sm" variant="outline" onClick={handleResendVerification} disabled={resending}>
+                {resending ? "Sending..." : "Resend Email"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="border-2 border-gray-100">

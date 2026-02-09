@@ -86,6 +86,12 @@ function LoginForm() {
                 required
               />
 
+              <div className="text-right">
+                <Link href="/forgot-password" className="text-sm text-coral-500 hover:text-coral-600">
+                  Forgot password?
+                </Link>
+              </div>
+
               <Button
                 type="submit"
                 className="w-full"

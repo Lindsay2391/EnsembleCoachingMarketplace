@@ -75,23 +75,6 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
-function ContactIcon({ method }: { method: string }) {
-  switch (method) {
-    case "phone": return <Phone className="h-4 w-4" />;
-    case "email": return <Mail className="h-4 w-4" />;
-    case "website": return <Globe className="h-4 w-4" />;
-    default: return null;
-  }
-}
-
-function ContactLabel({ method }: { method: string }) {
-  switch (method) {
-    case "phone": return <>Phone</>;
-    case "email": return <>Email</>;
-    case "website": return <>Website</>;
-    default: return null;
-  }
-}
 
 function getYouTubeEmbedUrl(url: string): string | null {
   try {

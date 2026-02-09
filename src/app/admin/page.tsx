@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb } from "lucide-react";
 import StarRating from "@/components/ui/StarRating";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -424,7 +425,7 @@ export default function AdminDashboard() {
                   coaches.map((coach) => (
                     <tr key={coach.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-medium text-gray-900">{coach.fullName}</div>
+                        <Link href={`/coaches/${coach.id}`} target="_blank" className="font-medium text-coral-600 hover:text-coral-700 hover:underline">{coach.fullName}</Link>
                         <div className="text-sm text-gray-500">{coach.user.email}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">

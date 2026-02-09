@@ -6,8 +6,44 @@ import { prisma } from "@/lib/prisma";
 
 const CUSTOM_SKILL_FILTER_THRESHOLD = 5;
 
+const PREDEFINED_SKILLS: Record<string, string[]> = {
+  "Musicality": [
+    "Barbershop Style", "Rhythm & Groove", "Rubato Phrasing",
+    "Interpretive Planning", "Dynamic Contrast",
+  ],
+  "Singing": [
+    "Tuning", "Balance & Blend", "Just Intonation", "Vocal Expression",
+    "Resonance Matching", "Vocal Health", "Vowel Unity",
+  ],
+  "Performance": [
+    "Characterisation", "Storytelling", "Audience Connection",
+    "Stage Presence", "Emotional Arc", "Blocking", "Visual Unity",
+  ],
+  "Learning & Process": [
+    "Repertoire Selection", "Rehearsal Methods", "Contest Preparation",
+    "Goal Setting", "Deliberate Practice", "Feedback Loops", "Culture Development",
+  ],
+};
+
+async function ensurePredefinedSkills() {
+  const count = await prisma.skill.count({ where: { isCustom: false } });
+  if (count > 0) return;
+
+  for (const [category, skills] of Object.entries(PREDEFINED_SKILLS)) {
+    for (const name of skills) {
+      await prisma.skill.upsert({
+        where: { name_category: { name, category } },
+        update: {},
+        create: { name, category, isCustom: false, showInFilter: true },
+      });
+    }
+  }
+}
+
 export async function GET(request: Request) {
   try {
+    await ensurePredefinedSkills();
+
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get("mode");
     const search = searchParams.get("search");

@@ -325,16 +325,14 @@ export default function CoachProfilePage() {
             );
           })()}
 
-          <Card>
-            <CardHeader>
-              <h2 className="text-lg font-semibold text-gray-900">
-                Reviews ({coach.totalReviews})
-              </h2>
-            </CardHeader>
-            <CardContent>
-              {reviews.length === 0 ? (
-                <p className="text-gray-500">No reviews yet</p>
-              ) : (
+          {reviews.length > 0 && (
+            <Card>
+              <CardHeader>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Reviews ({coach.totalReviews})
+                </h2>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-6">
                   {reviews.map((review) => (
                     <div key={review.id} className="border-b border-gray-100 pb-4 last:border-0">
@@ -359,9 +357,9 @@ export default function CoachProfilePage() {
                     </div>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -402,44 +400,43 @@ export default function CoachProfilePage() {
             </Card>
           )}
 
-          <Card>
-            <CardHeader><h2 className="text-lg font-semibold text-gray-900"><DollarSign className="h-4 w-4 inline mr-1" />Rates</h2></CardHeader>
-            <CardContent>
-              {coach.ratesOnEnquiry ? (
-                <p className="text-gray-600 text-sm italic">Rates available on enquiry. Please contact this coach directly for pricing.</p>
-              ) : (
-                <div className="space-y-3">
-                  {coach.rateHourly && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Hourly</span>
-                      <span className="font-semibold">{formatCurrency(coach.rateHourly, coach.currency)}</span>
-                    </div>
-                  )}
-                  {coach.rateHalfDay && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Half Day</span>
-                      <span className="font-semibold">{formatCurrency(coach.rateHalfDay, coach.currency)}</span>
-                    </div>
-                  )}
-                  {coach.rateFullDay && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Full Day</span>
-                      <span className="font-semibold">{formatCurrency(coach.rateFullDay, coach.currency)}</span>
-                    </div>
-                  )}
-                  {coach.travelSupplement && (
-                    <div className="flex justify-between pt-2 border-t border-gray-100">
-                      <span className="text-gray-600">Travel Supplement</span>
-                      <span className="font-semibold">{formatCurrency(coach.travelSupplement, coach.currency)}</span>
-                    </div>
-                  )}
-                  {!coach.rateHourly && !coach.rateHalfDay && !coach.rateFullDay && (
-                    <p className="text-gray-500 text-sm">No rates listed</p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {(coach.ratesOnEnquiry || coach.rateHourly || coach.rateHalfDay || coach.rateFullDay) && (
+            <Card>
+              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><DollarSign className="h-4 w-4 inline mr-1" />Rates</h2></CardHeader>
+              <CardContent>
+                {coach.ratesOnEnquiry ? (
+                  <p className="text-gray-600 text-sm italic">Rates available on enquiry. Please contact this coach directly for pricing.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {coach.rateHourly && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Hourly</span>
+                        <span className="font-semibold">{formatCurrency(coach.rateHourly, coach.currency)}</span>
+                      </div>
+                    )}
+                    {coach.rateHalfDay && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Half Day</span>
+                        <span className="font-semibold">{formatCurrency(coach.rateHalfDay, coach.currency)}</span>
+                      </div>
+                    )}
+                    {coach.rateFullDay && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Full Day</span>
+                        <span className="font-semibold">{formatCurrency(coach.rateFullDay, coach.currency)}</span>
+                      </div>
+                    )}
+                    {coach.travelSupplement && (
+                      <div className="flex justify-between pt-2 border-t border-gray-100">
+                        <span className="text-gray-600">Travel Supplement</span>
+                        <span className="font-semibold">{formatCurrency(coach.travelSupplement, coach.currency)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {topSkills.length > 0 && (
             <Card>

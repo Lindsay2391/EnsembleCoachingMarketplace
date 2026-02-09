@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -30,6 +30,14 @@ interface EnsembleInfo {
 }
 
 export default function EnsembleDashboard() {
+  return (
+    <Suspense fallback={<div className="max-w-6xl mx-auto px-4 py-12 text-center text-gray-500">Loading dashboard...</div>}>
+      <EnsembleDashboardContent />
+    </Suspense>
+  );
+}
+
+function EnsembleDashboardContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();

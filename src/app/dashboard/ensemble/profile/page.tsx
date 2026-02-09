@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Input from "@/components/ui/Input";
@@ -21,6 +21,14 @@ const GENRES = [
 ];
 
 export default function EnsembleProfileForm() {
+  return (
+    <Suspense fallback={<div className="max-w-3xl mx-auto px-4 py-12 text-center text-gray-500">Loading...</div>}>
+      <EnsembleProfileFormContent />
+    </Suspense>
+  );
+}
+
+function EnsembleProfileFormContent() {
   const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();

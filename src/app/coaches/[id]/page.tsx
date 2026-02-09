@@ -381,8 +381,9 @@ export default function CoachProfilePage() {
                         {coach.contactDetail}
                       </a>
                     ) : coach.contactMethod === "email" ? (
-                      <a href={`mailto:${coach.contactDetail}`} className="text-coral-600 hover:underline text-sm font-medium">
-                        {coach.contactDetail}
+                      <a href={`mailto:${coach.contactDetail}`} className="inline-flex items-center gap-1.5 text-sm font-medium text-white bg-coral-500 hover:bg-coral-600 px-4 py-1.5 rounded-lg transition-colors">
+                        <Mail className="h-3.5 w-3.5" />
+                        Send Email
                       </a>
                     ) : coach.contactMethod === "phone" ? (
                       <a href={`tel:${coach.contactDetail}`} className="text-coral-600 hover:underline text-sm font-medium">

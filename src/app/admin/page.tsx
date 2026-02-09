@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb, MessageSquare } from "lucide-react";
+import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb, MessageSquare, ArrowLeft, ChevronRight, Clock, User } from "lucide-react";
 import StarRating from "@/components/ui/StarRating";
 import { Card, CardContent } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -123,6 +123,7 @@ export default function AdminDashboard() {
   const [adminSkills, setAdminSkills] = useState<AdminSkillItem[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [feedbackFilter, setFeedbackFilter] = useState<"all" | "new" | "reviewed" | "archived">("all");
+  const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"coaches" | "users" | "reviews" | "skills" | "feedback" | "audit">("coaches");
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -780,99 +781,152 @@ export default function AdminDashboard() {
         </Card>
       )}
 
-      {activeTab === "feedback" && (
-        <Card>
-          <div className="px-6 py-4 border-b border-gray-100">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-gray-600 mr-2">Filter:</span>
-              {(["all", "new", "reviewed", "archived"] as const).map((f) => (
+      {activeTab === "feedback" && (() => {
+        const selectedFeedback = selectedFeedbackId ? feedbackItems.find(f => f.id === selectedFeedbackId) : null;
+
+        if (selectedFeedback) {
+          const catInfo = CATEGORY_LABELS[selectedFeedback.category] || { label: selectedFeedback.category, color: "bg-gray-100 text-gray-800" };
+          const statusInfo = STATUS_LABELS[selectedFeedback.status] || { label: selectedFeedback.status, color: "bg-gray-100 text-gray-800" };
+          return (
+            <Card>
+              <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
                 <button
-                  key={f}
-                  onClick={() => setFeedbackFilter(f)}
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                    feedbackFilter === f
-                      ? "bg-coral-500 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
+                  onClick={() => setSelectedFeedbackId(null)}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
-                  {f !== "all" && (
-                    <span className="ml-1">({feedbackItems.filter(fb => fb.status === f).length})</span>
-                  )}
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to feedback list
                 </button>
-              ))}
-            </div>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {feedbackItems
-              .filter(f => feedbackFilter === "all" || f.status === feedbackFilter)
-              .length === 0 ? (
-              <div className="px-6 py-8 text-center text-gray-500">
-                No feedback {feedbackFilter !== "all" ? `with status "${feedbackFilter}"` : "submitted yet"}
               </div>
-            ) : (
-              feedbackItems
+              <div className="px-4 sm:px-6 py-5">
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${catInfo.color}`}>
+                    {catInfo.label}
+                  </span>
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                    {statusInfo.label}
+                  </span>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4 mb-5">
+                  <p className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedFeedback.message}</p>
+                </div>
+                <div className="flex flex-col gap-2 mb-6 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-400" />
+                    <span className="font-medium">{selectedFeedback.userName}</span>
+                    <span className="text-gray-400">·</span>
+                    <span className="break-all">{selectedFeedback.userEmail}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-gray-400" />
+                    <span>{formatDate(selectedFeedback.createdAt)}</span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-100">
+                  {selectedFeedback.status !== "reviewed" && (
+                    <button
+                      onClick={() => updateFeedbackStatus(selectedFeedback.id, "reviewed")}
+                      disabled={updatingId === selectedFeedback.id}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Mark as Reviewed
+                    </button>
+                  )}
+                  {selectedFeedback.status !== "archived" && (
+                    <button
+                      onClick={() => updateFeedbackStatus(selectedFeedback.id, "archived")}
+                      disabled={updatingId === selectedFeedback.id}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
+                    >
+                      Archive
+                    </button>
+                  )}
+                  {selectedFeedback.status !== "new" && (
+                    <button
+                      onClick={() => updateFeedbackStatus(selectedFeedback.id, "new")}
+                      disabled={updatingId === selectedFeedback.id}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-50"
+                    >
+                      Mark as New
+                    </button>
+                  )}
+                </div>
+              </div>
+            </Card>
+          );
+        }
+
+        return (
+          <Card>
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium text-gray-600 mr-2">Filter:</span>
+                {(["all", "new", "reviewed", "archived"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFeedbackFilter(f)}
+                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                      feedbackFilter === f
+                        ? "bg-coral-500 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+                    {f !== "all" && (
+                      <span className="ml-1">({feedbackItems.filter(fb => fb.status === f).length})</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {feedbackItems
                 .filter(f => feedbackFilter === "all" || f.status === feedbackFilter)
-                .map((fb) => {
-                  const catInfo = CATEGORY_LABELS[fb.category] || { label: fb.category, color: "bg-gray-100 text-gray-800" };
-                  const statusInfo = STATUS_LABELS[fb.status] || { label: fb.status, color: "bg-gray-100 text-gray-800" };
-                  return (
-                    <div key={fb.id} className="px-4 sm:px-6 py-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${catInfo.color}`}>
-                              {catInfo.label}
-                            </span>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
-                              {statusInfo.label}
-                            </span>
+                .length === 0 ? (
+                <div className="px-6 py-8 text-center text-gray-500">
+                  No feedback {feedbackFilter !== "all" ? `with status "${feedbackFilter}"` : "submitted yet"}
+                </div>
+              ) : (
+                feedbackItems
+                  .filter(f => feedbackFilter === "all" || f.status === feedbackFilter)
+                  .map((fb) => {
+                    const catInfo = CATEGORY_LABELS[fb.category] || { label: fb.category, color: "bg-gray-100 text-gray-800" };
+                    const statusInfo = STATUS_LABELS[fb.status] || { label: fb.status, color: "bg-gray-100 text-gray-800" };
+                    const previewText = fb.message.length > 80 ? fb.message.slice(0, 80) + "..." : fb.message;
+                    return (
+                      <button
+                        key={fb.id}
+                        onClick={() => setSelectedFeedbackId(fb.id)}
+                        className="w-full text-left px-4 sm:px-6 py-3.5 hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${catInfo.color}`}>
+                                {catInfo.label}
+                              </span>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${statusInfo.color}`}>
+                                {statusInfo.label}
+                              </span>
+                              <span className="text-[11px] text-gray-400 whitespace-nowrap ml-auto hidden sm:inline">{formatDate(fb.createdAt)}</span>
+                            </div>
+                            <p className="text-sm text-gray-700 truncate">{previewText}</p>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                              <span>{fb.userName}</span>
+                              <span className="sm:hidden whitespace-nowrap">{formatDate(fb.createdAt)}</span>
+                            </div>
                           </div>
-                          <p className="text-sm text-gray-900 whitespace-pre-wrap mb-2">{fb.message}</p>
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
-                            <span className="font-medium">{fb.userName}</span>
-                            <span className="truncate max-w-[200px] sm:max-w-none">{fb.userEmail}</span>
-                            <span className="whitespace-nowrap">{formatDate(fb.createdAt)}</span>
-                          </div>
+                          <ChevronRight className="h-4 w-4 text-gray-300 flex-shrink-0" />
                         </div>
-                        <div className="flex items-center gap-1.5 flex-shrink-0">
-                          {fb.status !== "reviewed" && (
-                            <button
-                              onClick={() => updateFeedbackStatus(fb.id, "reviewed")}
-                              disabled={updatingId === fb.id}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
-                            >
-                              <CheckCircle className="h-3.5 w-3.5" />
-                              Reviewed
-                            </button>
-                          )}
-                          {fb.status !== "archived" && (
-                            <button
-                              onClick={() => updateFeedbackStatus(fb.id, "archived")}
-                              disabled={updatingId === fb.id}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
-                            >
-                              Archive
-                            </button>
-                          )}
-                          {fb.status !== "new" && (
-                            <button
-                              onClick={() => updateFeedbackStatus(fb.id, "new")}
-                              disabled={updatingId === fb.id}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-50"
-                            >
-                              Mark New
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-            )}
-          </div>
-        </Card>
-      )}
+                      </button>
+                    );
+                  })
+              )}
+            </div>
+          </Card>
+        );
+      })()}
 
       {activeTab === "audit" && (
         <Card>

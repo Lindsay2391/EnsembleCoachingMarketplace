@@ -817,10 +817,10 @@ export default function AdminDashboard() {
                   const catInfo = CATEGORY_LABELS[fb.category] || { label: fb.category, color: "bg-gray-100 text-gray-800" };
                   const statusInfo = STATUS_LABELS[fb.status] || { label: fb.status, color: "bg-gray-100 text-gray-800" };
                   return (
-                    <div key={fb.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between gap-4">
+                    <div key={fb.id} className="px-4 sm:px-6 py-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1.5">
+                          <div className="flex flex-wrap items-center gap-2 mb-1.5">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${catInfo.color}`}>
                               {catInfo.label}
                             </span>
@@ -829,10 +829,10 @@ export default function AdminDashboard() {
                             </span>
                           </div>
                           <p className="text-sm text-gray-900 whitespace-pre-wrap mb-2">{fb.message}</p>
-                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
                             <span className="font-medium">{fb.userName}</span>
-                            <span>{fb.userEmail}</span>
-                            <span>{formatDate(fb.createdAt)}</span>
+                            <span className="truncate max-w-[200px] sm:max-w-none">{fb.userEmail}</span>
+                            <span className="whitespace-nowrap">{formatDate(fb.createdAt)}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0">

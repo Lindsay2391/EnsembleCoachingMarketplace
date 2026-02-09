@@ -211,3 +211,44 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    const { id } = params;
+
+    const coach = await prisma.coachProfile.findUnique({
+      where: { id },
+    });
+
+    if (!coach) {
+      return NextResponse.json({ error: "Coach not found" }, { status: 404 });
+    }
+
+    if (coach.userId !== session.user.id) {
+      return NextResponse.json({ error: "You can only delete your own profile" }, { status: 403 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.reviewInvite.deleteMany({ where: { coachProfileId: id } });
+      await tx.review.deleteMany({ where: { coachProfileId: id } });
+      await tx.coachSkill.deleteMany({ where: { coachProfileId: id } });
+      await tx.favoriteCoach.deleteMany({ where: { coachProfileId: id } });
+      await tx.booking.deleteMany({ where: { coachId: id } });
+      await tx.coachProfile.delete({ where: { id } });
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting coach profile:", error);
+    return NextResponse.json({ error: "Failed to delete coach profile" }, { status: 500 });
+  }
+}

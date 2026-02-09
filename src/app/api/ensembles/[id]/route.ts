@@ -141,8 +141,8 @@ export async function DELETE(
 
     await prisma.$transaction(async (tx) => {
       await tx.review.deleteMany({ where: { reviewerId: id } });
-      await tx.booking.deleteMany({ where: { ensembleId: id } });
       await tx.reviewInvite.deleteMany({ where: { ensembleProfileId: id } });
+      await tx.booking.deleteMany({ where: { ensembleId: id } });
       await tx.ensembleProfile.delete({ where: { id } });
     });
 

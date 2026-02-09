@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Input from "@/components/ui/Input";
@@ -11,7 +11,7 @@ import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import ImageCropper from "@/components/ui/ImageCropper";
 import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, COUNTRY_NAMES, getRegionsForCountry, getDefaultCurrency, getRegionLabel } from "@/lib/utils";
-import { Upload, Phone, Mail, Globe, ChevronUp, ChevronDown, Plus, X } from "lucide-react";
+import { Upload, Phone, Mail, Globe, ChevronUp, ChevronDown, Plus, X, GripVertical } from "lucide-react";
 
 interface SkillItem {
   id: string;
@@ -71,6 +71,7 @@ export default function CoachProfileForm() {
   const [addingCustomCategory, setAddingCustomCategory] = useState<string | null>(null);
   const [savingCustomSkill, setSavingCustomSkill] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -149,6 +150,32 @@ export default function CoachProfileForm() {
     [newIds[index], newIds[swapIndex]] = [newIds[swapIndex], newIds[index]];
     setSelectedSkillIds(newIds);
   };
+
+  const dragItem = useRef<number | null>(null);
+  const dragOverItem = useRef<number | null>(null);
+
+  const handleDragStart = useCallback((index: number) => {
+    dragItem.current = index;
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    dragOverItem.current = index;
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    if (dragItem.current === null || dragOverItem.current === null) return;
+    if (dragItem.current === dragOverItem.current) return;
+
+    const newIds = [...selectedSkillIds];
+    const [dragged] = newIds.splice(dragItem.current, 1);
+    newIds.splice(dragOverItem.current, 0, dragged);
+    setSelectedSkillIds(newIds);
+
+    dragItem.current = null;
+    dragOverItem.current = null;
+  }, [selectedSkillIds]);
 
   const allSkillsList = Object.values(availableSkills).flat();
   const getSkillById = (id: string) => allSkillsList.find(s => s.id === id);
@@ -526,7 +553,15 @@ export default function CoachProfileForm() {
                     const skill = getSkillById(skillId);
                     if (!skill) return null;
                     return (
-                      <div key={skillId} className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                      <div
+                        key={skillId}
+                        draggable
+                        onDragStart={() => handleDragStart(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDrop={handleDrop}
+                        className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 cursor-grab active:cursor-grabbing"
+                      >
+                        <GripVertical className="h-4 w-4 text-gray-300 flex-shrink-0" />
                         <span className="text-xs text-gray-400 w-5">{index + 1}.</span>
                         <span className="flex-1 text-sm text-gray-800">{skill.name}</span>
                         <span className="text-xs text-gray-400">{skill.category}</span>
@@ -638,6 +673,80 @@ export default function CoachProfileForm() {
           aspectRatio={1}
           cropShape="round"
         />
+      )}
+
+      {existingId && (
+        <div className="mt-10 border-t border-red-200 pt-8">
+          <h2 className="text-lg font-semibold text-red-700 mb-4">Danger Zone</h2>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border border-red-200 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Delete Coach Profile</p>
+                <p className="text-sm text-gray-500">Remove your coach listing. Your account will remain active.</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={deleting}
+                className="border-red-300 text-red-600 hover:bg-red-50 whitespace-nowrap"
+                onClick={async () => {
+                  if (!confirm("Are you sure you want to delete your coach profile? All bookings, reviews, and related data will be permanently removed. This cannot be undone.")) return;
+                  setDeleting(true);
+                  try {
+                    const res = await fetch(`/api/coaches/${existingId}`, { method: "DELETE" });
+                    if (res.ok) {
+                      await updateSession();
+                      router.push("/dashboard");
+                    } else {
+                      const data = await res.json();
+                      setError(data.error || "Failed to delete profile");
+                    }
+                  } catch {
+                    setError("Something went wrong");
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+              >
+                {deleting ? "Deleting..." : "Delete Profile"}
+              </Button>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border border-red-200 rounded-lg">
+              <div>
+                <p className="font-medium text-gray-900">Delete Account</p>
+                <p className="text-sm text-gray-500">Permanently delete your account and all associated data.</p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={deleting}
+                className="border-red-300 text-red-600 hover:bg-red-50 whitespace-nowrap"
+                onClick={async () => {
+                  if (!confirm("Are you sure you want to permanently delete your account? This will remove your profile, all bookings, reviews, messages, and cannot be undone.")) return;
+                  if (!confirm("This is your final confirmation. All your data will be permanently deleted. Continue?")) return;
+                  setDeleting(true);
+                  try {
+                    const res = await fetch("/api/account", { method: "DELETE" });
+                    if (res.ok) {
+                      await signOut({ callbackUrl: "/" });
+                    } else {
+                      const data = await res.json();
+                      setError(data.error || "Failed to delete account");
+                      setDeleting(false);
+                    }
+                  } catch {
+                    setError("Something went wrong");
+                    setDeleting(false);
+                  }
+                }}
+              >
+                {deleting ? "Deleting..." : "Delete Account"}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

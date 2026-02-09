@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb } from "lucide-react";
+import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb, MessageSquare } from "lucide-react";
 import StarRating from "@/components/ui/StarRating";
 import { Card, CardContent } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -72,6 +72,32 @@ interface AdminSkillItem {
   createdAt: string;
 }
 
+interface FeedbackItem {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  category: string;
+  message: string;
+  status: string;
+  adminNote: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
+  bug_report: { label: "Bug Report", color: "bg-red-100 text-red-800" },
+  feature_request: { label: "Feature Request", color: "bg-blue-100 text-blue-800" },
+  usability: { label: "Usability", color: "bg-purple-100 text-purple-800" },
+  general: { label: "General", color: "bg-gray-100 text-gray-800" },
+};
+
+const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  new: { label: "New", color: "bg-amber-100 text-amber-800" },
+  reviewed: { label: "Reviewed", color: "bg-green-100 text-green-800" },
+  archived: { label: "Archived", color: "bg-gray-100 text-gray-600" },
+};
+
 const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   coach_approved: { label: "Approved Coach", color: "bg-green-100 text-green-800" },
   coach_rejected: { label: "Rejected Coach", color: "bg-red-100 text-red-800" },
@@ -95,7 +121,9 @@ export default function AdminDashboard() {
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [adminReviews, setAdminReviews] = useState<ReviewItem[]>([]);
   const [adminSkills, setAdminSkills] = useState<AdminSkillItem[]>([]);
-  const [activeTab, setActiveTab] = useState<"coaches" | "users" | "reviews" | "skills" | "audit">("coaches");
+  const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
+  const [feedbackFilter, setFeedbackFilter] = useState<"all" | "new" | "reviewed" | "archived">("all");
+  const [activeTab, setActiveTab] = useState<"coaches" | "users" | "reviews" | "skills" | "feedback" | "audit">("coaches");
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -114,6 +142,15 @@ export default function AdminDashboard() {
       if (res.ok) setAdminSkills(await res.json());
     } catch (err) {
       console.error("Error fetching skills:", err);
+    }
+  }, []);
+
+  const fetchFeedback = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/feedback");
+      if (res.ok) setFeedbackItems(await res.json());
+    } catch (err) {
+      console.error("Error fetching feedback:", err);
     }
   }, []);
 
@@ -136,13 +173,13 @@ export default function AdminDashboard() {
         setUsers(usersData.users || usersData);
       }
       if (auditRes.ok) setAuditLogs(await auditRes.json());
-      await Promise.all([fetchReviews(), fetchSkills()]);
+      await Promise.all([fetchReviews(), fetchSkills(), fetchFeedback()]);
     } catch (err) {
       console.error("Error:", err);
     } finally {
       setLoading(false);
     }
-  }, [fetchReviews, fetchSkills]);
+  }, [fetchReviews, fetchSkills, fetchFeedback]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -276,6 +313,25 @@ export default function AdminDashboard() {
     }
   };
 
+  const updateFeedbackStatus = async (id: string, status: string) => {
+    setUpdatingId(id);
+    try {
+      const res = await fetch("/api/admin/feedback", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setFeedbackItems(prev => prev.map(f => f.id === id ? updated : f));
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const parseSkills = (specialties: string): string[] => {
     try {
       return JSON.parse(specialties);
@@ -386,6 +442,22 @@ export default function AdminDashboard() {
         >
           <Lightbulb className="h-4 w-4" />
           Skills
+        </button>
+        <button
+          onClick={() => setActiveTab("feedback")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 ${
+            activeTab === "feedback"
+              ? "bg-coral-500 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <MessageSquare className="h-4 w-4" />
+          Feedback
+          {feedbackItems.filter(f => f.status === "new").length > 0 && (
+            <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-[10px] font-bold text-white">
+              {feedbackItems.filter(f => f.status === "new").length}
+            </span>
+          )}
         </button>
         <button
           onClick={() => setActiveTab("audit")}
@@ -704,6 +776,100 @@ export default function AdminDashboard() {
                 )}
               </tbody>
             </table>
+          </div>
+        </Card>
+      )}
+
+      {activeTab === "feedback" && (
+        <Card>
+          <div className="px-6 py-4 border-b border-gray-100">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-gray-600 mr-2">Filter:</span>
+              {(["all", "new", "reviewed", "archived"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFeedbackFilter(f)}
+                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                    feedbackFilter === f
+                      ? "bg-coral-500 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+                  {f !== "all" && (
+                    <span className="ml-1">({feedbackItems.filter(fb => fb.status === f).length})</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {feedbackItems
+              .filter(f => feedbackFilter === "all" || f.status === feedbackFilter)
+              .length === 0 ? (
+              <div className="px-6 py-8 text-center text-gray-500">
+                No feedback {feedbackFilter !== "all" ? `with status "${feedbackFilter}"` : "submitted yet"}
+              </div>
+            ) : (
+              feedbackItems
+                .filter(f => feedbackFilter === "all" || f.status === feedbackFilter)
+                .map((fb) => {
+                  const catInfo = CATEGORY_LABELS[fb.category] || { label: fb.category, color: "bg-gray-100 text-gray-800" };
+                  const statusInfo = STATUS_LABELS[fb.status] || { label: fb.status, color: "bg-gray-100 text-gray-800" };
+                  return (
+                    <div key={fb.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${catInfo.color}`}>
+                              {catInfo.label}
+                            </span>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusInfo.color}`}>
+                              {statusInfo.label}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-900 whitespace-pre-wrap mb-2">{fb.message}</p>
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <span className="font-medium">{fb.userName}</span>
+                            <span>{fb.userEmail}</span>
+                            <span>{formatDate(fb.createdAt)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          {fb.status !== "reviewed" && (
+                            <button
+                              onClick={() => updateFeedbackStatus(fb.id, "reviewed")}
+                              disabled={updatingId === fb.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
+                            >
+                              <CheckCircle className="h-3.5 w-3.5" />
+                              Reviewed
+                            </button>
+                          )}
+                          {fb.status !== "archived" && (
+                            <button
+                              onClick={() => updateFeedbackStatus(fb.id, "archived")}
+                              disabled={updatingId === fb.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
+                            >
+                              Archive
+                            </button>
+                          )}
+                          {fb.status !== "new" && (
+                            <button
+                              onClick={() => updateFeedbackStatus(fb.id, "new")}
+                              disabled={updatingId === fb.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-50"
+                            >
+                              Mark New
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+            )}
           </div>
         </Card>
       )}

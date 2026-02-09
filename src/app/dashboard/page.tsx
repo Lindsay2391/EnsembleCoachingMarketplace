@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import BuyMeACoffee from "@/components/BuyMeACoffee";
+import FeedbackModal from "@/components/FeedbackModal";
 
 interface CoachInfo {
   id: string;
@@ -228,7 +229,8 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <FeedbackModal />
         <BuyMeACoffee variant="inline" />
       </div>
     </div>

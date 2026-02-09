@@ -216,3 +216,20 @@ model AdminAuditLog {
   details     String?
   createdAt   DateTime @default(now())
 }
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  userName  String
+  userEmail String
+  category  String
+  message   String
+  status    String   @default("new")
+  adminNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+}

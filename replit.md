@@ -60,6 +60,7 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-09: Migrated profile picture uploads from filesystem (public/uploads) to Replit Object Storage for production persistence; new photos stored at /api/objects/uploads/uuid.ext
 - 2026-02-09: Moved account verification from Coaches tab to Users tab in admin panel; admin verify/unverify now syncs coach profile verified tick automatically
 - 2026-02-09: Coach profiles auto-receive verified tick when created by email-verified users, or when user verifies email with existing coach profile
 - 2026-02-09: Stats card updated from "Verified Coaches" to "Verified Users"

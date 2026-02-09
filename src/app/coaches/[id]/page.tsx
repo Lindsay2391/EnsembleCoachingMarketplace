@@ -373,28 +373,18 @@ export default function CoachProfilePage() {
                     <Mail className="h-4 w-4" />
                     Send Email
                   </a>
+                ) : coach.contactMethod === "phone" ? (
+                  <a href={`tel:${coach.contactDetail}`} className="inline-flex items-center justify-center gap-2 w-full text-sm font-medium text-white bg-coral-500 hover:bg-coral-600 px-4 py-2.5 rounded-lg transition-colors">
+                    <Phone className="h-4 w-4" />
+                    Call
+                  </a>
+                ) : coach.contactMethod === "website" ? (
+                  <a href={coach.contactDetail} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 w-full text-sm font-medium text-white bg-coral-500 hover:bg-coral-600 px-4 py-2.5 rounded-lg transition-colors">
+                    <Globe className="h-4 w-4" />
+                    Visit Website
+                  </a>
                 ) : (
-                  <div className="flex items-center gap-3 p-3 bg-coral-50 rounded-lg">
-                    <div className="w-10 h-10 rounded-full bg-coral-100 flex items-center justify-center text-coral-600">
-                      <ContactIcon method={coach.contactMethod} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                        <ContactLabel method={coach.contactMethod} />
-                      </p>
-                      {coach.contactMethod === "website" ? (
-                        <a href={coach.contactDetail} target="_blank" rel="noopener noreferrer" className="text-coral-600 hover:underline text-sm font-medium">
-                          {coach.contactDetail}
-                        </a>
-                      ) : coach.contactMethod === "phone" ? (
-                        <a href={`tel:${coach.contactDetail}`} className="text-coral-600 hover:underline text-sm font-medium">
-                          {coach.contactDetail}
-                        </a>
-                      ) : (
-                        <p className="text-sm font-medium text-gray-900">{coach.contactDetail}</p>
-                      )}
-                    </div>
-                  </div>
+                  <p className="text-sm font-medium text-gray-900">{coach.contactDetail}</p>
                 )}
               </CardContent>
             </Card>

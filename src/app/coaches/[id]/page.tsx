@@ -391,7 +391,7 @@ export default function CoachProfilePage() {
                     </div>
                   </div>
                 ) : coach.contactMethod === "website" ? (
-                  <a href={coach.contactDetail} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 w-full text-sm font-medium text-white bg-coral-500 hover:bg-coral-600 px-4 py-2.5 rounded-lg transition-colors">
+                  <a href={coach.contactDetail.startsWith("http") ? coach.contactDetail : `https://${coach.contactDetail}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 w-full text-sm font-medium text-white bg-coral-500 hover:bg-coral-600 px-4 py-2.5 rounded-lg transition-colors">
                     <Globe className="h-4 w-4" />
                     Visit Website
                   </a>

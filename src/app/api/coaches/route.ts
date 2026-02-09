@@ -256,7 +256,7 @@ export async function POST(request: Request) {
 
     const dbUser = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true },
+      select: { id: true, emailVerified: true },
     });
 
     if (!dbUser) {
@@ -311,6 +311,7 @@ export async function POST(request: Request) {
         videoUrl: d.videoUrl || null,
         cancellationPolicy: d.cancellationPolicy ?? null,
         travelSupplement: d.travelSupplement ?? null,
+        verified: dbUser.emailVerified === true,
       },
       include: {
         user: {

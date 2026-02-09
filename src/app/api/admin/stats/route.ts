@@ -11,18 +11,18 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const [totalUsers, totalCoaches, pendingApprovals, verifiedCoaches] = await Promise.all([
+    const [totalUsers, totalCoaches, pendingApprovals, verifiedUsers] = await Promise.all([
       prisma.user.count(),
       prisma.coachProfile.count(),
       prisma.coachProfile.count({ where: { approved: false } }),
-      prisma.coachProfile.count({ where: { verified: true } }),
+      prisma.user.count({ where: { emailVerified: true } }),
     ]);
 
     return NextResponse.json({
       totalUsers,
       totalCoaches,
       pendingApprovals,
-      verifiedCoaches,
+      verifiedUsers,
     });
   } catch (error) {
     console.error("Admin stats error:", error);

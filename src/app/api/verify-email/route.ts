@@ -12,6 +12,7 @@ export async function POST(request: Request) {
 
     const user = await prisma.user.findFirst({
       where: { verificationToken: token },
+      include: { coachProfile: { select: { id: true } } },
     });
 
     if (!user) {
@@ -22,6 +23,13 @@ export async function POST(request: Request) {
       where: { id: user.id },
       data: { emailVerified: true, verificationToken: null },
     });
+
+    if (user.coachProfile) {
+      await prisma.coachProfile.update({
+        where: { id: user.coachProfile.id },
+        data: { verified: true },
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -22,7 +22,9 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - The browse page features skill search autocomplete and multi-select filtering with match-count ranking and smart sorting.
 
 **Admin Panel:**
-- A comprehensive admin panel at `/admin` provides platform statistics, coach management (approve, reject, verify, delete), user management, and an activity log.
+- A comprehensive admin panel at `/admin` provides platform statistics, coach management (approve, reject, delete), user management (email verification, delete), and an activity log.
+- Email verification is managed in the Users tab — admins can verify/unverify user accounts, which automatically syncs the verified tick on any associated coach profile.
+- Stats cards show: Total Users, Total Coaches, Pending Approvals, Verified Users.
 - All admin actions are logged to an `AdminAuditLog` table.
 - Admin protection is implemented for sensitive operations.
 
@@ -58,6 +60,9 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-09: Moved account verification from Coaches tab to Users tab in admin panel; admin verify/unverify now syncs coach profile verified tick automatically
+- 2026-02-09: Coach profiles auto-receive verified tick when created by email-verified users, or when user verifies email with existing coach profile
+- 2026-02-09: Stats card updated from "Verified Coaches" to "Verified Users"
 - 2026-02-09: Implemented email verification system with Resend (verification on registration, dashboard banner, resend option)
 - 2026-02-09: Implemented password reset flow (forgot-password page, reset email with 1-hour expiry, reset-password page)
 - 2026-02-09: Added "Forgot password?" link to login page

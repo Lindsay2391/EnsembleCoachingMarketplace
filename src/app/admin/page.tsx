@@ -13,7 +13,7 @@ interface Stats {
   totalUsers: number;
   totalCoaches: number;
   pendingApprovals: number;
-  verifiedCoaches: number;
+  verifiedUsers: number;
 }
 
 interface Coach {
@@ -33,6 +33,7 @@ interface UserItem {
   name: string;
   email: string;
   userType: string;
+  emailVerified: boolean;
   hasCoachProfile: boolean;
   hasEnsembleProfile: boolean;
   createdAt: string;
@@ -103,6 +104,8 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   coach_rejected: { label: "Rejected Coach", color: "bg-red-100 text-red-800" },
   coach_verified: { label: "Verified Coach", color: "bg-blue-100 text-blue-800" },
   coach_unverified: { label: "Unverified Coach", color: "bg-yellow-100 text-yellow-800" },
+  user_verified: { label: "Verified User", color: "bg-blue-100 text-blue-800" },
+  user_unverified: { label: "Unverified User", color: "bg-yellow-100 text-yellow-800" },
   coach_deleted: { label: "Deleted Coach", color: "bg-red-100 text-red-800" },
   user_deleted: { label: "Deleted User", color: "bg-red-100 text-red-800" },
   admin_registered: { label: "Admin Registered", color: "bg-purple-100 text-purple-800" },
@@ -259,6 +262,28 @@ export default function AdminDashboard() {
     }
   };
 
+  const updateUser = async (id: string, data: { emailVerified: boolean }) => {
+    setUpdatingId(id);
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updated } : u)));
+        const statsRes = await fetch("/api/admin/stats");
+        if (statsRes.ok) setStats(await statsRes.json());
+        await refreshAuditLog();
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const toggleSkillFilter = async (id: string, showInFilter: boolean) => {
     setUpdatingId(id);
     try {
@@ -395,8 +420,8 @@ export default function AdminDashboard() {
         <Card>
           <CardContent className="py-5 text-center">
             <UserCheck className="h-6 w-6 text-green-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{stats?.verifiedCoaches || 0}</p>
-            <p className="text-sm text-gray-500">Verified Coaches</p>
+            <p className="text-2xl font-bold text-gray-900">{stats?.verifiedUsers || 0}</p>
+            <p className="text-sm text-gray-500">Verified Users</p>
           </CardContent>
         </Card>
       </div>
@@ -482,7 +507,6 @@ export default function AdminDashboard() {
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Skills</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Verified</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Approved</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -490,7 +514,7 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-gray-100">
                 {coaches.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                       No coaches found
                     </td>
                   </tr>
@@ -508,13 +532,6 @@ export default function AdminDashboard() {
                         {coach.coachSkills ? coach.coachSkills.length : parseSkills(coach.specialties).length} skills
                       </td>
                       <td className="px-6 py-4">
-                        {coach.verified ? (
-                          <Badge variant="success">Verified</Badge>
-                        ) : (
-                          <Badge variant="default">Unverified</Badge>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
                         {coach.approved ? (
                           <Badge variant="success">Approved</Badge>
                         ) : (
@@ -523,18 +540,6 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => updateCoach(coach.id, { verified: !coach.verified })}
-                            disabled={updatingId === coach.id}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${
-                              coach.verified
-                                ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                : "bg-green-50 text-green-700 hover:bg-green-100"
-                            }`}
-                          >
-                            <CheckCircle className="h-3.5 w-3.5" />
-                            {coach.verified ? "Unverify" : "Verify"}
-                          </button>
                           {coach.approved ? (
                             <button
                               onClick={() => updateCoach(coach.id, { approved: false })}
@@ -581,6 +586,7 @@ export default function AdminDashboard() {
                 <tr className="border-b border-gray-200">
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Verified</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Profiles</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -589,7 +595,7 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-gray-100">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                       No users found
                     </td>
                   </tr>
@@ -598,6 +604,13 @@ export default function AdminDashboard() {
                     <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
+                      <td className="px-6 py-4">
+                        {user.emailVerified ? (
+                          <Badge variant="success">Verified</Badge>
+                        ) : (
+                          <Badge variant="default">Unverified</Badge>
+                        )}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-1 flex-wrap">
                           {user.userType === "admin" && (
@@ -619,14 +632,28 @@ export default function AdminDashboard() {
                       </td>
                       <td className="px-6 py-4">
                         {user.userType !== "admin" ? (
-                          <button
-                            onClick={() => deleteUser(user.id, user.name)}
-                            disabled={updatingId === user.id}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            Delete
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => updateUser(user.id, { emailVerified: !user.emailVerified })}
+                              disabled={updatingId === user.id}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${
+                                user.emailVerified
+                                  ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                  : "bg-green-50 text-green-700 hover:bg-green-100"
+                              }`}
+                            >
+                              <CheckCircle className="h-3.5 w-3.5" />
+                              {user.emailVerified ? "Unverify" : "Verify"}
+                            </button>
+                            <button
+                              onClick={() => deleteUser(user.id, user.name)}
+                              disabled={updatingId === user.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </button>
+                          </div>
                         ) : (
                           <span className="text-xs text-gray-400">Protected</span>
                         )}

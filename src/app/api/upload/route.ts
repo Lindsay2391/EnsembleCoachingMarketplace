@@ -2,9 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { writeFile } from "fs/promises";
-import path from "path";
-import { randomUUID } from "crypto";
+import { uploadToObjectStorage } from "@/lib/objectStorage";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -32,14 +30,10 @@ export async function POST(request: Request) {
     }
 
     const ext = file.type.split("/")[1] === "jpeg" ? "jpg" : file.type.split("/")[1];
-    const filename = `${randomUUID()}.${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    const filepath = path.join(uploadDir, filename);
-
     const bytes = await file.arrayBuffer();
-    await writeFile(filepath, Buffer.from(bytes));
+    const buffer = Buffer.from(bytes);
 
-    const url = `/uploads/${filename}`;
+    const url = await uploadToObjectStorage(buffer, file.type, ext);
     return NextResponse.json({ url });
   } catch (error) {
     console.error("Upload error:", error);

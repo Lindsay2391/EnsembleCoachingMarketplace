@@ -1,6 +1,12 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend() {
+  if (!_resend) {
+    _resend = new Resend(process.env.RESEND_API_KEY || "");
+  }
+  return _resend;
+}
 
 const FROM_EMAIL = "CoachConnect <noreply@coachconnect.thinkingbarbershop.com>";
 
@@ -8,7 +14,7 @@ export async function sendVerificationEmail(email: string, name: string, token: 
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:5000";
   const verifyUrl = `${baseUrl}/verify-email?token=${token}`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM_EMAIL,
     to: email,
     subject: "Verify your CoachConnect email",
@@ -32,7 +38,7 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:5000";
   const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM_EMAIL,
     to: email,
     subject: "Reset your CoachConnect password",

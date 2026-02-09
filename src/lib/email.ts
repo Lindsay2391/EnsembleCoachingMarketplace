@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = "CoachConnect <onboarding@resend.dev>";
+const FROM_EMAIL = "CoachConnect <noreply@coachconnect.thinkingbarbershop.com>";
 
 export async function sendVerificationEmail(email: string, name: string, token: string) {
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:5000";

@@ -382,7 +382,7 @@ export default function CoachProfilePage() {
                         className="absolute inset-0 w-full inline-flex items-center justify-center gap-2 text-sm font-medium text-white bg-coral-500 hover:bg-coral-600 rounded-lg transition-colors [backface-visibility:hidden]"
                       >
                         <Phone className="h-4 w-4" />
-                        Show Number
+                        Call
                       </button>
                       <div className="absolute inset-0 w-full inline-flex items-center justify-center gap-2 text-sm font-semibold text-coral-600 bg-coral-50 border border-coral-200 rounded-lg [backface-visibility:hidden] [transform:rotateX(180deg)]">
                         <Phone className="h-4 w-4" />

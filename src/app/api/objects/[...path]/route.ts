@@ -17,7 +17,7 @@ export async function GET(
     const [metadata] = await file.getMetadata();
     const [contents] = await file.download();
 
-    return new NextResponse(contents, {
+    return new NextResponse(new Uint8Array(contents), {
       headers: {
         "Content-Type": (metadata.contentType as string) || "application/octet-stream",
         "Cache-Control": "public, max-age=31536000, immutable",

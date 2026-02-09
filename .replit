@@ -16,7 +16,7 @@ NEXTAUTH_URL = "https://b696fcda-74d9-4398-9d0c-aaef05d1ec96-00-1hfd6v06hr4dm.wo
 ADMIN_SECRET = "CoachConnect2026!"
 
 [userenv.production]
-NEXTAUTH_URL = "https://b696fcda-74d9-4398-9d0c-aaef05d1ec96-00-1hfd6v06hr4dm.worf.replit.dev"
+NEXTAUTH_URL = "https://coachconnect.thinkingbarbershop.com"
 NEXTAUTH_SECRET = "JI2CxjYwQAJQL7CerAk/ByEtxwGmvdrSgmVW1dckHcA="
 
 [workflows]

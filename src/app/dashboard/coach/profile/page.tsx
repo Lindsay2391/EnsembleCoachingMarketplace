@@ -153,26 +153,55 @@ export default function CoachProfileForm() {
 
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const handleDragStart = useCallback((index: number) => {
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
     dragItem.current = index;
+    setDraggingIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    const target = e.currentTarget as HTMLElement;
+    target.style.opacity = "0.4";
+  }, []);
+
+  const handleDragEnd = useCallback((e: React.DragEvent) => {
+    const target = e.currentTarget as HTMLElement;
+    target.style.opacity = "1";
+    setDraggingIndex(null);
+    setDragOverIndex(null);
+    dragItem.current = null;
+    dragOverItem.current = null;
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
     dragOverItem.current = index;
+    setDragOverIndex(index);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverIndex(null);
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     if (dragItem.current === null || dragOverItem.current === null) return;
-    if (dragItem.current === dragOverItem.current) return;
+    if (dragItem.current === dragOverItem.current) {
+      setDraggingIndex(null);
+      setDragOverIndex(null);
+      dragItem.current = null;
+      dragOverItem.current = null;
+      return;
+    }
 
     const newIds = [...selectedSkillIds];
     const [dragged] = newIds.splice(dragItem.current, 1);
     newIds.splice(dragOverItem.current, 0, dragged);
     setSelectedSkillIds(newIds);
 
+    setDraggingIndex(null);
+    setDragOverIndex(null);
     dragItem.current = null;
     dragOverItem.current = null;
   }, [selectedSkillIds]);
@@ -548,29 +577,39 @@ export default function CoachProfileForm() {
             {selectedSkillIds.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Selected Skills (drag to reorder)</label>
-                <div className="space-y-1">
+                <div className="space-y-0">
                   {selectedSkillIds.map((skillId, index) => {
                     const skill = getSkillById(skillId);
                     if (!skill) return null;
+                    const isDragging = draggingIndex === index;
+                    const isOver = dragOverIndex === index && draggingIndex !== null && draggingIndex !== index;
+                    const dropAbove = isOver && draggingIndex !== null && draggingIndex > index;
+                    const dropBelow = isOver && draggingIndex !== null && draggingIndex < index;
                     return (
                       <div
                         key={skillId}
                         draggable
-                        onDragStart={() => handleDragStart(index)}
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragEnd={handleDragEnd}
                         onDragOver={(e) => handleDragOver(e, index)}
+                        onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
-                        className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 cursor-grab active:cursor-grabbing"
+                        className={`flex items-center gap-2 rounded-lg px-3 py-2.5 transition-all duration-150 select-none ${
+                          isDragging
+                            ? "opacity-40 scale-95 bg-gray-100 shadow-inner"
+                            : "bg-gray-50 hover:bg-gray-100 cursor-grab active:cursor-grabbing active:shadow-md active:scale-[1.02] active:bg-white active:ring-2 active:ring-coral-300"
+                        } ${dropAbove ? "border-t-2 border-t-coral-500 mt-0.5" : ""} ${dropBelow ? "border-b-2 border-b-coral-500 mb-0.5" : ""} ${!isDragging && !isOver ? "border-t-2 border-t-transparent border-b-2 border-b-transparent" : ""}`}
                       >
-                        <GripVertical className="h-4 w-4 text-gray-300 flex-shrink-0" />
-                        <span className="text-xs text-gray-400 w-5">{index + 1}.</span>
-                        <span className="flex-1 text-sm text-gray-800">{skill.name}</span>
-                        <span className="text-xs text-gray-400">{skill.category}</span>
+                        <GripVertical className={`h-4 w-4 flex-shrink-0 transition-colors ${isDragging ? "text-coral-400" : "text-gray-300 group-hover:text-gray-500"}`} />
+                        <span className="text-xs text-gray-400 w-5 font-mono">{index + 1}.</span>
+                        <span className="flex-1 text-sm text-gray-800 font-medium">{skill.name}</span>
+                        <span className="text-xs text-gray-400 hidden sm:inline">{skill.category}</span>
                         <button type="button" onClick={() => moveSkill(index, "up")} disabled={index === 0}
-                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                          className="p-1 text-gray-400 hover:text-coral-500 disabled:opacity-30 transition-colors">
                           <ChevronUp className="h-4 w-4" />
                         </button>
                         <button type="button" onClick={() => moveSkill(index, "down")} disabled={index === selectedSkillIds.length - 1}
-                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30">
+                          className="p-1 text-gray-400 hover:text-coral-500 disabled:opacity-30 transition-colors">
                           <ChevronDown className="h-4 w-4" />
                         </button>
                       </div>

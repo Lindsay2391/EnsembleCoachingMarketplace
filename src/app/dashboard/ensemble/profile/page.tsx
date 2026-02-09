@@ -7,7 +7,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
+import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, COUNTRY_NAMES, getRegionsForCountry, getRegionLabel } from "@/lib/utils";
 
 const GENRES = [
   "Barbershop",
@@ -36,6 +36,7 @@ export default function EnsembleProfileForm() {
   const [size, setSize] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
+  const [country, setCountry] = useState("Australia");
   const [genres, setGenres] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState("");
 
@@ -55,6 +56,7 @@ export default function EnsembleProfileForm() {
             setSize(data.size?.toString() || "");
             setCity(data.city || "");
             setState(data.state || "");
+            setCountry(data.country || "Australia");
             setExperienceLevel(data.experienceLevel || "");
             try {
               setGenres(JSON.parse(data.genres || "[]"));
@@ -88,6 +90,7 @@ export default function EnsembleProfileForm() {
       size: parseInt(size),
       city,
       state,
+      country,
       genres,
       experienceLevel,
     };
@@ -141,9 +144,10 @@ export default function EnsembleProfileForm() {
               <Select id="ensembleType" label="Ensemble Type *" value={ensembleType} onChange={(e) => setEnsembleType(e.target.value)} required placeholder="Select type" options={ENSEMBLE_TYPES.map((t) => ({ value: t.toLowerCase().replace(/ /g, "_"), label: t }))} />
               <Input id="size" label="Group Size *" type="number" min="2" value={size} onChange={(e) => setSize(e.target.value)} required placeholder="e.g. 30" />
             </div>
+            <Select id="country" label="Country *" value={country} onChange={(e) => { setCountry(e.target.value); setState(""); }} required placeholder="Select country" options={COUNTRY_NAMES.map((c) => ({ value: c, label: c }))} />
             <div className="grid grid-cols-2 gap-4">
               <Input id="city" label="City *" value={city} onChange={(e) => setCity(e.target.value)} required placeholder="e.g. Melbourne" />
-              <Select id="state" label="State *" value={state} onChange={(e) => setState(e.target.value)} required placeholder="Select state" options={AUSTRALIAN_STATES.map((s) => ({ value: s, label: s }))} />
+              <Select id="state" label={`${getRegionLabel(country)} *`} value={state} onChange={(e) => setState(e.target.value)} required placeholder={`Select ${getRegionLabel(country).toLowerCase()}`} options={getRegionsForCountry(country).map((s) => ({ value: s, label: s }))} />
             </div>
             <Select id="experienceLevel" label="Experience Level *" value={experienceLevel} onChange={(e) => setExperienceLevel(e.target.value)} required placeholder="Select level" options={EXPERIENCE_LEVELS.map((l) => ({ value: l.toLowerCase(), label: l }))} />
           </CardContent>

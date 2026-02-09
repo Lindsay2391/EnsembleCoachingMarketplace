@@ -6,7 +6,11 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number, currency: string = "AUD") {
-  return new Intl.NumberFormat("en-AU", {
+  const localeMap: Record<string, string> = {
+    AUD: "en-AU", USD: "en-US", NZD: "en-NZ", GBP: "en-GB",
+    EUR: "en-IE", SEK: "sv-SE", DKK: "da-DK",
+  };
+  return new Intl.NumberFormat(localeMap[currency] || "en-AU", {
     style: "currency",
     currency,
   }).format(amount);
@@ -100,13 +104,89 @@ export const SESSION_TYPES = [
   { value: "full_day", label: "Full Day (8 hours)" },
 ];
 
-export const AUSTRALIAN_STATES = [
-  "NSW",
-  "VIC",
-  "QLD",
-  "SA",
-  "WA",
-  "TAS",
-  "NT",
-  "ACT",
+export interface CountryConfig {
+  code: string;
+  name: string;
+  currency: string;
+  regions: string[];
+  regionLabel: string;
+}
+
+export const COUNTRIES: CountryConfig[] = [
+  {
+    code: "AU",
+    name: "Australia",
+    currency: "AUD",
+    regionLabel: "State",
+    regions: ["NSW", "VIC", "QLD", "SA", "WA", "TAS", "NT", "ACT"],
+  },
+  {
+    code: "US",
+    name: "United States",
+    currency: "USD",
+    regionLabel: "State",
+    regions: ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"],
+  },
+  {
+    code: "NZ",
+    name: "New Zealand",
+    currency: "NZD",
+    regionLabel: "Region",
+    regions: ["Auckland", "Bay of Plenty", "Canterbury", "Gisborne", "Hawke's Bay", "Manawatu-Whanganui", "Marlborough", "Nelson", "Northland", "Otago", "Southland", "Taranaki", "Tasman", "Waikato", "Wellington", "West Coast"],
+  },
+  {
+    code: "GB",
+    name: "United Kingdom",
+    currency: "GBP",
+    regionLabel: "Region",
+    regions: ["East Midlands", "East of England", "London", "North East", "North West", "Northern Ireland", "Scotland", "South East", "South West", "Wales", "West Midlands", "Yorkshire"],
+  },
+  {
+    code: "SE",
+    name: "Sweden",
+    currency: "SEK",
+    regionLabel: "Region",
+    regions: ["Blekinge", "Dalarna", "Gävleborg", "Gotland", "Halland", "Jämtland", "Jönköping", "Kalmar", "Kronoberg", "Norrbotten", "Örebro", "Östergötland", "Skåne", "Södermanland", "Stockholm", "Uppsala", "Värmland", "Västerbotten", "Västernorrland", "Västmanland", "Västra Götaland"],
+  },
+  {
+    code: "DK",
+    name: "Denmark",
+    currency: "DKK",
+    regionLabel: "Region",
+    regions: ["Capital Region", "Central Denmark", "North Denmark", "Region Zealand", "South Denmark"],
+  },
+  {
+    code: "DE",
+    name: "Germany",
+    currency: "EUR",
+    regionLabel: "State",
+    regions: ["Baden-Württemberg", "Bavaria", "Berlin", "Brandenburg", "Bremen", "Hamburg", "Hesse", "Lower Saxony", "Mecklenburg-Vorpommern", "North Rhine-Westphalia", "Rhineland-Palatinate", "Saarland", "Saxony", "Saxony-Anhalt", "Schleswig-Holstein", "Thuringia"],
+  },
+  {
+    code: "IE",
+    name: "Ireland",
+    currency: "EUR",
+    regionLabel: "County",
+    regions: ["Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin", "Galway", "Kerry", "Kildare", "Kilkenny", "Laois", "Leitrim", "Limerick", "Longford", "Louth", "Mayo", "Meath", "Monaghan", "Offaly", "Roscommon", "Sligo", "Tipperary", "Waterford", "Westmeath", "Wexford", "Wicklow"],
+  },
 ];
+
+export const COUNTRY_NAMES = COUNTRIES.map(c => c.name);
+
+export function getCountryConfig(countryName: string): CountryConfig | undefined {
+  return COUNTRIES.find(c => c.name === countryName);
+}
+
+export function getRegionsForCountry(countryName: string): string[] {
+  return getCountryConfig(countryName)?.regions || [];
+}
+
+export function getDefaultCurrency(countryName: string): string {
+  return getCountryConfig(countryName)?.currency || "AUD";
+}
+
+export function getRegionLabel(countryName: string): string {
+  return getCountryConfig(countryName)?.regionLabel || "State";
+}
+
+export const AUSTRALIAN_STATES = COUNTRIES.find(c => c.code === "AU")!.regions;

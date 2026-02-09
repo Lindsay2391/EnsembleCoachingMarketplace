@@ -33,8 +33,7 @@ export default function HomePage() {
               </Link>
             </div>
             <p className="mt-4 text-sm text-gray-300">
-              Free to browse. Free to join. Built for the Australian Barbershop
-              community.
+              Free to browse. Free to join. Built for the Barbershop community.
             </p>
           </div>
         </div>
@@ -156,7 +155,7 @@ export default function HomePage() {
                     <span className="text-blue-600 text-sm font-bold">+</span>
                   </div>
                   <span className="text-gray-600">
-                    Be found by Australian ensembles actively searching for coaching
+                    Be found by ensembles actively searching for coaching
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -194,8 +193,7 @@ export default function HomePage() {
             Ready to find your next coach?
           </h2>
           <p className="mt-4 text-lg text-coral-100">
-            Join the growing community of Australian ensembles and coaches on
-            CoachConnect.
+            Join the growing community of ensembles and coaches on CoachConnect.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/coaches">

@@ -10,6 +10,7 @@ const ensembleSchema = z.object({
   size: z.number().int().positive("Size must be a positive number"),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
+  country: z.string().optional(),
   genres: z.array(z.string()).min(1, "At least one genre is required"),
   experienceLevel: z.string().min(1, "Experience level is required"),
 });
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { ensembleName, ensembleType, size, city, state, genres, experienceLevel } =
+    const { ensembleName, ensembleType, size, city, state, country, genres, experienceLevel } =
       validation.data;
 
     const dbUser = await prisma.user.findUnique({
@@ -53,12 +54,12 @@ export async function POST(request: Request) {
     }
 
     const existingDuplicate = await prisma.ensembleProfile.findFirst({
-      where: { ensembleName, state },
+      where: { ensembleName, state, country: country || "Australia" },
     });
 
     if (existingDuplicate) {
       return NextResponse.json(
-        { error: "An ensemble with this name already exists in that state" },
+        { error: "An ensemble with this name already exists in that region" },
         { status: 400 }
       );
     }
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
         size,
         city,
         state,
+        country: country || "Australia",
         genres: JSON.stringify(genres),
         experienceLevel,
       },

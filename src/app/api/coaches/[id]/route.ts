@@ -24,6 +24,7 @@ const updateCoachSchema = z.object({
   videoUrl: z.string().url().optional().nullable().or(z.literal("")),
   cancellationPolicy: z.string().optional().nullable(),
   travelSupplement: z.number().min(0).optional().nullable(),
+  country: z.string().optional(),
 });
 
 export async function GET(
@@ -128,6 +129,7 @@ export async function PUT(
     if (data.fullName !== undefined) updateData.fullName = data.fullName;
     if (data.city !== undefined) updateData.city = data.city;
     if (data.state !== undefined) updateData.state = data.state;
+    if (data.country !== undefined) updateData.country = data.country;
     if (data.bio !== undefined) updateData.bio = data.bio;
     if (data.specialties !== undefined) updateData.specialties = JSON.stringify(data.specialties);
     if (data.ensembleTypes !== undefined) updateData.ensembleTypes = JSON.stringify(data.ensembleTypes);

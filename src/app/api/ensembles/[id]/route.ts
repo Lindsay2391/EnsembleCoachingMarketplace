@@ -73,18 +73,20 @@ export async function PUT(
 
     const newName = body.ensembleName !== undefined ? body.ensembleName : ensemble.ensembleName;
     const newState = body.state !== undefined ? body.state : ensemble.state;
+    const newCountry = body.country !== undefined ? body.country : ensemble.country;
 
-    if (newName !== ensemble.ensembleName || newState !== ensemble.state) {
+    if (newName !== ensemble.ensembleName || newState !== ensemble.state || newCountry !== ensemble.country) {
       const duplicate = await prisma.ensembleProfile.findFirst({
         where: {
           ensembleName: newName,
           state: newState,
+          country: newCountry,
           id: { not: id },
         },
       });
 
       if (duplicate) {
-        return NextResponse.json({ error: "An ensemble with this name already exists in that state" }, { status: 400 });
+        return NextResponse.json({ error: "An ensemble with this name already exists in that region" }, { status: 400 });
       }
     }
 
@@ -94,6 +96,7 @@ export async function PUT(
     if (body.size !== undefined) updateData.size = body.size;
     if (body.city !== undefined) updateData.city = body.city;
     if (body.state !== undefined) updateData.state = body.state;
+    if (body.country !== undefined) updateData.country = body.country;
     if (body.genres !== undefined) updateData.genres = JSON.stringify(body.genres);
     if (body.experienceLevel !== undefined) updateData.experienceLevel = body.experienceLevel;
 

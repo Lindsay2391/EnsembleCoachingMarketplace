@@ -87,7 +87,7 @@ model EnsembleProfile {
   reviews        Review[]
   reviewInvites  ReviewInvite[]
 
-  @@unique([ensembleName, state])
+  @@unique([ensembleName, state, country])
   @@index([userId])
 }
 

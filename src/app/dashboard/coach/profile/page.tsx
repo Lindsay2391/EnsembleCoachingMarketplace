@@ -10,7 +10,7 @@ import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import ImageCropper from "@/components/ui/ImageCropper";
-import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, AUSTRALIAN_STATES } from "@/lib/utils";
+import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, COUNTRY_NAMES, getRegionsForCountry, getDefaultCurrency, getRegionLabel } from "@/lib/utils";
 import { Upload, Phone, Mail, Globe, ChevronUp, ChevronDown, Plus, X } from "lucide-react";
 
 interface SkillItem {
@@ -49,6 +49,7 @@ export default function CoachProfileForm() {
   const [fullName, setFullName] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
+  const [country, setCountry] = useState("Australia");
   const [bio, setBio] = useState("");
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
   const [availableSkills, setAvailableSkills] = useState<Record<string, SkillItem[]>>({});
@@ -95,6 +96,7 @@ export default function CoachProfileForm() {
             setFullName(myProfile.fullName);
             setCity(myProfile.city);
             setState(myProfile.state);
+            setCountry(myProfile.country || "Australia");
             setBio(myProfile.bio);
             setEnsembleTypes(JSON.parse(myProfile.ensembleTypes || "[]"));
             setExperienceLevels(JSON.parse(myProfile.experienceLevels || "[]"));
@@ -280,6 +282,7 @@ export default function CoachProfileForm() {
       fullName,
       city,
       state,
+      country,
       bio,
       specialties: selectedNames,
       skills: selectedSkillIds,
@@ -371,9 +374,10 @@ export default function CoachProfileForm() {
               </div>
               <div className="flex-1 space-y-4">
                 <Input id="fullName" label="Full Name *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                <Select id="country" label="Country *" value={country} onChange={(e) => { setCountry(e.target.value); setState(""); setCurrency(getDefaultCurrency(e.target.value)); }} required placeholder="Select country" options={COUNTRY_NAMES.map((c) => ({ value: c, label: c }))} />
                 <div className="grid grid-cols-2 gap-4">
                   <Input id="city" label="City *" value={city} onChange={(e) => setCity(e.target.value)} required placeholder="e.g. Sydney" />
-                  <Select id="state" label="State *" value={state} onChange={(e) => setState(e.target.value)} required placeholder="Select state" options={AUSTRALIAN_STATES.map((s) => ({ value: s, label: s }))} />
+                  <Select id="state" label={`${getRegionLabel(country)} *`} value={state} onChange={(e) => setState(e.target.value)} required placeholder={`Select ${getRegionLabel(country).toLowerCase()}`} options={getRegionsForCountry(country).map((s) => ({ value: s, label: s }))} />
                 </div>
               </div>
             </div>

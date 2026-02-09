@@ -24,6 +24,7 @@ const createCoachSchema = z.object({
   videoUrl: z.string().url().optional().nullable().or(z.literal("")),
   cancellationPolicy: z.string().optional().nullable(),
   travelSupplement: z.number().min(0).optional().nullable(),
+  country: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -32,6 +33,7 @@ export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
 
     const skills = searchParams.get("skills");
+    const country = searchParams.get("country");
     const state = searchParams.get("state");
     const city = searchParams.get("city");
     const experienceLevel = searchParams.get("experienceLevel");
@@ -58,6 +60,10 @@ export async function GET(request: Request) {
           },
         },
       };
+    }
+
+    if (country) {
+      where.country = country;
     }
 
     if (state) {
@@ -97,7 +103,7 @@ export async function GET(request: Request) {
     }
 
     const favoriteIds = new Set<string>();
-    let ensembleProfile: { ensembleType: string; experienceLevel: string; state: string; city: string } | null = null;
+    let ensembleProfile: { ensembleType: string; experienceLevel: string; state: string; city: string; country: string } | null = null;
 
     if (session?.user?.id) {
       const [favs, ensembles] = await Promise.all([
@@ -107,7 +113,7 @@ export async function GET(request: Request) {
         }),
         prisma.ensembleProfile.findMany({
           where: { userId: session.user.id },
-          select: { ensembleType: true, experienceLevel: true, state: true, city: true },
+          select: { ensembleType: true, experienceLevel: true, state: true, city: true, country: true },
           take: 1,
         }),
       ]);
@@ -155,6 +161,7 @@ export async function GET(request: Request) {
 
         let relevanceScore = 0;
         if (ensembleProfile) {
+          if (coach.country === ensembleProfile.country) relevanceScore += 15;
           if (coach.state === ensembleProfile.state) relevanceScore += 10;
           if (coach.city === ensembleProfile.city) relevanceScore += 5;
           if (coachEnsembleTypes.includes(ensembleProfile.ensembleType)) relevanceScore += 10;
@@ -297,6 +304,7 @@ export async function POST(request: Request) {
         rateHalfDay: d.rateHalfDay ?? null,
         rateFullDay: d.rateFullDay ?? null,
         ratesOnEnquiry: d.ratesOnEnquiry ?? false,
+        country: d.country || "Australia",
         currency: d.currency ?? "AUD",
         photoUrl: d.photoUrl || null,
         videoUrl: d.videoUrl || null,

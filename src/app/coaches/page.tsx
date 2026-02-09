@@ -12,7 +12,7 @@ import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
-import { formatCurrency, EXPERIENCE_LEVELS, AUSTRALIAN_STATES } from "@/lib/utils";
+import { formatCurrency, EXPERIENCE_LEVELS, COUNTRY_NAMES, getRegionsForCountry, getRegionLabel } from "@/lib/utils";
 
 interface SkillItem {
   id: string;
@@ -38,6 +38,7 @@ interface Coach {
   fullName: string;
   city: string;
   state: string;
+  country?: string;
   bio: string;
   photoUrl: string | null;
   specialties: string;
@@ -72,6 +73,7 @@ function CoachBrowseContent() {
     const s = searchParams.get("skills");
     return s ? s.split(",").filter(Boolean) : [];
   });
+  const [country, setCountry] = useState("");
   const [state, setState] = useState(searchParams.get("state") || "");
   const [experienceLevel, setExperienceLevel] = useState(searchParams.get("experienceLevel") || "");
   const [page, setPage] = useState(1);
@@ -122,6 +124,7 @@ function CoachBrowseContent() {
     const params = new URLSearchParams();
     if (searchTerm) params.set("search", searchTerm);
     if (selectedSkills.length > 0) params.set("skills", selectedSkills.join(","));
+    if (country) params.set("country", country);
     if (state) params.set("state", state);
     if (experienceLevel) params.set("experienceLevel", experienceLevel);
     params.set("page", page.toString());
@@ -141,7 +144,7 @@ function CoachBrowseContent() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, selectedSkills, state, experienceLevel, page]);
+  }, [searchTerm, selectedSkills, country, state, experienceLevel, page]);
 
   useEffect(() => {
     fetchCoaches();
@@ -203,6 +206,7 @@ function CoachBrowseContent() {
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedSkills([]);
+    setCountry("");
     setState("");
     setExperienceLevel("");
     setPage(1);
@@ -238,9 +242,9 @@ function CoachBrowseContent() {
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters
-            {(selectedSkills.length > 0 || state || experienceLevel) && (
+            {(selectedSkills.length > 0 || country || state || experienceLevel) && (
               <span className="ml-1.5 bg-coral-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                {(selectedSkills.length > 0 ? 1 : 0) + (state ? 1 : 0) + (experienceLevel ? 1 : 0)}
+                {(selectedSkills.length > 0 ? 1 : 0) + (country ? 1 : 0) + (state ? 1 : 0) + (experienceLevel ? 1 : 0)}
               </span>
             )}
           </Button>
@@ -271,13 +275,20 @@ function CoachBrowseContent() {
         {showFilters && (
           <Card>
             <CardContent className="py-4 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Select
-                  label="State"
+                  label="Country"
+                  value={country}
+                  onChange={(e) => { setCountry(e.target.value); setState(""); setPage(1); }}
+                  placeholder="All Countries"
+                  options={COUNTRY_NAMES.map((c) => ({ value: c, label: c }))}
+                />
+                <Select
+                  label={country ? getRegionLabel(country) : "State / Region"}
                   value={state}
                   onChange={(e) => { setState(e.target.value); setPage(1); }}
-                  placeholder="All States"
-                  options={AUSTRALIAN_STATES.map((s) => ({ value: s, label: s }))}
+                  placeholder={country ? `All ${getRegionLabel(country)}s` : "All Regions"}
+                  options={country ? getRegionsForCountry(country).map((s) => ({ value: s, label: s })) : []}
                 />
                 <Select
                   label="Experience Level"
@@ -458,7 +469,7 @@ function CoachBrowseContent() {
                         </div>
                         <div className="flex items-center gap-1 text-sm text-gray-500 mt-1">
                           <MapPin className="h-3.5 w-3.5" />
-                          {coach.city}, {coach.state}
+                          {coach.city}, {coach.state}{coach.country && coach.country !== "Australia" ? `, ${coach.country}` : ""}
                         </div>
                       </div>
                       {session && (

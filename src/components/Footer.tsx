@@ -15,8 +15,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-sm text-gray-500 max-w-md">
-              A Thinking Barbershop project. Connecting Australian ensemble
-              groups with qualified coaches.
+              A Thinking Barbershop project. Connecting ensemble groups with qualified coaches.
             </p>
           </div>
 
@@ -64,7 +63,7 @@ export default function Footer() {
         <div className="mt-8 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-400 text-center">
             &copy; {new Date().getFullYear()} CoachConnect by Thinking
-            Barbershop. Built for the Australian Barbershop community.
+            Barbershop. Built for the Barbershop community.
           </p>
         </div>
       </div>

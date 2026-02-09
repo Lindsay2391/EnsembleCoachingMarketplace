@@ -1,7 +1,7 @@
 # CoachConnect by Thinking Barbershop
 
 ## Overview
-CoachConnect is a Next.js 14 platform designed to connect Australian ensemble groups with qualified vocal and music coaches. It enables users to browse coach profiles, filter by various criteria (skills, location, ensemble type), and directly contact coaches. The platform aims to be the central hub for the Australian barbershop community, facilitating connections and supporting musical development.
+CoachConnect is a Next.js 14 platform designed to connect ensemble groups with qualified vocal and music coaches. Initially launching in Australia, the platform is internationalized for 8 countries (Australia, USA, New Zealand, UK, Sweden, Denmark, Germany, Ireland). Users can browse coach profiles, filter by country/region/skills/ensemble type, and directly contact coaches. The platform aims to be the central hub for the global barbershop community, facilitating connections and supporting musical development.
 
 ## User Preferences
 I prefer simple language.
@@ -37,7 +37,7 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 
 **Favourites & Smart Sorting:**
 - Users can favourite coaches, which prioritizes them in search results.
-- A smart sorting algorithm ranks coaches based on relevance (state, city, ensemble type, experience level), skill match count, and rating.
+- A smart sorting algorithm ranks coaches based on relevance (country, state, city, ensemble type, experience level), skill match count, and rating.
 
 **Feedback System:**
 - In-app feedback form accessible from the dashboard via a "Send Feedback" button and modal.
@@ -50,6 +50,7 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Admins see the bell even without ensemble profiles; notifications link to the admin panel.
 
 ## Recent Changes
+- 2026-02-09: Full internationalization for 8 countries with COUNTRIES config, dynamic region dropdowns, country filters on browse page, locale-aware currency formatting, smart sorting with country matching (+15 points), ensemble uniqueness constraint updated to [ensembleName, state, country]
 - 2026-02-09: Added in-app feedback system with FeedbackModal component and admin Feedback tab
 - 2026-02-09: Added admin notifications for pending coach profile approvals in notification bell
 - 2026-02-09: Linked coach names in admin panel to their public profiles for pre-approval review

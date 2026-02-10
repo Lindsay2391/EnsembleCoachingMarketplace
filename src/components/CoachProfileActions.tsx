@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { Pencil, Heart, MessageSquareText, Phone } from "lucide-react";
+import { Pencil, Heart, MessageSquare, MessageSquareText, Phone } from "lucide-react";
 
 export function FavoriteButton({ coachId }: { coachId: string }) {
   const { data: session } = useSession();
@@ -89,6 +89,14 @@ export function CoachProfileActionButtons({
           <Button variant="outline">
             <MessageSquareText className="h-4 w-4 mr-2" />
             Submit a Review
+          </Button>
+        </Link>
+      )}
+      {!isOwner && (
+        <Link href={`/messages?to=${coachUserId}`}>
+          <Button variant="outline">
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Message Coach
           </Button>
         </Link>
       )}

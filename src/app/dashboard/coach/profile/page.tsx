@@ -66,6 +66,7 @@ export default function CoachProfileForm() {
   const [photoUrl, setPhotoUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [coachingFormats, setCoachingFormats] = useState<string[]>(["in_person", "virtual"]);
+  const [voiceTypes, setVoiceTypes] = useState<string[]>([]);
   const [cancellationPolicy, setCancellationPolicy] = useState("");
   const [travelSupplement, setTravelSupplement] = useState("");
   const [customSkillInputs, setCustomSkillInputs] = useState<Record<string, string>>({});
@@ -112,6 +113,7 @@ export default function CoachProfileForm() {
             setPhotoUrl(myProfile.photoUrl || "");
             setVideoUrl(myProfile.videoUrl || "");
             setCoachingFormats(JSON.parse(myProfile.coachingFormats || '["in_person","virtual"]'));
+            setVoiceTypes(JSON.parse(myProfile.voiceTypes || '[]'));
             setCancellationPolicy(myProfile.cancellationPolicy || "");
             setTravelSupplement(myProfile.travelSupplement?.toString() || "");
 
@@ -357,6 +359,7 @@ export default function CoachProfileForm() {
       photoUrl: photoUrl || null,
       videoUrl: videoUrl || null,
       coachingFormats,
+      voiceTypes,
       cancellationPolicy: cancellationPolicy || null,
     };
 
@@ -646,7 +649,6 @@ export default function CoachProfileForm() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Coaching Format *</label>
-              <p className="text-xs text-gray-500 mb-2">Select all that apply</p>
               <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={() => toggleArrayItem(coachingFormats, setCoachingFormats, "in_person")}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
@@ -656,6 +658,23 @@ export default function CoachProfileForm() {
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                     coachingFormats.includes("virtual") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
                   }`}>Virtual</button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Voice Types</label>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => toggleArrayItem(voiceTypes, setVoiceTypes, "upper_voice")}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                    voiceTypes.includes("upper_voice") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
+                  }`}>Upper Voice</button>
+                <button type="button" onClick={() => toggleArrayItem(voiceTypes, setVoiceTypes, "mixed_voice")}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                    voiceTypes.includes("mixed_voice") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
+                  }`}>Mixed Voice</button>
+                <button type="button" onClick={() => toggleArrayItem(voiceTypes, setVoiceTypes, "lower_voice")}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                    voiceTypes.includes("lower_voice") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
+                  }`}>Lower Voice</button>
               </div>
             </div>
           </CardContent>

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle, Heart, MessageSquareText } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle, Heart, MessageSquareText, Users } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -173,6 +173,7 @@ export default function CoachProfilePage() {
   const ensembleTypes = parseJsonArray(coach.ensembleTypes);
   const experienceLevels = parseJsonArray(coach.experienceLevels);
   const coachingFormats = parseJsonArray(coach.coachingFormats);
+  const voiceTypes = parseJsonArray(coach.voiceTypes);
 
   const groupedSkills: Record<string, CoachSkillItem[]> = {};
   for (const cs of coachSkills) {
@@ -516,6 +517,19 @@ export default function CoachProfilePage() {
                 <div className="flex flex-wrap gap-2">
                   {coachingFormats.includes("in_person") && <Badge variant="info">In Person</Badge>}
                   {coachingFormats.includes("virtual") && <Badge>Virtual</Badge>}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {voiceTypes.length > 0 && (
+            <Card>
+              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Users className="h-4 w-4 inline mr-1" />Voice Types</h2></CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {voiceTypes.includes("upper_voice") && <Badge>Upper Voice</Badge>}
+                  {voiceTypes.includes("mixed_voice") && <Badge variant="info">Mixed Voice</Badge>}
+                  {voiceTypes.includes("lower_voice") && <Badge>Lower Voice</Badge>}
                 </div>
               </CardContent>
             </Card>

@@ -27,6 +27,7 @@ const updateCoachSchema = z.object({
   travelSupplement: z.number().min(0).optional().nullable(),
   country: z.string().optional(),
   coachingFormats: z.array(z.enum(["in_person", "virtual"])).optional(),
+  voiceTypes: z.array(z.string()).optional(),
 });
 
 export async function GET(
@@ -148,6 +149,7 @@ export async function PUT(
     if (data.cancellationPolicy !== undefined) updateData.cancellationPolicy = data.cancellationPolicy;
     if (data.travelSupplement !== undefined) updateData.travelSupplement = data.travelSupplement;
     if (data.coachingFormats !== undefined) updateData.coachingFormats = JSON.stringify(data.coachingFormats);
+    if (data.voiceTypes !== undefined) updateData.voiceTypes = JSON.stringify(data.voiceTypes);
 
     const updatedCoach = await prisma.coachProfile.update({
       where: { id },

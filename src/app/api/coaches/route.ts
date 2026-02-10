@@ -27,6 +27,7 @@ const createCoachSchema = z.object({
   travelSupplement: z.number().min(0).optional().nullable(),
   country: z.string().optional(),
   coachingFormats: z.array(z.enum(["in_person", "virtual"])).optional(),
+  voiceTypes: z.array(z.string()).optional(),
 });
 
 export async function GET(request: Request) {
@@ -311,6 +312,7 @@ export async function POST(request: Request) {
         photoUrl: d.photoUrl || null,
         videoUrl: d.videoUrl || null,
         coachingFormats: JSON.stringify(d.coachingFormats || ["in_person", "virtual"]),
+        voiceTypes: JSON.stringify(d.voiceTypes || []),
         cancellationPolicy: d.cancellationPolicy ?? null,
         travelSupplement: d.travelSupplement ?? null,
         verified: dbUser.emailVerified === true,

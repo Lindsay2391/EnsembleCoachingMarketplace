@@ -50,6 +50,7 @@ model CoachProfile {
   currency          String   @default("AUD")
   availability      String?
   coachingFormats   String   @default("[\"in_person\",\"virtual\"]")
+  voiceTypes        String   @default("[]")
   rating            Float    @default(0)
   totalReviews      Int      @default(0)
   totalBookings     Int      @default(0)

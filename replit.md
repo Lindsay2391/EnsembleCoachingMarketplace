@@ -62,6 +62,9 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-10: Added coaching format field to coach profiles (in-person, virtual, or both) with form controls and badge display on profile page
+- 2026-02-10: Self-invite prevention — coaches cannot send review invites to their own ensembles (filtered in search + API validation)
+- 2026-02-10: Replaced month dropdown with calendar-style MonthYearPicker in review forms, supporting historical date selection back to 2010
 - 2026-02-10: Added ensemble-initiated review system — ensembles can submit reviews from coach profiles; coaches approve/reject blindly (without seeing content); approved reviews become full Review records with ratings and skill endorsements
 - 2026-02-10: Coach notification bell now shows pending ensemble review count
 - 2026-02-10: Dashboard ensemble profile cards show pending review invite indicators

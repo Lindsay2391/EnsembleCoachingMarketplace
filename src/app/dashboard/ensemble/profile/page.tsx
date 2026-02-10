@@ -225,39 +225,6 @@ function EnsembleProfileFormContent() {
                 {deleting ? "Deleting..." : "Delete Profile"}
               </Button>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border border-red-200 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Delete Account</p>
-                <p className="text-sm text-gray-500">Permanently delete your account and all associated data.</p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={deleting}
-                className="border-red-300 text-red-600 hover:bg-red-50 whitespace-nowrap"
-                onClick={async () => {
-                  if (!confirm("Are you sure you want to permanently delete your account? This will remove your profile, all bookings, reviews, messages, and cannot be undone.")) return;
-                  if (!confirm("This is your final confirmation. All your data will be permanently deleted. Continue?")) return;
-                  setDeleting(true);
-                  try {
-                    const res = await fetch("/api/account", { method: "DELETE" });
-                    if (res.ok) {
-                      await signOut({ callbackUrl: "/" });
-                    } else {
-                      const data = await res.json();
-                      setError(data.error || "Failed to delete account");
-                      setDeleting(false);
-                    }
-                  } catch {
-                    setError("Something went wrong");
-                    setDeleting(false);
-                  }
-                }}
-              >
-                {deleting ? "Deleting..." : "Delete Account"}
-              </Button>
-            </div>
           </div>
         </div>
       )}

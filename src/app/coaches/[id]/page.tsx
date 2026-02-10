@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
+import CoachAvatar from "@/components/ui/CoachAvatar";
 import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle, Heart, MessageSquareText, Users } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -207,11 +208,7 @@ export default function CoachProfilePage() {
         <CardContent className="py-6">
           <div className="flex flex-col sm:flex-row items-start gap-6">
             <div className="w-24 h-24 rounded-full bg-coral-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              {coach.photoUrl ? (
-                <Image src={coach.photoUrl} alt={coach.fullName} width={96} height={96} className="w-24 h-24 rounded-full object-cover" />
-              ) : (
-                <span className="text-coral-500 text-3xl font-bold">{coach.fullName.charAt(0)}</span>
-              )}
+              <CoachAvatar photoUrl={coach.photoUrl} fullName={coach.fullName} size={96} textSize="text-3xl" />
             </div>
 
             <div className="flex-1">

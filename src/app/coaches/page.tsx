@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
+import CoachAvatar from "@/components/ui/CoachAvatar";
 import { Search, MapPin, Filter, X, Heart } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
@@ -444,19 +445,7 @@ function CoachBrowseContent() {
                   <CardContent className="py-5">
                     <div className="flex items-start gap-4">
                       <div className="w-14 h-14 rounded-full bg-coral-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                        {coach.photoUrl ? (
-                          <Image
-                            src={coach.photoUrl}
-                            alt={coach.fullName}
-                            width={56}
-                            height={56}
-                            className="w-14 h-14 rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-coral-500 text-xl font-bold">
-                            {coach.fullName.charAt(0)}
-                          </span>
-                        )}
+                        <CoachAvatar photoUrl={coach.photoUrl} fullName={coach.fullName} size={56} textSize="text-xl" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">

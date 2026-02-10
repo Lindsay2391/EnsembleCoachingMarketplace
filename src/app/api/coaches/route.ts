@@ -131,20 +131,19 @@ export async function GET(request: Request) {
     const needsRelevanceSort = !!ensembleProfile || favoriteIds.size > 0;
 
     if (needsRelevanceSort) {
-      // When we need relevance scoring, fetch all matching coaches but only IDs + scoring fields
-      // then paginate in memory (unavoidable for custom relevance sorting)
-      const allCoaches = await prisma.coachProfile.findMany({
+      // Fetch only lightweight fields needed for scoring to reduce memory usage
+      const allCoachesLite = await prisma.coachProfile.findMany({
         where,
-        include: {
-          user: {
-            select: {
-              email: true,
-              name: true,
-            },
-          },
+        select: {
+          id: true,
+          country: true,
+          state: true,
+          city: true,
+          ensembleTypes: true,
+          experienceLevels: true,
+          rating: true,
           coachSkills: {
-            include: { skill: true },
-            orderBy: { displayOrder: "asc" },
+            select: { skill: { select: { name: true } } },
           },
         },
         orderBy: [
@@ -153,13 +152,13 @@ export async function GET(request: Request) {
         ],
       });
 
-      const total = allCoaches.length;
+      const total = allCoachesLite.length;
 
       const parseJson = (val: string): string[] => {
         try { return JSON.parse(val); } catch { return []; }
       };
 
-      const scoredCoaches = allCoaches.map((coach) => {
+      const scoredCoaches = allCoachesLite.map((coach) => {
         const coachSkillNames = coach.coachSkills.map(cs => cs.skill.name);
         const coachEnsembleTypes = parseJson(coach.ensembleTypes);
         const coachExpLevels = parseJson(coach.experienceLevels);
@@ -179,7 +178,7 @@ export async function GET(request: Request) {
           ? skillsList.filter((skill) => coachSkillNames.includes(skill)).length
           : 0;
 
-        return { ...coach, isFavorite, relevanceScore, matchCount: skillMatchCount };
+        return { id: coach.id, isFavorite, relevanceScore, matchCount: skillMatchCount, rating: coach.rating };
       });
 
       scoredCoaches.sort((a, b) => {
@@ -189,7 +188,36 @@ export async function GET(request: Request) {
         return b.rating - a.rating;
       });
 
-      const paginatedCoaches = scoredCoaches.slice(skip, skip + limit);
+      const paginatedIds = scoredCoaches.slice(skip, skip + limit);
+      const idOrder = new Map(paginatedIds.map((c, i) => [c.id, i]));
+
+      // Fetch full data only for the current page
+      const fullCoaches = await prisma.coachProfile.findMany({
+        where: { id: { in: paginatedIds.map(c => c.id) } },
+        include: {
+          user: {
+            select: {
+              email: true,
+              name: true,
+            },
+          },
+          coachSkills: {
+            include: { skill: true },
+            orderBy: { displayOrder: "asc" },
+          },
+        },
+      });
+
+      // Restore the relevance sort order
+      fullCoaches.sort((a, b) => (idOrder.get(a.id) ?? 0) - (idOrder.get(b.id) ?? 0));
+
+      const scoreMap = new Map(paginatedIds.map(c => [c.id, c]));
+      const paginatedCoaches = fullCoaches.map(coach => ({
+        ...coach,
+        isFavorite: scoreMap.get(coach.id)?.isFavorite ?? false,
+        relevanceScore: scoreMap.get(coach.id)?.relevanceScore ?? 0,
+        matchCount: scoreMap.get(coach.id)?.matchCount ?? 0,
+      }));
 
       return NextResponse.json({
         coaches: paginatedCoaches,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Search, MessageCircle, Star, Shield, Users, Music } from "lucide-react";
 import Button from "@/components/ui/Button";
 import BuyMeACoffee from "@/components/BuyMeACoffee";
@@ -6,7 +7,15 @@ import BuyMeACoffee from "@/components/BuyMeACoffee";
 export default function HomePage() {
   return (
     <div>
-      <section className="relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/hero-bg.jpg')" }}>
+      <section className="relative">
+        <Image
+          src="/hero-bg.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
         <div className="absolute inset-0 bg-slate-800/60" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="text-center max-w-3xl mx-auto">

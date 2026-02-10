@@ -9,7 +9,10 @@ import Textarea from "@/components/ui/Textarea";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import ImageCropper from "@/components/ui/ImageCropper";
+import dynamic from "next/dynamic";
+const ImageCropper = dynamic(() => import("@/components/ui/ImageCropper"), {
+  loading: () => <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"><div className="bg-white rounded-xl p-8 text-gray-500">Loading image editor...</div></div>,
+});
 import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, COUNTRY_NAMES, getRegionsForCountry, getDefaultCurrency, getRegionLabel } from "@/lib/utils";
 import { Upload, Phone, Mail, Globe, ChevronUp, ChevronDown, Plus, X, GripVertical } from "lucide-react";
 

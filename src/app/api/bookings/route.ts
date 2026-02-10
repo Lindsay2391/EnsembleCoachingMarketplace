@@ -73,8 +73,28 @@ export async function GET(request: Request) {
     const bookings = await prisma.booking.findMany({
       where,
       include: {
-        coach: true,
-        ensemble: true,
+        coach: {
+          select: {
+            id: true,
+            userId: true,
+            fullName: true,
+            city: true,
+            state: true,
+            photoUrl: true,
+            currency: true,
+          },
+        },
+        ensemble: {
+          select: {
+            id: true,
+            userId: true,
+            ensembleName: true,
+            city: true,
+            state: true,
+            size: true,
+            ensembleType: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });

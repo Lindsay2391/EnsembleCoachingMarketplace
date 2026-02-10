@@ -1,86 +1,26 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { notFound } from "next/navigation";
 import CoachAvatar from "@/components/ui/CoachAvatar";
-import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle, Heart, MessageSquareText, Users } from "lucide-react";
-import Button from "@/components/ui/Button";
+import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Mail, Globe, Users } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
 import BuyMeACoffee from "@/components/BuyMeACoffee";
 import { formatCurrency, parseJsonArray } from "@/lib/utils";
+import { prisma } from "@/lib/prisma";
+import {
+  CoachProfileActionButtons,
+  PhoneRevealButton,
+  OwnerWarningBanner,
+} from "@/components/CoachProfileActions";
 
-interface CoachSkillItem {
-  id: string;
-  skillId: string;
-  displayOrder: number;
-  endorsementCount: number;
-  skill: {
-    id: string;
-    name: string;
-    category: string;
-    isCustom: boolean;
-  };
-}
-
-interface CoachProfile {
-  id: string;
-  userId: string;
-  fullName: string;
-  city: string;
-  state: string;
-  country: string;
-  bio: string;
-  photoUrl: string | null;
-  videoUrl: string | null;
-  specialties: string;
-  ensembleTypes: string;
-  experienceLevels: string;
-  contactMethod: string | null;
-  contactDetail: string | null;
-  pronouns: string | null;
-  rateHourly: number | null;
-  rateHalfDay: number | null;
-  rateFullDay: number | null;
-  rateWeekend: number | null;
-  ratesOnEnquiry: boolean;
-  ratesNotes: string | null;
-  currency: string;
-  travelWillingness: string | null;
-  rating: number;
-  totalReviews: number;
-  totalBookings: number;
-  approved: boolean;
-  verified: boolean;
-  coachingFormats: string;
-  voiceTypes: string;
-  cancellationPolicy: string | null;
-  travelSupplement: number | null;
-  profileViews: number;
-  user: { email: string; name: string };
-  coachSkills?: CoachSkillItem[];
-}
-
-interface Review {
-  id: string;
-  rating: number;
-  reviewText: string | null;
-  sessionMonth: number;
-  sessionYear: number;
-  sessionFormat: string;
-  validatedSkills: string;
-  createdAt: string;
-  reviewer: { ensembleName: string; ensembleType: string };
+interface PageProps {
+  params: { id: string };
 }
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
-
 
 function getYouTubeEmbedUrl(url: string): string | null {
   try {
@@ -100,79 +40,41 @@ function getYouTubeEmbedUrl(url: string): string | null {
   }
 }
 
-export default function CoachProfilePage() {
-  const params = useParams();
-  const { data: session } = useSession();
-  const [coach, setCoach] = useState<CoachProfile | null>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [togglingFav, setTogglingFav] = useState(false);
-  const [phoneRevealed, setPhoneRevealed] = useState(false);
+export default async function CoachProfilePage({ params }: PageProps) {
+  const { id } = params;
 
-  useEffect(() => {
-    async function fetchCoach() {
-      try {
-        const [coachRes, reviewsRes] = await Promise.all([
-          fetch(`/api/coaches/${params.id}`),
-          fetch(`/api/coaches/${params.id}/reviews`),
-        ]);
-        if (coachRes.ok) setCoach(await coachRes.json());
-        if (reviewsRes.ok) {
-          const data = await reviewsRes.json();
-          setReviews(data.reviews || []);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (params.id) fetchCoach();
-  }, [params.id]);
-
-  useEffect(() => {
-    if (!session?.user || !params.id) return;
-    fetch("/api/favorites")
-      .then((r) => r.json())
-      .then((data) => {
-        setIsFavorite(data.favoriteIds?.includes(params.id) ?? false);
-      })
-      .catch(() => {});
-  }, [session, params.id]);
-
-  const toggleFavorite = async () => {
-    if (!session) return;
-    const prev = isFavorite;
-    setIsFavorite(!prev);
-    setTogglingFav(true);
-    try {
-      const res = await fetch("/api/favorites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ coachProfileId: params.id }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setIsFavorite(data.favorited);
-      } else {
-        setIsFavorite(prev);
-      }
-    } catch (err) {
-      console.error("Error toggling favorite:", err);
-      setIsFavorite(prev);
-    } finally {
-      setTogglingFav(false);
-    }
-  };
-
-  if (loading) {
-    return <div className="max-w-4xl mx-auto px-4 py-12 text-center text-gray-500">Loading profile...</div>;
-  }
+  const [coach, reviewsData] = await Promise.all([
+    prisma.coachProfile.findUnique({
+      where: { id },
+      include: {
+        user: { select: { email: true, name: true } },
+        coachSkills: {
+          include: { skill: true },
+          orderBy: { displayOrder: "asc" },
+        },
+      },
+    }),
+    prisma.review.findMany({
+      where: { coachProfileId: id },
+      include: {
+        reviewer: {
+          select: { ensembleName: true, ensembleType: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
+  ]);
 
   if (!coach) {
-    return <div className="max-w-4xl mx-auto px-4 py-12 text-center text-gray-500">Coach not found</div>;
+    notFound();
   }
+
+  // Increment profile views in background (non-blocking)
+  prisma.coachProfile.update({
+    where: { id },
+    data: { profileViews: { increment: 1 } },
+  }).catch(() => {});
 
   const coachSkills = coach.coachSkills || [];
   const ensembleTypes = parseJsonArray(coach.ensembleTypes);
@@ -180,7 +82,7 @@ export default function CoachProfilePage() {
   const coachingFormats = parseJsonArray(coach.coachingFormats);
   const voiceTypes = parseJsonArray(coach.voiceTypes);
 
-  const groupedSkills: Record<string, CoachSkillItem[]> = {};
+  const groupedSkills: Record<string, typeof coachSkills> = {};
   for (const cs of coachSkills) {
     const cat = cs.skill.category;
     if (!groupedSkills[cat]) groupedSkills[cat] = [];
@@ -194,7 +96,7 @@ export default function CoachProfilePage() {
 
   const skillVerificationCounts: Record<string, number> = {};
   const skillVerifiers: Record<string, string[]> = {};
-  reviews.forEach((review) => {
+  reviewsData.forEach((review) => {
     const validated = parseJsonArray(review.validatedSkills);
     validated.forEach((skill) => {
       skillVerificationCounts[skill] = (skillVerificationCounts[skill] || 0) + 1;
@@ -235,54 +137,13 @@ export default function CoachProfilePage() {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-4">
-                {session?.user?.id === coach.userId && (
-                  <Link href="/dashboard/coach/profile">
-                    <Button>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </Button>
-                  </Link>
-                )}
-                {session && session.user?.id !== coach.userId && (
-                  <Button
-                    variant="outline"
-                    onClick={toggleFavorite}
-                    disabled={togglingFav}
-                    className={isFavorite ? "border-coral-300 text-coral-600" : ""}
-                  >
-                    <Heart className={`h-4 w-4 mr-2 ${isFavorite ? "fill-coral-500 text-coral-500" : ""}`} />
-                    {isFavorite ? "Favourited" : "Favourite"}
-                  </Button>
-                )}
-                {session && session.user?.ensembleProfileIds?.length > 0 && session.user?.id !== coach.userId && (
-                  <Link href={`/reviews/submit?coachId=${coach.id}`}>
-                    <Button variant="outline">
-                      <MessageSquareText className="h-4 w-4 mr-2" />
-                      Submit a Review
-                    </Button>
-                  </Link>
-                )}
-              </div>
+              <CoachProfileActionButtons coachId={coach.id} coachUserId={coach.userId} />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {session?.user?.id === coach.userId && (!coach.approved || !coach.verified) && (
-        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-amber-800">
-              {!coach.approved && !coach.verified
-                ? "Your profile is pending admin approval and verification. It will not be publicly visible until an admin approves it."
-                : !coach.approved
-                ? "Your profile is pending admin approval. It will not be publicly visible until an admin approves it."
-                : "Your profile is not yet verified. While it is visible, verification adds extra credibility."}
-            </p>
-          </div>
-        </div>
-      )}
+      <OwnerWarningBanner coachUserId={coach.userId} approved={coach.approved} verified={coach.verified} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2 space-y-6">
@@ -307,6 +168,7 @@ export default function CoachProfilePage() {
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                         className="w-full h-full"
+                        loading="lazy"
                       />
                     </div>
                   ) : (
@@ -321,7 +183,7 @@ export default function CoachProfilePage() {
             );
           })()}
 
-          {reviews.length > 0 && (
+          {reviewsData.length > 0 && (
             <Card>
               <CardHeader>
                 <h2 className="text-lg font-semibold text-gray-900">
@@ -330,7 +192,7 @@ export default function CoachProfilePage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {reviews.map((review) => (
+                  {reviewsData.map((review) => (
                     <div key={review.id} className="border-b border-gray-100 pb-4 last:border-0">
                       <div className="flex items-center justify-between">
                         <div>
@@ -369,21 +231,7 @@ export default function CoachProfilePage() {
                     Send Email
                   </a>
                 ) : coach.contactMethod === "phone" ? (
-                  <div className="relative w-full h-10 [perspective:600px]">
-                    <div className={`relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d] ${phoneRevealed ? "[transform:rotateX(180deg)]" : ""}`}>
-                      <button
-                        onClick={() => setPhoneRevealed(true)}
-                        className="absolute inset-0 w-full inline-flex items-center justify-center gap-2 text-sm font-medium text-white bg-coral-500 hover:bg-coral-600 rounded-lg transition-colors [backface-visibility:hidden]"
-                      >
-                        <Phone className="h-4 w-4" />
-                        Call
-                      </button>
-                      <div className="absolute inset-0 w-full inline-flex items-center justify-center gap-2 text-sm font-semibold text-coral-600 bg-coral-50 border border-coral-200 rounded-lg [backface-visibility:hidden] [transform:rotateX(180deg)]">
-                        <Phone className="h-4 w-4" />
-                        {coach.contactDetail}
-                      </div>
-                    </div>
-                  </div>
+                  <PhoneRevealButton contactDetail={coach.contactDetail} />
                 ) : coach.contactMethod === "website" ? (
                   <a href={coach.contactDetail.startsWith("http") ? coach.contactDetail : `https://${coach.contactDetail}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 w-full text-sm font-medium text-white bg-coral-500 hover:bg-coral-600 px-4 py-2.5 rounded-lg transition-colors">
                     <Globe className="h-4 w-4" />

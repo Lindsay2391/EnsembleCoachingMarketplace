@@ -661,20 +661,20 @@ export default function CoachProfileForm() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Voice Types</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Vocal Ranges</label>
               <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={() => toggleArrayItem(voiceTypes, setVoiceTypes, "upper_voice")}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                     voiceTypes.includes("upper_voice") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
-                  }`}>Upper Voice</button>
+                  }`}>Upper Ranges</button>
                 <button type="button" onClick={() => toggleArrayItem(voiceTypes, setVoiceTypes, "mixed_voice")}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                     voiceTypes.includes("mixed_voice") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
-                  }`}>Mixed Voice</button>
+                  }`}>Mixed Ranges</button>
                 <button type="button" onClick={() => toggleArrayItem(voiceTypes, setVoiceTypes, "lower_voice")}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                     voiceTypes.includes("lower_voice") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
-                  }`}>Lower Voice</button>
+                  }`}>Lower Ranges</button>
               </div>
             </div>
           </CardContent>

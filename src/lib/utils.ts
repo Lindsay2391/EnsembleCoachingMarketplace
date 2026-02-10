@@ -96,9 +96,9 @@ export const ENSEMBLE_TYPES = [
 ];
 
 export const VOICE_RANGES = [
-  "Upper Voice",
-  "Mixed Voice",
-  "Lower Voice",
+  "Upper Ranges",
+  "Mixed Ranges",
+  "Lower Ranges",
 ];
 
 export const SESSION_TYPES = [

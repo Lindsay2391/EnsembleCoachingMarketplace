@@ -345,7 +345,7 @@ export default function CoachProfilePage() {
                         <span className="text-sm text-gray-500">
                           {MONTH_NAMES[review.sessionMonth - 1]} {review.sessionYear}
                         </span>
-                        <Badge variant={review.sessionFormat === "in_person" ? "info" : "default"}>
+                        <Badge variant="info">
                           {review.sessionFormat === "in_person" ? "In Person" : "Virtual"}
                         </Badge>
                       </div>
@@ -496,7 +496,7 @@ export default function CoachProfilePage() {
               <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Clock className="h-4 w-4 inline mr-1" />Ensemble Types</h2></CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {ensembleTypes.map((t) => (<Badge key={t}>{t}</Badge>))}
+                  {ensembleTypes.map((t) => (<Badge key={t} variant="info">{t}</Badge>))}
                 </div>
               </CardContent>
             </Card>
@@ -506,7 +506,7 @@ export default function CoachProfilePage() {
             <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Clock className="h-4 w-4 inline mr-1" />Experience Levels</h2></CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {experienceLevels.map((l) => (<Badge key={l}>{l}</Badge>))}
+                {experienceLevels.map((l) => (<Badge key={l} variant="info">{l}</Badge>))}
               </div>
             </CardContent>
           </Card>
@@ -517,7 +517,7 @@ export default function CoachProfilePage() {
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {coachingFormats.includes("in_person") && <Badge variant="info">In Person</Badge>}
-                  {coachingFormats.includes("virtual") && <Badge>Virtual</Badge>}
+                  {coachingFormats.includes("virtual") && <Badge variant="info">Virtual</Badge>}
                 </div>
               </CardContent>
             </Card>
@@ -525,12 +525,12 @@ export default function CoachProfilePage() {
 
           {voiceTypes.length > 0 && (
             <Card>
-              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Users className="h-4 w-4 inline mr-1" />Voice Types</h2></CardHeader>
+              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Users className="h-4 w-4 inline mr-1" />Vocal Ranges</h2></CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {voiceTypes.includes("upper_voice") && <Badge>Upper Voice</Badge>}
-                  {voiceTypes.includes("mixed_voice") && <Badge variant="info">Mixed Voice</Badge>}
-                  {voiceTypes.includes("lower_voice") && <Badge>Lower Voice</Badge>}
+                  {voiceTypes.includes("upper_voice") && <Badge variant="info">Upper Ranges</Badge>}
+                  {voiceTypes.includes("mixed_voice") && <Badge variant="info">Mixed Ranges</Badge>}
+                  {voiceTypes.includes("lower_voice") && <Badge variant="info">Lower Ranges</Badge>}
                 </div>
               </CardContent>
             </Card>

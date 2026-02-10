@@ -65,6 +65,7 @@ export default function CoachProfileForm() {
   const [currency, setCurrency] = useState("AUD");
   const [photoUrl, setPhotoUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [coachingFormats, setCoachingFormats] = useState<string[]>(["in_person", "virtual"]);
   const [cancellationPolicy, setCancellationPolicy] = useState("");
   const [travelSupplement, setTravelSupplement] = useState("");
   const [customSkillInputs, setCustomSkillInputs] = useState<Record<string, string>>({});
@@ -110,6 +111,7 @@ export default function CoachProfileForm() {
             setCurrency(myProfile.currency || "AUD");
             setPhotoUrl(myProfile.photoUrl || "");
             setVideoUrl(myProfile.videoUrl || "");
+            setCoachingFormats(JSON.parse(myProfile.coachingFormats || '["in_person","virtual"]'));
             setCancellationPolicy(myProfile.cancellationPolicy || "");
             setTravelSupplement(myProfile.travelSupplement?.toString() || "");
 
@@ -354,6 +356,7 @@ export default function CoachProfileForm() {
       travelSupplement: ratesOnEnquiry ? null : (travelSupplement ? parseFloat(travelSupplement) : null),
       photoUrl: photoUrl || null,
       videoUrl: videoUrl || null,
+      coachingFormats,
       cancellationPolicy: cancellationPolicy || null,
     };
 
@@ -639,6 +642,20 @@ export default function CoachProfileForm() {
                       experienceLevels.includes(l) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
                     }`}>{l}</button>
                 ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Coaching Format *</label>
+              <p className="text-xs text-gray-500 mb-2">Select all that apply</p>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => toggleArrayItem(coachingFormats, setCoachingFormats, "in_person")}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                    coachingFormats.includes("in_person") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
+                  }`}>In Person</button>
+                <button type="button" onClick={() => toggleArrayItem(coachingFormats, setCoachingFormats, "virtual")}
+                  className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                    coachingFormats.includes("virtual") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
+                  }`}>Virtual</button>
               </div>
             </div>
           </CardContent>

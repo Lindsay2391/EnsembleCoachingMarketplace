@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
 import Textarea from "@/components/ui/Textarea";
+import MonthYearPicker from "@/components/ui/MonthYearPicker";
 
 interface CoachSkillItem {
   id: string;
@@ -39,11 +40,6 @@ interface EnsembleInfo {
   city: string;
   state: string;
 }
-
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
 
 function SubmitReviewContent() {
   const { data: session, status } = useSession();
@@ -206,16 +202,6 @@ function SubmitReviewContent() {
     groupedSkills[cat].push(cs);
   }
 
-  const now = new Date();
-  const monthOptions: { month: number; year: number; label: string }[] = [];
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    monthOptions.push({
-      month: d.getMonth() + 1,
-      year: d.getFullYear(),
-      label: `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`,
-    });
-  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -299,21 +285,14 @@ function SubmitReviewContent() {
           <CardContent className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">When did the session take place?</label>
-              <select
-                value={`${sessionMonth}-${sessionYear}`}
-                onChange={(e) => {
-                  const [m, y] = e.target.value.split("-");
-                  setSessionMonth(parseInt(m));
-                  setSessionYear(parseInt(y));
+              <MonthYearPicker
+                month={sessionMonth}
+                year={sessionYear}
+                onChange={(m, y) => {
+                  setSessionMonth(m);
+                  setSessionYear(y);
                 }}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-coral-500 focus:outline-none focus:ring-1 focus:ring-coral-500 sm:text-sm"
-              >
-                {monthOptions.map((opt) => (
-                  <option key={`${opt.month}-${opt.year}`} value={`${opt.month}-${opt.year}`}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Session Format</label>

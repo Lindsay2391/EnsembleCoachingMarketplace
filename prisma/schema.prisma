@@ -49,6 +49,7 @@ model CoachProfile {
   ratesOnEnquiry    Boolean  @default(false)
   currency          String   @default("AUD")
   availability      String?
+  coachingFormats   String   @default("[\"in_person\",\"virtual\"]")
   rating            Float    @default(0)
   totalReviews      Int      @default(0)
   totalBookings     Int      @default(0)

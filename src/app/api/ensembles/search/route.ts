@@ -29,6 +29,9 @@ export async function GET(request: Request) {
           contains: q,
           mode: "insensitive",
         },
+        userId: {
+          not: user.id,
+        },
       },
       select: {
         id: true,

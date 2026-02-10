@@ -31,11 +31,15 @@ export async function POST(request: Request) {
 
     const ensemble = await prisma.ensembleProfile.findUnique({
       where: { id: ensembleProfileId },
-      include: { user: { select: { email: true } } },
+      include: { user: { select: { id: true, email: true } } },
     });
 
     if (!ensemble) {
       return NextResponse.json({ error: "Ensemble not found on CoachConnect" }, { status: 404 });
+    }
+
+    if (ensemble.user.id === user.id) {
+      return NextResponse.json({ error: "You cannot send a review invite to your own ensemble" }, { status: 400 });
     }
 
     const existing = await prisma.reviewInvite.findFirst({

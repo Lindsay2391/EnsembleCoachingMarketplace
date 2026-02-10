@@ -51,6 +51,7 @@ interface CoachProfile {
   totalBookings: number;
   approved: boolean;
   verified: boolean;
+  coachingFormats: string;
   cancellationPolicy: string | null;
   travelSupplement: number | null;
   profileViews: number;
@@ -171,6 +172,7 @@ export default function CoachProfilePage() {
   const coachSkills = coach.coachSkills || [];
   const ensembleTypes = parseJsonArray(coach.ensembleTypes);
   const experienceLevels = parseJsonArray(coach.experienceLevels);
+  const coachingFormats = parseJsonArray(coach.coachingFormats);
 
   const groupedSkills: Record<string, CoachSkillItem[]> = {};
   for (const cs of coachSkills) {
@@ -506,6 +508,18 @@ export default function CoachProfilePage() {
               </div>
             </CardContent>
           </Card>
+
+          {coachingFormats.length > 0 && (
+            <Card>
+              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Globe className="h-4 w-4 inline mr-1" />Coaching Format</h2></CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {coachingFormats.includes("in_person") && <Badge variant="info">In Person</Badge>}
+                  {coachingFormats.includes("virtual") && <Badge>Virtual</Badge>}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {coach.cancellationPolicy && (
             <Card>

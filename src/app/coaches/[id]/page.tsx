@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle, Heart } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle, Heart, MessageSquareText } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -249,6 +249,14 @@ export default function CoachProfilePage() {
                     <Heart className={`h-4 w-4 mr-2 ${isFavorite ? "fill-coral-500 text-coral-500" : ""}`} />
                     {isFavorite ? "Favourited" : "Favourite"}
                   </Button>
+                )}
+                {session && session.user?.ensembleProfileIds?.length > 0 && session.user?.id !== coach.userId && (
+                  <Link href={`/reviews/submit?coachId=${coach.id}`}>
+                    <Button variant="outline">
+                      <MessageSquareText className="h-4 w-4 mr-2" />
+                      Submit a Review
+                    </Button>
+                  </Link>
                 )}
               </div>
             </div>

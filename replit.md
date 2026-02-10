@@ -33,7 +33,9 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Navigation includes "Dashboard" for all users and "Admin Panel" for administrators.
 
 **Review System:**
-- Coaches can initiate invite-based review requests to ensembles.
+- Two-way review flow: Coaches can invite ensembles to review them, AND ensembles can submit reviews unprompted.
+- Ensemble-initiated reviews require coach approval before going live. Coaches see only the ensemble name and coaching period — not the rating, testimonial, or skills — before deciding to approve or reject.
+- On approval, the review is converted to a full Review record with ratings, skill endorsements, and testimonials applied to the coach profile.
 - Reviews include ratings, testimonials, session details, and validated skills, which increment `endorsementCount` on coach profiles.
 - An admin moderation system is in place for reviews.
 
@@ -48,7 +50,7 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Feedback tab shows a count badge on the tab button for unread ("new") items.
 
 **Notification System:**
-- Notification bell in the navbar shows pending review invites for ensemble users and pending coach approval counts for admins.
+- Notification bell in the navbar shows pending review invites for ensemble users, pending ensemble-initiated reviews for coaches, and pending coach approval counts for admins.
 - Admins see the bell even without ensemble profiles; notifications link to the admin panel.
 
 **Email Verification & Password Reset:**
@@ -60,6 +62,9 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-10: Added ensemble-initiated review system — ensembles can submit reviews from coach profiles; coaches approve/reject blindly (without seeing content); approved reviews become full Review records with ratings and skill endorsements
+- 2026-02-10: Coach notification bell now shows pending ensemble review count
+- 2026-02-10: Dashboard ensemble profile cards show pending review invite indicators
 - 2026-02-09: Migrated profile picture uploads from filesystem (public/uploads) to Replit Object Storage for production persistence; new photos stored at /api/objects/uploads/uuid.ext
 - 2026-02-09: Moved account verification from Coaches tab to Users tab in admin panel; admin verify/unverify now syncs coach profile verified tick automatically
 - 2026-02-09: Coach profiles auto-receive verified tick when created by email-verified users, or when user verifies email with existing coach profile

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Star, Send, Search, CheckCircle, Clock, AlertCircle, X } from "lucide-react";
+import { Star, Send, Search, CheckCircle, Clock, AlertCircle, X, Check, XCircle, MapPin, Users } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -31,12 +31,34 @@ interface EnsembleResult {
   state: string;
 }
 
+interface PendingEnsembleReview {
+  id: string;
+  sessionMonth: number;
+  sessionYear: number;
+  sessionFormat: string;
+  createdAt: string;
+  ensembleProfile: {
+    ensembleName: string;
+    ensembleType: string;
+    city: string;
+    state: string;
+    country: string;
+  };
+}
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 export default function CoachReviewsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [invites, setInvites] = useState<ReviewInvite[]>([]);
+  const [pendingEnsembleReviews, setPendingEnsembleReviews] = useState<PendingEnsembleReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [processing, setProcessing] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -62,6 +84,7 @@ export default function CoachReviewsPage() {
     }
 
     fetchInvites();
+    fetchPendingEnsembleReviews();
   }, [session, status, router]);
 
   useEffect(() => {
@@ -118,6 +141,42 @@ export default function CoachReviewsPage() {
       console.error("Error fetching invites:", err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchPendingEnsembleReviews() {
+    try {
+      const res = await fetch("/api/reviews/ensemble-pending");
+      if (res.ok) {
+        setPendingEnsembleReviews(await res.json());
+      }
+    } catch (err) {
+      console.error("Error fetching pending ensemble reviews:", err);
+    }
+  }
+
+  async function handleEnsembleReviewAction(reviewId: string, action: "approve" | "reject") {
+    setProcessing(reviewId);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch(`/api/reviews/ensemble-approve/${reviewId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      if (res.ok) {
+        setSuccess(action === "approve" ? "Review approved and published!" : "Review rejected.");
+        fetchPendingEnsembleReviews();
+        if (action === "approve") fetchInvites();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to process review");
+      }
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setProcessing(null);
     }
   }
 
@@ -189,6 +248,65 @@ export default function CoachReviewsPage() {
           <p className="mt-1 text-gray-600">Invite ensembles registered on CoachConnect to leave reviews</p>
         </div>
       </div>
+
+      {pendingEnsembleReviews.length > 0 && (
+        <Card className="mb-8 border-coral-200">
+          <CardHeader>
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Users className="h-5 w-5 text-coral-500" />
+              Pending Review Approvals
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">Ensembles have submitted reviews of your coaching. Approve to publish them on your profile.</p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {pendingEnsembleReviews.map((review) => (
+                <div key={review.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-gray-900">{review.ensembleProfile.ensembleName}</p>
+                      <p className="text-sm text-gray-500">{review.ensembleProfile.ensembleType}</p>
+                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                        <MapPin className="h-3 w-3" />
+                        {review.ensembleProfile.city}, {review.ensembleProfile.state}, {review.ensembleProfile.country}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <span className="text-sm text-gray-600">
+                          Coaching in {MONTH_NAMES[review.sessionMonth - 1]} {review.sessionYear}
+                        </span>
+                        <Badge variant={review.sessionFormat === "in_person" ? "info" : "default"}>
+                          {review.sessionFormat === "in_person" ? "In Person" : "Virtual"}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <Button
+                        size="sm"
+                        onClick={() => handleEnsembleReviewAction(review.id, "approve")}
+                        disabled={processing === review.id}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEnsembleReviewAction(review.id, "reject")}
+                        disabled={processing === review.id}
+                        className="text-red-600 border-red-300 hover:bg-red-50"
+                      >
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="mb-8">
         <CardHeader>

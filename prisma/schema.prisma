@@ -65,6 +65,7 @@ model CoachProfile {
   reviewInvites  ReviewInvite[]
   favoritedBy    FavoriteCoach[]
   coachSkills    CoachSkill[]
+  ensembleReviews EnsembleReview[]
 
   @@index([approved, rating, totalBookings])
   @@index([state])
@@ -89,6 +90,7 @@ model EnsembleProfile {
   bookings       Booking[]
   reviews        Review[]
   reviewInvites  ReviewInvite[]
+  ensembleReviews EnsembleReview[]
 
   @@unique([ensembleName, state, country])
   @@index([userId])
@@ -235,4 +237,24 @@ model Feedback {
   @@index([status])
   @@index([category])
   @@index([createdAt])
+}
+
+model EnsembleReview {
+  id                String          @id @default(cuid())
+  ensembleProfileId String
+  ensembleProfile   EnsembleProfile @relation(fields: [ensembleProfileId], references: [id], onDelete: Cascade)
+  coachProfileId    String
+  coachProfile      CoachProfile    @relation(fields: [coachProfileId], references: [id], onDelete: Cascade)
+  rating            Int
+  reviewText        String?
+  sessionMonth      Int
+  sessionYear       Int
+  sessionFormat     String
+  validatedSkills   String          @default("[]")
+  status            String          @default("pending")
+  createdAt         DateTime        @default(now())
+  approvedAt        DateTime?
+
+  @@unique([ensembleProfileId, coachProfileId])
+  @@index([coachProfileId, status])
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, Star, ShieldAlert, X } from "lucide-react";
+import { Bell, Star, ShieldAlert, Users, X } from "lucide-react";
 import Link from "next/link";
 
 interface PendingInvite {
@@ -18,23 +18,27 @@ interface PendingInvite {
 
 interface NotificationBellProps {
   isAdmin?: boolean;
+  hasCoachProfile?: boolean;
 }
 
-export default function NotificationBell({ isAdmin = false }: NotificationBellProps) {
+export default function NotificationBell({ isAdmin = false, hasCoachProfile = false }: NotificationBellProps) {
   const [invites, setInvites] = useState<PendingInvite[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [pendingEnsembleReviews, setPendingEnsembleReviews] = useState(0);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchInvites();
     if (isAdmin) fetchPendingApprovals();
+    if (hasCoachProfile) fetchPendingEnsembleReviews();
     const interval = setInterval(() => {
       fetchInvites();
       if (isAdmin) fetchPendingApprovals();
+      if (hasCoachProfile) fetchPendingEnsembleReviews();
     }, 60000);
     return () => clearInterval(interval);
-  }, [isAdmin]);
+  }, [isAdmin, hasCoachProfile]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -67,7 +71,18 @@ export default function NotificationBell({ isAdmin = false }: NotificationBellPr
     }
   }
 
-  const count = invites.length + pendingApprovals;
+  async function fetchPendingEnsembleReviews() {
+    try {
+      const res = await fetch("/api/reviews/ensemble-pending/count");
+      if (res.ok) {
+        const data = await res.json();
+        setPendingEnsembleReviews(data.count);
+      }
+    } catch {
+    }
+  }
+
+  const count = invites.length + pendingApprovals + pendingEnsembleReviews;
 
   return (
     <div ref={ref} className="relative">
@@ -118,6 +133,27 @@ export default function NotificationBell({ isAdmin = false }: NotificationBellPr
                     </div>
                   </Link>
                 )}
+                {hasCoachProfile && pendingEnsembleReviews > 0 && (
+                  <Link
+                    href="/dashboard/coach/reviews"
+                    onClick={() => setOpen(false)}
+                    className="block px-4 py-3 hover:bg-coral-50 border-b border-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-coral-100 flex-shrink-0">
+                        <Users className="h-4 w-4 text-coral-500" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm text-gray-900">
+                          <span className="font-medium">{pendingEnsembleReviews} ensemble review{pendingEnsembleReviews === 1 ? "" : "s"}</span> pending your approval
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Review in Coach Dashboard
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                )}
                 {invites.map((invite) => (
                   <Link
                     key={invite.id}
@@ -152,6 +188,15 @@ export default function NotificationBell({ isAdmin = false }: NotificationBellPr
                   className="text-xs text-coral-500 hover:text-coral-600 font-medium"
                 >
                   View invites
+                </Link>
+              )}
+              {hasCoachProfile && pendingEnsembleReviews > 0 && (
+                <Link
+                  href="/dashboard/coach/reviews"
+                  onClick={() => setOpen(false)}
+                  className="text-xs text-coral-500 hover:text-coral-600 font-medium"
+                >
+                  Coach Reviews
                 </Link>
               )}
               {isAdmin && pendingApprovals > 0 && (

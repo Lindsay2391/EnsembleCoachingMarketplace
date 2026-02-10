@@ -13,6 +13,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isAdmin = session?.user?.userType === "admin";
+  const hasCoachProfile = !!session?.user?.coachProfileId;
 
   return (
     <nav className="bg-white border-b border-gray-200">
@@ -56,7 +57,7 @@ export default function Navbar() {
           <div className="hidden sm:flex sm:items-center sm:gap-3">
             {session ? (
               <div className="flex items-center gap-3">
-                {(session.user.ensembleProfileIds?.length > 0 || isAdmin) && <NotificationBell isAdmin={isAdmin} />}
+                {(session.user.ensembleProfileIds?.length > 0 || isAdmin || hasCoachProfile) && <NotificationBell isAdmin={isAdmin} hasCoachProfile={hasCoachProfile} />}
                 <Link
                   href="/dashboard"
                   className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
@@ -88,7 +89,7 @@ export default function Navbar() {
           </div>
 
           <div className="sm:hidden flex items-center gap-2">
-            {((session?.user?.ensembleProfileIds?.length ?? 0) > 0 || isAdmin) && <NotificationBell isAdmin={isAdmin} />}
+            {((session?.user?.ensembleProfileIds?.length ?? 0) > 0 || isAdmin || hasCoachProfile) && <NotificationBell isAdmin={isAdmin} hasCoachProfile={hasCoachProfile} />}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-gray-600 hover:text-gray-900"

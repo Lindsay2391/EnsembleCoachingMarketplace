@@ -33,6 +33,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [coachProfile, setCoachProfile] = useState<CoachInfo | null>(null);
   const [ensembleProfiles, setEnsembleProfiles] = useState<EnsembleInfo[]>([]);
+  const [pendingInviteCounts, setPendingInviteCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [emailVerified, setEmailVerified] = useState(true);
   const [resending, setResending] = useState(false);
@@ -63,6 +64,18 @@ export default function Dashboard() {
           const data = await ensembleRes.json();
           if (data.profiles) setEnsembleProfiles(data.profiles);
         }
+        const invitesRes = await fetch("/api/reviews/invites/pending");
+        if (invitesRes.ok) {
+          const invitesData = await invitesRes.json();
+          const counts: Record<string, number> = {};
+          for (const invite of invitesData) {
+            if (invite.coachProfile?.id) {
+              counts["_total"] = (counts["_total"] || 0) + 1;
+            }
+          }
+          setPendingInviteCounts({ ...counts, _total: invitesData.length });
+        }
+
         const verifyRes = await fetch("/api/verify-status");
         if (verifyRes.ok) {
           const verifyData = await verifyRes.json();
@@ -230,6 +243,14 @@ export default function Dashboard() {
                         {ep.ensembleType} &middot; {ep.city}, {ep.state}
                       </p>
                     </div>
+                    {(pendingInviteCounts._total || 0) > 0 && (
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Star className="h-3.5 w-3.5 text-coral-500" />
+                        <span className="text-sm text-coral-600 font-medium">
+                          {pendingInviteCounts._total} review invite{pendingInviteCounts._total === 1 ? "" : "s"} pending
+                        </span>
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       <Link href={`/dashboard/ensemble?id=${ep.id}`} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full">

@@ -418,7 +418,7 @@ export default function CoachProfileForm() {
         <Card>
           <CardHeader><h2 className="text-lg font-semibold">Basic Information</h2></CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-start gap-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
               <div className="flex flex-col items-center gap-2">
                 <div className="w-24 h-24 rounded-full bg-coral-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                   {photoUrl ? (
@@ -446,15 +446,11 @@ export default function CoachProfileForm() {
                 </Button>
                 <p className="text-xs text-gray-400">Max 8MB. JPG, PNG, WebP</p>
               </div>
-              <div className="flex-1 space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <Input id="fullName" label="Full Name *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-                  </div>
-                  <Input id="pronouns" label="Pronouns" value={pronouns} onChange={(e) => setPronouns(e.target.value)} placeholder="e.g. she/her" />
-                </div>
+              <div className="flex-1 w-full space-y-4">
+                <Input id="fullName" label="Full Name *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                <Input id="pronouns" label="Pronouns" value={pronouns} onChange={(e) => setPronouns(e.target.value)} placeholder="e.g. she/her" />
                 <Select id="country" label="Country *" value={country} onChange={(e) => { setCountry(e.target.value); setState(""); setCurrency(getDefaultCurrency(e.target.value)); }} required placeholder="Select country" options={COUNTRY_NAMES.map((c) => ({ value: c, label: c }))} />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input id="city" label="City *" value={city} onChange={(e) => setCity(e.target.value)} required placeholder="e.g. Sydney" />
                   <Select id="state" label={`${getRegionLabel(country)} *`} value={state} onChange={(e) => setState(e.target.value)} required placeholder={`Select ${getRegionLabel(country).toLowerCase()}`} options={getRegionsForCountry(country).map((s) => ({ value: s, label: s }))} />
                 </div>

@@ -22,6 +22,7 @@ export default function CoachAvatar({ photoUrl, fullName, size, textSize = "text
           alt={fullName}
           width={size}
           height={size}
+          sizes={`${size}px`}
           className={`w-full h-full rounded-full object-cover`}
           onError={() => setImageError(true)}
         />

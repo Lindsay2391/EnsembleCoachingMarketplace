@@ -137,7 +137,10 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({ skills: filterSkills, allSkills });
+    return NextResponse.json(
+      { skills: filterSkills, allSkills },
+      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } }
+    );
   } catch (error) {
     console.error("Error fetching skills:", error);
     return NextResponse.json(

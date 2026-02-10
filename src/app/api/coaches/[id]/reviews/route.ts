@@ -44,13 +44,16 @@ export async function GET(
       prisma.review.count({ where: { coachProfileId: id } }),
     ]);
 
-    return NextResponse.json({
-      reviews,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    });
+    return NextResponse.json(
+      {
+        reviews,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120" } }
+    );
   } catch (error) {
     console.error("Error fetching reviews:", error);
     return NextResponse.json(

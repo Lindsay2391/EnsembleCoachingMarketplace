@@ -126,18 +126,20 @@ export async function POST(request: Request) {
       }
     }
 
-    const allReviews = await prisma.review.findMany({
+    const aggregation = await prisma.review.aggregate({
       where: { coachProfileId: invite.coachProfileId },
-      select: { rating: true },
+      _avg: { rating: true },
+      _count: { rating: true },
     });
 
-    const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+    const avgRating = aggregation._avg.rating ?? 0;
+    const totalReviews = aggregation._count.rating;
 
     await prisma.coachProfile.update({
       where: { id: invite.coachProfileId },
       data: {
         rating: Math.round(avgRating * 10) / 10,
-        totalReviews: allReviews.length,
+        totalReviews,
       },
     });
 

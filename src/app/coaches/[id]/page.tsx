@@ -52,6 +52,7 @@ interface CoachProfile {
   approved: boolean;
   verified: boolean;
   coachingFormats: string;
+  voiceTypes: string;
   cancellationPolicy: string | null;
   travelSupplement: number | null;
   profileViews: number;

@@ -8,7 +8,8 @@ import { z } from "zod";
 const ensembleSchema = z.object({
   ensembleName: z.string().min(1, "Ensemble name is required"),
   ensembleType: z.string().min(1, "Ensemble type is required"),
-  size: z.number().int().positive("Size must be a positive number"),
+  voiceRange: z.string().optional(),
+  size: z.number().int().positive("Size must be a positive number").optional(),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
   country: z.string().optional(),
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { ensembleName, ensembleType, size, city, state, country, genres, experienceLevel } =
+    const { ensembleName, ensembleType, voiceRange, size, city, state, country, genres, experienceLevel } =
       validation.data;
 
     const dbUser = await prisma.user.findUnique({
@@ -70,7 +71,8 @@ export async function POST(request: Request) {
         userId: user.id,
         ensembleName,
         ensembleType,
-        size,
+        voiceRange: voiceRange || null,
+        size: size || null,
         city,
         state,
         country: country || "Australia",

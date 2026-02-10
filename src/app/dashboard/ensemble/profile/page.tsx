@@ -7,7 +7,7 @@ import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
-import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, COUNTRY_NAMES, getRegionsForCountry, getRegionLabel } from "@/lib/utils";
+import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, VOICE_RANGES, COUNTRY_NAMES, getRegionsForCountry, getRegionLabel } from "@/lib/utils";
 
 const GENRES = [
   "Barbershop",
@@ -42,6 +42,7 @@ function EnsembleProfileFormContent() {
 
   const [ensembleName, setEnsembleName] = useState("");
   const [ensembleType, setEnsembleType] = useState("");
+  const [voiceRange, setVoiceRange] = useState("");
   const [size, setSize] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
@@ -62,6 +63,7 @@ function EnsembleProfileFormContent() {
             setExistingId(data.id);
             setEnsembleName(data.ensembleName || "");
             setEnsembleType(data.ensembleType || "");
+            setVoiceRange(data.voiceRange || "");
             setSize(data.size?.toString() || "");
             setCity(data.city || "");
             setState(data.state || "");
@@ -96,7 +98,8 @@ function EnsembleProfileFormContent() {
     const payload = {
       ensembleName,
       ensembleType,
-      size: parseInt(size),
+      voiceRange: voiceRange || undefined,
+      size: size ? parseInt(size) : undefined,
       city,
       state,
       country,
@@ -151,8 +154,9 @@ function EnsembleProfileFormContent() {
             <Input id="ensembleName" label="Ensemble Name *" value={ensembleName} onChange={(e) => setEnsembleName(e.target.value)} required placeholder="e.g. Harmony Heights Chorus" />
             <div className="grid grid-cols-2 gap-4">
               <Select id="ensembleType" label="Ensemble Type *" value={ensembleType} onChange={(e) => setEnsembleType(e.target.value)} required placeholder="Select type" options={ENSEMBLE_TYPES.map((t) => ({ value: t.toLowerCase().replace(/ /g, "_"), label: t }))} />
-              <Input id="size" label="Group Size *" type="number" min="2" value={size} onChange={(e) => setSize(e.target.value)} required placeholder="e.g. 30" />
+              <Select id="voiceRange" label="Voice Range" value={voiceRange} onChange={(e) => setVoiceRange(e.target.value)} placeholder="Select voice range" options={VOICE_RANGES.map((v) => ({ value: v.toLowerCase().replace(/ /g, "_"), label: v }))} />
             </div>
+            <Input id="size" label="Group Size" type="number" min="2" value={size} onChange={(e) => setSize(e.target.value)} placeholder="e.g. 30" />
             <Select id="country" label="Country *" value={country} onChange={(e) => { setCountry(e.target.value); setState(""); }} required placeholder="Select country" options={COUNTRY_NAMES.map((c) => ({ value: c, label: c }))} />
             <div className="grid grid-cols-2 gap-4">
               <Input id="city" label="City *" value={city} onChange={(e) => setCity(e.target.value)} required placeholder="e.g. Melbourne" />

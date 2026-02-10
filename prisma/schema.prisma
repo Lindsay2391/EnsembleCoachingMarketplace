@@ -79,7 +79,8 @@ model EnsembleProfile {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   ensembleName    String
   ensembleType    String
-  size            Int
+  voiceRange      String?
+  size            Int?
   city            String
   state           String
   country         String   @default("Australia")

@@ -91,11 +91,14 @@ export const EXPERIENCE_LEVELS = [
 ];
 
 export const ENSEMBLE_TYPES = [
-  "Chorus",
   "Quartet",
-  "Upper Voice Groups",
-  "Mixed Voice Groups",
-  "Lower Voice Groups",
+  "Chorus",
+];
+
+export const VOICE_RANGES = [
+  "Upper Voice",
+  "Mixed Voice",
+  "Lower Voice",
 ];
 
 export const SESSION_TYPES = [

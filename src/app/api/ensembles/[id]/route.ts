@@ -94,7 +94,8 @@ export async function PUT(
     const updateData: Record<string, unknown> = {};
     if (body.ensembleName !== undefined) updateData.ensembleName = body.ensembleName;
     if (body.ensembleType !== undefined) updateData.ensembleType = body.ensembleType;
-    if (body.size !== undefined) updateData.size = body.size;
+    if (body.voiceRange !== undefined) updateData.voiceRange = body.voiceRange || null;
+    if (body.size !== undefined) updateData.size = body.size || null;
     if (body.city !== undefined) updateData.city = body.city;
     if (body.state !== undefined) updateData.state = body.state;
     if (body.country !== undefined) updateData.country = body.country;

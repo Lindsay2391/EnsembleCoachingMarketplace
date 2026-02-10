@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import Image from "next/image";
 import CoachAvatar from "@/components/ui/CoachAvatar";
 import { Search, MapPin, Filter, X, Heart } from "lucide-react";
 import Input from "@/components/ui/Input";

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import Image from "next/image";
 import CoachAvatar from "@/components/ui/CoachAvatar";
 import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Phone, Mail, Globe, Pencil, AlertTriangle, Heart, MessageSquareText, Users } from "lucide-react";
 import Button from "@/components/ui/Button";

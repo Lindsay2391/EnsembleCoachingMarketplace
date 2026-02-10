@@ -207,6 +207,12 @@ function SubmitReviewContent() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Submit a Review</h1>
 
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <p className="text-sm text-amber-800">
+          <strong>Please note:</strong> Because this review is unprompted, the coach will need to approve it before it goes live. However, they will <strong>not</strong> be able to see your rating, comments, or selected skills before deciding — they will only see your ensemble name and the coaching period.
+        </p>
+      </div>
+
       <Card className="mb-6">
         <CardContent className="py-4">
           <div className="flex items-center gap-4">

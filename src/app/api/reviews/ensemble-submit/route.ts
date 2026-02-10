@@ -25,6 +25,14 @@ export async function POST(request: Request) {
 
     const user = session.user as { id: string; ensembleProfileIds?: string[] };
 
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { emailVerified: true },
+    });
+    if (!dbUser?.emailVerified) {
+      return NextResponse.json({ error: "You must verify your email before submitting reviews" }, { status: 403 });
+    }
+
     if (!user.ensembleProfileIds || user.ensembleProfileIds.length === 0) {
       return NextResponse.json({ error: "Ensemble profile required to submit reviews" }, { status: 403 });
     }

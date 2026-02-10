@@ -51,6 +51,7 @@ function SubmitReviewContent() {
   const [ensembles, setEnsembles] = useState<EnsembleInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [emailVerified, setEmailVerified] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -84,6 +85,16 @@ function SubmitReviewContent() {
 
     async function fetchData() {
       try {
+        const verifyRes = await fetch("/api/verify-status");
+        if (verifyRes.ok) {
+          const verifyData = await verifyRes.json();
+          if (!verifyData.emailVerified) {
+            setEmailVerified(false);
+            setLoading(false);
+            return;
+          }
+        }
+
         const [coachRes, ensemblesRes] = await Promise.all([
           fetch(`/api/coaches/${coachId}`),
           fetch("/api/ensembles/me"),
@@ -169,6 +180,18 @@ function SubmitReviewContent() {
 
   if (loading) {
     return <div className="max-w-2xl mx-auto px-4 py-12 text-center text-gray-500">Loading...</div>;
+  }
+
+  if (!emailVerified) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Email Verification Required</h2>
+          <p className="text-gray-600 mb-4">You need to verify your email address before you can submit reviews. Please check your inbox for the verification email.</p>
+          <Button onClick={() => router.push("/dashboard")}>Go to Dashboard</Button>
+        </div>
+      </div>
+    );
   }
 
   if (submitted) {

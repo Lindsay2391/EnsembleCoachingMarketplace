@@ -24,6 +24,14 @@ export async function POST(request: Request) {
 
     const user = session.user as { id: string; email: string };
 
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { emailVerified: true },
+    });
+    if (!dbUser?.emailVerified) {
+      return NextResponse.json({ error: "You must verify your email before submitting reviews" }, { status: 403 });
+    }
+
     const userEnsembles = await prisma.ensembleProfile.findMany({
       where: { userId: user.id },
       select: { id: true },

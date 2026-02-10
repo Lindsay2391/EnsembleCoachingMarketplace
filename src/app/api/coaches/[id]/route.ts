@@ -16,11 +16,15 @@ const updateCoachSchema = z.object({
   experienceLevels: z.array(z.string()).optional(),
   contactMethod: z.enum(["phone", "email", "website"]).optional(),
   contactDetail: z.string().min(1, "Contact detail is required").optional(),
+  pronouns: z.string().optional().nullable(),
   rateHourly: z.number().positive().optional().nullable(),
   rateHalfDay: z.number().positive().optional().nullable(),
   rateFullDay: z.number().positive().optional().nullable(),
+  rateWeekend: z.number().positive().optional().nullable(),
   ratesOnEnquiry: z.boolean().optional(),
+  ratesNotes: z.string().max(500).optional().nullable(),
   currency: z.string().optional(),
+  travelWillingness: z.enum(["own_city", "within_state", "interstate", "international"]).optional().nullable(),
   photoUrl: z.string().optional().nullable().or(z.literal("")),
   videoUrl: z.string().url().optional().nullable().or(z.literal("")),
   cancellationPolicy: z.string().optional().nullable(),
@@ -139,11 +143,15 @@ export async function PUT(
     if (data.experienceLevels !== undefined) updateData.experienceLevels = JSON.stringify(data.experienceLevels);
     if (data.contactMethod !== undefined) updateData.contactMethod = data.contactMethod;
     if (data.contactDetail !== undefined) updateData.contactDetail = data.contactDetail;
+    if (data.pronouns !== undefined) updateData.pronouns = data.pronouns || null;
     if (data.rateHourly !== undefined) updateData.rateHourly = data.rateHourly;
     if (data.rateHalfDay !== undefined) updateData.rateHalfDay = data.rateHalfDay;
     if (data.rateFullDay !== undefined) updateData.rateFullDay = data.rateFullDay;
+    if (data.rateWeekend !== undefined) updateData.rateWeekend = data.rateWeekend;
     if (data.ratesOnEnquiry !== undefined) updateData.ratesOnEnquiry = data.ratesOnEnquiry;
+    if (data.ratesNotes !== undefined) updateData.ratesNotes = data.ratesNotes || null;
     if (data.currency !== undefined) updateData.currency = data.currency;
+    if (data.travelWillingness !== undefined) updateData.travelWillingness = data.travelWillingness || null;
     if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl || null;
     if (data.videoUrl !== undefined) updateData.videoUrl = data.videoUrl || null;
     if (data.cancellationPolicy !== undefined) updateData.cancellationPolicy = data.cancellationPolicy;

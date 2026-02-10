@@ -58,11 +58,15 @@ export default function CoachProfileForm() {
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
   const [contactMethod, setContactMethod] = useState<string>("");
   const [contactDetail, setContactDetail] = useState("");
+  const [pronouns, setPronouns] = useState("");
   const [rateHourly, setRateHourly] = useState("");
   const [rateHalfDay, setRateHalfDay] = useState("");
   const [rateFullDay, setRateFullDay] = useState("");
+  const [rateWeekend, setRateWeekend] = useState("");
   const [ratesOnEnquiry, setRatesOnEnquiry] = useState(false);
+  const [ratesNotes, setRatesNotes] = useState("");
   const [currency, setCurrency] = useState("AUD");
+  const [travelWillingness, setTravelWillingness] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [coachingFormats, setCoachingFormats] = useState<string[]>(["in_person", "virtual"]);
@@ -105,11 +109,15 @@ export default function CoachProfileForm() {
             setExperienceLevels(JSON.parse(myProfile.experienceLevels || "[]"));
             setContactMethod(myProfile.contactMethod || "");
             setContactDetail(myProfile.contactDetail || "");
+            setPronouns(myProfile.pronouns || "");
             setRateHourly(myProfile.rateHourly?.toString() || "");
             setRateHalfDay(myProfile.rateHalfDay?.toString() || "");
             setRateFullDay(myProfile.rateFullDay?.toString() || "");
+            setRateWeekend(myProfile.rateWeekend?.toString() || "");
             setRatesOnEnquiry(myProfile.ratesOnEnquiry || false);
+            setRatesNotes(myProfile.ratesNotes || "");
             setCurrency(myProfile.currency || "AUD");
+            setTravelWillingness(myProfile.travelWillingness || "");
             setPhotoUrl(myProfile.photoUrl || "");
             setVideoUrl(myProfile.videoUrl || "");
             setCoachingFormats(JSON.parse(myProfile.coachingFormats || '["in_person","virtual"]'));
@@ -350,11 +358,15 @@ export default function CoachProfileForm() {
       experienceLevels,
       contactMethod,
       contactDetail,
+      pronouns: pronouns || null,
       rateHourly: ratesOnEnquiry ? null : (rateHourly ? parseFloat(rateHourly) : null),
       rateHalfDay: ratesOnEnquiry ? null : (rateHalfDay ? parseFloat(rateHalfDay) : null),
       rateFullDay: ratesOnEnquiry ? null : (rateFullDay ? parseFloat(rateFullDay) : null),
+      rateWeekend: ratesOnEnquiry ? null : (rateWeekend ? parseFloat(rateWeekend) : null),
       ratesOnEnquiry,
+      ratesNotes: ratesNotes || null,
       currency,
+      travelWillingness: travelWillingness || null,
       travelSupplement: ratesOnEnquiry ? null : (travelSupplement ? parseFloat(travelSupplement) : null),
       photoUrl: photoUrl || null,
       videoUrl: videoUrl || null,
@@ -435,7 +447,12 @@ export default function CoachProfileForm() {
                 <p className="text-xs text-gray-400">Max 8MB. JPG, PNG, WebP</p>
               </div>
               <div className="flex-1 space-y-4">
-                <Input id="fullName" label="Full Name *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-2">
+                    <Input id="fullName" label="Full Name *" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                  </div>
+                  <Input id="pronouns" label="Pronouns" value={pronouns} onChange={(e) => setPronouns(e.target.value)} placeholder="e.g. she/her" />
+                </div>
                 <Select id="country" label="Country *" value={country} onChange={(e) => { setCountry(e.target.value); setState(""); setCurrency(getDefaultCurrency(e.target.value)); }} required placeholder="Select country" options={COUNTRY_NAMES.map((c) => ({ value: c, label: c }))} />
                 <div className="grid grid-cols-2 gap-4">
                   <Input id="city" label="City *" value={city} onChange={(e) => setCity(e.target.value)} required placeholder="e.g. Sydney" />
@@ -677,6 +694,12 @@ export default function CoachProfileForm() {
                   }`}>Lower Ranges</button>
               </div>
             </div>
+            <Select id="travelWillingness" label="Travel Willingness" value={travelWillingness} onChange={(e) => setTravelWillingness(e.target.value)} placeholder="Select travel willingness" options={[
+              { value: "own_city", label: "Own city only" },
+              { value: "within_state", label: "Within state" },
+              { value: "interstate", label: "Interstate / National" },
+              { value: "international", label: "International" },
+            ]} />
           </CardContent>
         </Card>
 
@@ -709,12 +732,14 @@ export default function CoachProfileForm() {
                   onChange={(e) => setCurrency(e.target.value)}
                   options={CURRENCIES}
                 />
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <Input id="rateHourly" label="Hourly Rate" type="number" min="0" step="0.01" value={rateHourly} onChange={(e) => setRateHourly(e.target.value)} placeholder={`${getCurrencySymbol()}150`} />
                   <Input id="rateHalfDay" label="Half Day Rate" type="number" min="0" step="0.01" value={rateHalfDay} onChange={(e) => setRateHalfDay(e.target.value)} placeholder={`${getCurrencySymbol()}500`} />
                   <Input id="rateFullDay" label="Full Day Rate" type="number" min="0" step="0.01" value={rateFullDay} onChange={(e) => setRateFullDay(e.target.value)} placeholder={`${getCurrencySymbol()}900`} />
+                  <Input id="rateWeekend" label="Weekend Rate" type="number" min="0" step="0.01" value={rateWeekend} onChange={(e) => setRateWeekend(e.target.value)} placeholder={`${getCurrencySymbol()}1200`} />
                 </div>
                 <Input id="travelSupplement" label="Travel Supplement (optional)" type="number" min="0" step="0.01" value={travelSupplement} onChange={(e) => setTravelSupplement(e.target.value)} placeholder={`${getCurrencySymbol()}0`} />
+                <Textarea id="ratesNotes" label="Rates Notes (optional)" value={ratesNotes} onChange={(e) => setRatesNotes(e.target.value)} placeholder="e.g. Travel costs included for local bookings, package deals available..." rows={2} />
               </>
             )}
           </CardContent>

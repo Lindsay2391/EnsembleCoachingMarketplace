@@ -43,11 +43,15 @@ model CoachProfile {
   experienceLevels  String
   contactMethod     String?
   contactDetail     String?
+  pronouns          String?
   rateHourly        Float?
   rateHalfDay       Float?
   rateFullDay       Float?
+  rateWeekend       Float?
   ratesOnEnquiry    Boolean  @default(false)
+  ratesNotes        String?
   currency          String   @default("AUD")
+  travelWillingness String?
   availability      String?
   coachingFormats   String   @default("[\"in_person\",\"virtual\"]")
   voiceTypes        String   @default("[]")

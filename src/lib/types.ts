@@ -40,10 +40,15 @@ export interface CoachProfileWithUser {
   videoUrl: string | null;
   specialties: string;
   experienceLevels: string;
+  pronouns: string | null;
   rateHourly: number | null;
   rateHalfDay: number | null;
   rateFullDay: number | null;
+  rateWeekend: number | null;
+  ratesOnEnquiry: boolean;
+  ratesNotes: string | null;
   currency: string;
+  travelWillingness: string | null;
   availability: string | null;
   rating: number;
   totalReviews: number;

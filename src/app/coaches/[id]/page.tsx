@@ -42,11 +42,15 @@ interface CoachProfile {
   experienceLevels: string;
   contactMethod: string | null;
   contactDetail: string | null;
+  pronouns: string | null;
   rateHourly: number | null;
   rateHalfDay: number | null;
   rateFullDay: number | null;
+  rateWeekend: number | null;
   ratesOnEnquiry: boolean;
+  ratesNotes: string | null;
   currency: string;
+  travelWillingness: string | null;
   rating: number;
   totalReviews: number;
   totalBookings: number;
@@ -214,6 +218,7 @@ export default function CoachProfilePage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-2xl font-bold text-gray-900">{coach.fullName}</h1>
+                {coach.pronouns && <span className="text-sm text-gray-500">({coach.pronouns})</span>}
                 {coach.verified && <Badge variant="success"><Shield className="h-3 w-3 mr-1" />Verified</Badge>}
               </div>
 
@@ -392,7 +397,7 @@ export default function CoachProfilePage() {
             </Card>
           )}
 
-          {(coach.ratesOnEnquiry || coach.rateHourly || coach.rateHalfDay || coach.rateFullDay) && (
+          {(coach.ratesOnEnquiry || coach.rateHourly || coach.rateHalfDay || coach.rateFullDay || coach.rateWeekend) && (
             <Card>
               <CardHeader><h2 className="text-lg font-semibold text-gray-900"><DollarSign className="h-4 w-4 inline mr-1" />Rates</h2></CardHeader>
               <CardContent>
@@ -418,11 +423,20 @@ export default function CoachProfilePage() {
                         <span className="font-semibold">{formatCurrency(coach.rateFullDay, coach.currency)}</span>
                       </div>
                     )}
+                    {coach.rateWeekend && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Weekend</span>
+                        <span className="font-semibold">{formatCurrency(coach.rateWeekend, coach.currency)}</span>
+                      </div>
+                    )}
                     {coach.travelSupplement && (
                       <div className="flex justify-between pt-2 border-t border-gray-100">
                         <span className="text-gray-600">Travel Supplement</span>
                         <span className="font-semibold">{formatCurrency(coach.travelSupplement, coach.currency)}</span>
                       </div>
+                    )}
+                    {coach.ratesNotes && (
+                      <p className="text-sm text-gray-500 italic pt-2 border-t border-gray-100">{coach.ratesNotes}</p>
                     )}
                   </div>
                 )}
@@ -529,6 +543,20 @@ export default function CoachProfilePage() {
                   {voiceTypes.includes("mixed_voice") && <Badge variant="info">Mixed Ranges</Badge>}
                   {voiceTypes.includes("lower_voice") && <Badge variant="info">Lower Ranges</Badge>}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {coach.travelWillingness && (
+            <Card>
+              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><MapPin className="h-4 w-4 inline mr-1" />Travel Willingness</h2></CardHeader>
+              <CardContent>
+                <Badge variant="info">
+                  {coach.travelWillingness === "own_city" && "Own city only"}
+                  {coach.travelWillingness === "within_state" && "Within state"}
+                  {coach.travelWillingness === "interstate" && "Interstate / National"}
+                  {coach.travelWillingness === "international" && "International"}
+                </Badge>
               </CardContent>
             </Card>
           )}

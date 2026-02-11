@@ -83,6 +83,11 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - 2026-02-09: Linked coach names in admin panel to their public profiles for pre-approval review
 - 2026-02-09: Added three new ensemble types: Upper Voice Groups, Mixed Voice Groups, Lower Voice Groups
 
+## Phase 1 Tasks (from user feedback)
+1. **Fix case-sensitive search** (Usability) — Make coach search case-insensitive so users can find coaches regardless of capitalisation.
+2. **Ensemble filtering on review invite** (Feature Request) — Add country and state filters when searching for ensembles to invite for a review, rather than relying on search alone.
+3. **Admin ensemble management** (Feature Request) — Expand the admin panel to cover ensembles: total ensemble count stat, ensembles-per-user breakdown, search which user owns which ensemble, and ability to manage/delete ensembles.
+
 ## External Dependencies
 - **Database**: PostgreSQL (Neon-backed) managed with Prisma ORM 7 (`@prisma/adapter-pg`).
 - **Authentication**: NextAuth.js with a credentials provider (JWT strategy).

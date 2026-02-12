@@ -31,25 +31,27 @@ export default async function HomePage() {
               Connect with qualified coaches who specialise in your style
               and take your group to the next level.
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="mt-10 flex flex-col items-center gap-4">
               <Link href="/coaches">
                 <Button size="lg">
                   <Search className="h-5 w-5 mr-2" />
                   Browse Coaches
                 </Button>
               </Link>
-              <Link href={isLoggedIn ? "/dashboard" : "/register?role=coach"}>
-                <Button variant="outline" size="lg" className="border-coral-300 text-coral-300 hover:bg-coral-300/10 bg-transparent">
-                  <Music className="h-5 w-5 mr-2" />
-                  Join as a Coach
-                </Button>
-              </Link>
-              <Link href={isLoggedIn ? "/dashboard" : "/register?role=ensemble"}>
-                <Button variant="outline" size="lg" className="border-coral-300 text-coral-300 hover:bg-coral-300/10 bg-transparent">
-                  <Users className="h-5 w-5 mr-2" />
-                  Join as an Ensemble
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href={isLoggedIn ? "/dashboard" : "/register?role=coach"}>
+                  <Button variant="outline" size="lg" className="border-coral-300 text-coral-300 hover:bg-coral-300/10 bg-transparent">
+                    <Music className="h-5 w-5 mr-2" />
+                    Join as a Coach
+                  </Button>
+                </Link>
+                <Link href={isLoggedIn ? "/dashboard" : "/register?role=ensemble"}>
+                  <Button variant="outline" size="lg" className="border-coral-300 text-coral-300 hover:bg-coral-300/10 bg-transparent">
+                    <Users className="h-5 w-5 mr-2" />
+                    Join as an Ensemble
+                  </Button>
+                </Link>
+              </div>
             </div>
             <p className="mt-4 text-sm text-gray-300">
               Free to browse. Free to join. Built for the Barbershop community.

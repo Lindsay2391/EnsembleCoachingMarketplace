@@ -239,10 +239,15 @@ export default function CoachProfileForm() {
         setAvailableSkills(prev => {
           const updated = { ...prev };
           if (!updated[category]) updated[category] = [];
-          updated[category] = [...updated[category], { ...newSkill, totalEndorsements: 0 }];
+          const alreadyInList = updated[category].some((s: { id: string }) => s.id === newSkill.id);
+          if (!alreadyInList) {
+            updated[category] = [...updated[category], { ...newSkill, totalEndorsements: 0 }];
+          }
           return updated;
         });
-        setSelectedSkillIds(prev => [...prev, newSkill.id]);
+        if (!selectedSkillIds.includes(newSkill.id)) {
+          setSelectedSkillIds(prev => [...prev, newSkill.id]);
+        }
         setCustomSkillInputs(prev => ({ ...prev, [category]: "" }));
         setAddingCustomCategory(null);
       } else {

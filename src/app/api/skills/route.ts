@@ -189,10 +189,7 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
-      return NextResponse.json(
-        { error: "A skill with this name already exists in this category" },
-        { status: 400 }
-      );
+      return NextResponse.json(existing, { status: 200 });
     }
 
     const skill = await prisma.skill.create({

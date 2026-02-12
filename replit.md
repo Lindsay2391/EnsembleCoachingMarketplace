@@ -62,6 +62,10 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-12: Added 5 new skills under "Coaching Activities" category: Workshops & Classes, Arranger Circle, PVIs, Director Coaching, Riser Placement
+- 2026-02-12: Ensemble dashboard: decline button on review invites, submitted reviews section with status badges, edit/recall actions for pending reviews
+- 2026-02-12: New edit review page at /reviews/edit for editing pending ensemble-initiated reviews
+- 2026-02-12: New API endpoints: invite decline, ensemble reviews list, ensemble review GET/PUT/DELETE
 - 2026-02-10: Added 4 new optional coach profile fields: pronouns (displayed next to name), weekend rate (in rates grid), rates notes (italic text below rates), travel willingness (own city/within state/interstate/international with badge display)
 - 2026-02-10: Updated shared CoachProfileWithUser TypeScript interface with new fields
 - 2026-02-10: Added coaching format field to coach profiles (in-person, virtual, or both) with form controls and badge display on profile page

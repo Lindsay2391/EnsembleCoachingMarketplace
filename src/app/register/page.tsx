@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams();
+  const role = searchParams.get("role");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -63,11 +66,18 @@ export default function RegisterPage() {
         return;
       }
 
+      let callbackUrl = "/dashboard";
+      if (role === "coach") {
+        callbackUrl = "/dashboard/coach/profile";
+      } else if (role === "ensemble") {
+        callbackUrl = "/dashboard/ensemble/profile";
+      }
+
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
-        callbackUrl: "/dashboard",
+        callbackUrl,
       });
 
       if (result?.error) {
@@ -88,7 +98,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Create your account</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Join CoachConnect to find or become a coach
+            {role === "coach" ? "Sign up to create your coach profile" : role === "ensemble" ? "Sign up to register your ensemble" : "Join CoachConnect to find or become a coach"}
           </p>
         </div>
 
@@ -170,5 +180,13 @@ export default function RegisterPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><p className="text-gray-500">Loading...</p></div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

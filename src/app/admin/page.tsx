@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb, MessageSquare, ArrowLeft, ChevronRight, Clock, User } from "lucide-react";
+import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb, MessageSquare, ArrowLeft, ChevronRight, Clock, User, Music, Search } from "lucide-react";
 import StarRating from "@/components/ui/StarRating";
 import { Card, CardContent } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -14,6 +14,18 @@ interface Stats {
   totalCoaches: number;
   pendingApprovals: number;
   verifiedUsers: number;
+  totalEnsembles: number;
+}
+
+interface EnsembleItem {
+  id: string;
+  ensembleName: string;
+  ensembleType: string;
+  city: string;
+  state: string;
+  country: string;
+  createdAt: string;
+  user: { id: string; name: string; email: string };
 }
 
 interface Coach {
@@ -113,6 +125,7 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   skill_hidden: { label: "Hidden Skill", color: "bg-yellow-100 text-yellow-800" },
   skill_shown: { label: "Shown Skill", color: "bg-green-100 text-green-800" },
   skill_deleted: { label: "Deleted Skill", color: "bg-red-100 text-red-800" },
+  ensemble_deleted: { label: "Deleted Ensemble", color: "bg-red-100 text-red-800" },
 };
 
 export default function AdminDashboard() {
@@ -125,9 +138,11 @@ export default function AdminDashboard() {
   const [adminReviews, setAdminReviews] = useState<ReviewItem[]>([]);
   const [adminSkills, setAdminSkills] = useState<AdminSkillItem[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
+  const [ensembles, setEnsembles] = useState<EnsembleItem[]>([]);
+  const [ensembleSearch, setEnsembleSearch] = useState("");
   const [feedbackFilter, setFeedbackFilter] = useState<"all" | "new" | "reviewed" | "archived">("all");
   const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"coaches" | "users" | "reviews" | "skills" | "feedback" | "audit">("coaches");
+  const [activeTab, setActiveTab] = useState<"coaches" | "users" | "ensembles" | "reviews" | "skills" | "feedback" | "audit">("coaches");
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -146,6 +161,15 @@ export default function AdminDashboard() {
       if (res.ok) setAdminSkills(await res.json());
     } catch (err) {
       console.error("Error fetching skills:", err);
+    }
+  }, []);
+
+  const fetchEnsembles = useCallback(async (search = "") => {
+    try {
+      const res = await fetch(`/api/admin/ensembles${search ? `?search=${encodeURIComponent(search)}` : ""}`);
+      if (res.ok) setEnsembles(await res.json());
+    } catch (err) {
+      console.error("Error fetching ensembles:", err);
     }
   }, []);
 
@@ -177,13 +201,13 @@ export default function AdminDashboard() {
         setUsers(usersData.users || usersData);
       }
       if (auditRes.ok) setAuditLogs(await auditRes.json());
-      await Promise.all([fetchReviews(), fetchSkills(), fetchFeedback()]);
+      await Promise.all([fetchReviews(), fetchSkills(), fetchFeedback(), fetchEnsembles()]);
     } catch (err) {
       console.error("Error:", err);
     } finally {
       setLoading(false);
     }
-  }, [fetchReviews, fetchSkills, fetchFeedback]);
+  }, [fetchReviews, fetchSkills, fetchFeedback, fetchEnsembles]);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -261,6 +285,36 @@ export default function AdminDashboard() {
       setUpdatingId(null);
     }
   };
+
+  const deleteEnsemble = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete the ensemble profile for "${name}"? This cannot be undone.`)) return;
+    setUpdatingId(id);
+    try {
+      const res = await fetch(`/api/admin/ensembles/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setEnsembles((prev) => prev.filter((e) => e.id !== id));
+        const statsRes = await fetch("/api/admin/stats");
+        if (statsRes.ok) setStats(await statsRes.json());
+        await refreshAuditLog();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to delete ensemble");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "ensembles") {
+      const timer = setTimeout(() => {
+        fetchEnsembles(ensembleSearch);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [ensembleSearch, activeTab, fetchEnsembles]);
 
   const updateUser = async (id: string, data: { emailVerified: boolean }) => {
     setUpdatingId(id);
@@ -395,7 +449,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
         <Card>
           <CardContent className="py-5 text-center">
             <Users className="h-6 w-6 text-coral-500 mx-auto mb-2" />
@@ -415,6 +469,13 @@ export default function AdminDashboard() {
             <Shield className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
             <p className="text-2xl font-bold text-gray-900">{stats?.pendingApprovals || 0}</p>
             <p className="text-sm text-gray-500">Pending Approvals</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-5 text-center">
+            <Music className="h-6 w-6 text-coral-500 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-gray-900">{stats?.totalEnsembles || 0}</p>
+            <p className="text-sm text-gray-500">Total Ensembles</p>
           </CardContent>
         </Card>
         <Card>
@@ -446,6 +507,17 @@ export default function AdminDashboard() {
           }`}
         >
           Users
+        </button>
+        <button
+          onClick={() => setActiveTab("ensembles")}
+          className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1 sm:gap-1.5 ${
+            activeTab === "ensembles"
+              ? "bg-coral-500 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <Music className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          Ensembles
         </button>
         <button
           onClick={() => setActiveTab("reviews")}
@@ -657,6 +729,73 @@ export default function AdminDashboard() {
                         ) : (
                           <span className="text-xs text-gray-400">Protected</span>
                         )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {activeTab === "ensembles" && (
+        <Card>
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search ensembles by name..."
+                value={ensembleSearch}
+                onChange={(e) => setEnsembleSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Ensemble Name</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {ensembles.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                      {ensembleSearch ? "No ensembles match your search" : "No ensembles found"}
+                    </td>
+                  </tr>
+                ) : (
+                  ensembles.map((ensemble) => (
+                    <tr key={ensemble.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <span className="font-medium text-gray-900">{ensemble.ensembleName}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant="info">{ensemble.ensembleType}</Badge>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        {ensemble.city}, {ensemble.state}, {ensemble.country}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-gray-900">{ensemble.user.name}</span>
+                        <div className="text-sm text-gray-500">{ensemble.user.email}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => deleteEnsemble(ensemble.id, ensemble.ensembleName)}
+                          disabled={updatingId === ensemble.id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))

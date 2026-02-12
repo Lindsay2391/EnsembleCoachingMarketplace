@@ -13,9 +13,10 @@ export type AuditAction =
   | "review_deleted"
   | "skill_hidden"
   | "skill_shown"
-  | "skill_deleted";
+  | "skill_deleted"
+  | "ensemble_deleted";
 
-export type AuditTargetType = "coach" | "user" | "review" | "skill";
+export type AuditTargetType = "coach" | "user" | "review" | "skill" | "ensemble";
 
 export async function logAdminAction({
   adminId,

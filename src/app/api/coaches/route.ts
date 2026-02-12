@@ -98,8 +98,8 @@ export async function GET(request: Request) {
     if (search) {
       const searchCondition = {
         OR: [
-          { fullName: { contains: search } },
-          { bio: { contains: search } },
+          { fullName: { contains: search, mode: "insensitive" as const } },
+          { bio: { contains: search, mode: "insensitive" as const } },
         ],
       };
       if (where.coachSkills) {

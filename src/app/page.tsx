@@ -3,8 +3,12 @@ import Image from "next/image";
 import { Search, MessageCircle, Star, Shield, Users, Music } from "lucide-react";
 import Button from "@/components/ui/Button";
 import BuyMeACoffee from "@/components/BuyMeACoffee";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getServerSession(authOptions);
+  const isLoggedIn = !!session?.user;
   return (
     <div>
       <section className="relative">
@@ -34,10 +38,16 @@ export default function HomePage() {
                   Browse Coaches
                 </Button>
               </Link>
-              <Link href="/register">
+              <Link href={isLoggedIn ? "/dashboard" : "/register?role=coach"}>
                 <Button variant="outline" size="lg" className="border-coral-300 text-coral-300 hover:bg-coral-300/10 bg-transparent">
                   <Music className="h-5 w-5 mr-2" />
                   Join as a Coach
+                </Button>
+              </Link>
+              <Link href={isLoggedIn ? "/dashboard" : "/register?role=ensemble"}>
+                <Button variant="outline" size="lg" className="border-coral-300 text-coral-300 hover:bg-coral-300/10 bg-transparent">
+                  <Users className="h-5 w-5 mr-2" />
+                  Join as an Ensemble
                 </Button>
               </Link>
             </div>
@@ -145,7 +155,7 @@ export default function HomePage() {
                 </li>
               </ul>
               <div className="mt-8">
-                <Link href="/register">
+                <Link href={isLoggedIn ? "/dashboard" : "/register?role=ensemble"}>
                   <Button>Register Your Ensemble</Button>
                 </Link>
               </div>
@@ -185,7 +195,7 @@ export default function HomePage() {
                 </li>
               </ul>
               <div className="mt-8">
-                <Link href="/register">
+                <Link href={isLoggedIn ? "/dashboard" : "/register?role=coach"}>
                   <Button>Create Coach Profile</Button>
                 </Link>
               </div>

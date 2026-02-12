@@ -11,11 +11,12 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const [totalUsers, totalCoaches, pendingApprovals, verifiedUsers] = await Promise.all([
+    const [totalUsers, totalCoaches, pendingApprovals, verifiedUsers, totalEnsembles] = await Promise.all([
       prisma.user.count(),
       prisma.coachProfile.count(),
       prisma.coachProfile.count({ where: { approved: false } }),
       prisma.user.count({ where: { emailVerified: true } }),
+      prisma.ensembleProfile.count(),
     ]);
 
     return NextResponse.json({
@@ -23,6 +24,7 @@ export async function GET() {
       totalCoaches,
       pendingApprovals,
       verifiedUsers,
+      totalEnsembles,
     });
   } catch (error) {
     console.error("Admin stats error:", error);

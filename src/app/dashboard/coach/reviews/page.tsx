@@ -5,9 +5,11 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Star, Send, Search, CheckCircle, Clock, AlertCircle, X, Check, XCircle, MapPin, Users } from "lucide-react";
 import Button from "@/components/ui/Button";
+import Select from "@/components/ui/Select";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import StarRating from "@/components/ui/StarRating";
+import { COUNTRY_NAMES, getRegionsForCountry, getRegionLabel } from "@/lib/utils";
 
 interface ReviewInvite {
   id: string;
@@ -29,6 +31,7 @@ interface EnsembleResult {
   ensembleType: string;
   city: string;
   state: string;
+  country: string;
 }
 
 interface PendingEnsembleReview {
@@ -63,6 +66,8 @@ export default function CoachReviewsPage() {
   const [success, setSuccess] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterCountry, setFilterCountry] = useState("");
+  const [filterState, setFilterState] = useState("");
   const [searchResults, setSearchResults] = useState<EnsembleResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -99,7 +104,8 @@ export default function CoachReviewsPage() {
 
   useEffect(() => {
     if (selectedEnsemble) return;
-    if (searchQuery.trim().length < 2) {
+    const hasFilters = filterCountry || filterState;
+    if (searchQuery.trim().length < 2 && !hasFilters) {
       setSearchResults([]);
       setShowDropdown(false);
       return;
@@ -113,12 +119,16 @@ export default function CoachReviewsPage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [searchQuery, selectedEnsemble]);
+  }, [searchQuery, selectedEnsemble, filterCountry, filterState]);
 
   async function searchEnsembles(q: string) {
     setSearching(true);
     try {
-      const res = await fetch(`/api/ensembles/search?q=${encodeURIComponent(q)}`);
+      const params = new URLSearchParams();
+      if (q.length >= 2) params.set("q", q);
+      if (filterCountry) params.set("country", filterCountry);
+      if (filterState) params.set("state", filterState);
+      const res = await fetch(`/api/ensembles/search?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         setSearchResults(data);
@@ -331,6 +341,26 @@ export default function CoachReviewsPage() {
               </div>
             )}
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Select
+                id="filterCountry"
+                label="Filter by Country"
+                value={filterCountry}
+                onChange={(e) => { setFilterCountry(e.target.value); setFilterState(""); setSelectedEnsemble(null); }}
+                placeholder="All countries"
+                options={COUNTRY_NAMES.map((c) => ({ value: c, label: c }))}
+              />
+              <Select
+                id="filterState"
+                label={`Filter by ${filterCountry ? getRegionLabel(filterCountry) : "State/Region"}`}
+                value={filterState}
+                onChange={(e) => { setFilterState(e.target.value); setSelectedEnsemble(null); }}
+                placeholder={filterCountry ? `All ${getRegionLabel(filterCountry).toLowerCase()}s` : "Select country first"}
+                options={filterCountry ? getRegionsForCountry(filterCountry).map((s) => ({ value: s, label: s })) : []}
+                disabled={!filterCountry}
+              />
+            </div>
+
             <div ref={searchRef} className="relative">
               <label htmlFor="ensembleSearch" className="block text-sm font-medium text-gray-700 mb-1">
                 Search Ensemble
@@ -340,7 +370,7 @@ export default function CoachReviewsPage() {
                   <div>
                     <span className="font-medium text-gray-900">{selectedEnsemble.ensembleName}</span>
                     <span className="text-sm text-gray-500 ml-2">
-                      {selectedEnsemble.ensembleType} &middot; {selectedEnsemble.city}, {selectedEnsemble.state}
+                      {selectedEnsemble.ensembleType} &middot; {selectedEnsemble.city}, {selectedEnsemble.state}{selectedEnsemble.country ? `, ${selectedEnsemble.country}` : ""}
                     </span>
                   </div>
                   <button type="button" onClick={handleClearSelection} className="text-gray-400 hover:text-gray-600">
@@ -358,7 +388,7 @@ export default function CoachReviewsPage() {
                       setSearchQuery(e.target.value);
                       setSelectedEnsemble(null);
                     }}
-                    placeholder="Type at least 2 characters to search..."
+                    placeholder={filterCountry || filterState ? "Search by name or browse filtered results..." : "Type at least 2 characters to search..."}
                     className="block w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-gray-900 placeholder-gray-400 focus:border-coral-500 focus:outline-none focus:ring-1 focus:ring-coral-500 sm:text-sm"
                     autoComplete="off"
                   />
@@ -379,7 +409,7 @@ export default function CoachReviewsPage() {
                     >
                       <p className="font-medium text-gray-900">{ensemble.ensembleName}</p>
                       <p className="text-sm text-gray-500">
-                        {ensemble.ensembleType} &middot; {ensemble.city}, {ensemble.state}
+                        {ensemble.ensembleType} &middot; {ensemble.city}, {ensemble.state}{ensemble.country ? `, ${ensemble.country}` : ""}
                       </p>
                     </button>
                   ))}

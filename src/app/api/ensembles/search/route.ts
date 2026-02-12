@@ -18,29 +18,39 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q")?.trim() || "";
+    const country = searchParams.get("country")?.trim() || "";
+    const state = searchParams.get("state")?.trim() || "";
 
-    if (q.length < 2) {
+    const hasFilters = country || state;
+    if (q.length < 2 && !hasFilters) {
       return NextResponse.json([]);
     }
 
+    const where: Record<string, unknown> = {
+      userId: { not: user.id },
+    };
+
+    if (q.length >= 2) {
+      where.ensembleName = { contains: q, mode: "insensitive" };
+    }
+    if (country) {
+      where.country = country;
+    }
+    if (state) {
+      where.state = state;
+    }
+
     const ensembles = await prisma.ensembleProfile.findMany({
-      where: {
-        ensembleName: {
-          contains: q,
-          mode: "insensitive",
-        },
-        userId: {
-          not: user.id,
-        },
-      },
+      where,
       select: {
         id: true,
         ensembleName: true,
         ensembleType: true,
         city: true,
         state: true,
+        country: true,
       },
-      take: 10,
+      take: 20,
       orderBy: { ensembleName: "asc" },
     });
 

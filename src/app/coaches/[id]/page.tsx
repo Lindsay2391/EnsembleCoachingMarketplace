@@ -386,9 +386,9 @@ export default async function CoachProfilePage({ params }: PageProps) {
               <CardHeader><h2 className="text-lg font-semibold text-gray-900"><Users className="h-4 w-4 inline mr-1" />Vocal Ranges</h2></CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {voiceTypes.includes("upper_voice") && <Badge variant="info">Upper Ranges</Badge>}
-                  {voiceTypes.includes("mixed_voice") && <Badge variant="info">Mixed Ranges</Badge>}
-                  {voiceTypes.includes("lower_voice") && <Badge variant="info">Lower Ranges</Badge>}
+                  {voiceTypes.includes("upper_voice") && <Badge variant="info">Upper Range</Badge>}
+                  {voiceTypes.includes("mixed_voice") && <Badge variant="info">Mixed Range</Badge>}
+                  {voiceTypes.includes("lower_voice") && <Badge variant="info">Lower Range</Badge>}
                 </div>
               </CardContent>
             </Card>

@@ -599,7 +599,7 @@ export default function CoachProfileForm() {
             {selectedSkillIds.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Skill Order</label>
-                <p className="text-xs text-gray-500 mb-3">Drag to reorder. Your <strong>top 4 skills</strong> are shown on your profile card when coaches browse. All skills remain searchable.</p>
+                <p className="text-xs text-gray-500 mb-3">Drag to reorder your <strong>top 4 skills</strong> — these are featured on your profile card in search results. The remaining skills don&apos;t need reordering — they&apos;ll all appear on your full profile page.</p>
 
                 {selectedSkillIds.length >= 4 && (
                   <div className="flex items-center gap-2 mb-2">
@@ -704,15 +704,15 @@ export default function CoachProfileForm() {
                 <button type="button" onClick={() => toggleArrayItem(voiceTypes, setVoiceTypes, "upper_voice")}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                     voiceTypes.includes("upper_voice") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
-                  }`}>Upper Ranges</button>
+                  }`}>Upper Range</button>
                 <button type="button" onClick={() => toggleArrayItem(voiceTypes, setVoiceTypes, "mixed_voice")}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                     voiceTypes.includes("mixed_voice") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
-                  }`}>Mixed Ranges</button>
+                  }`}>Mixed Range</button>
                 <button type="button" onClick={() => toggleArrayItem(voiceTypes, setVoiceTypes, "lower_voice")}
                   className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                     voiceTypes.includes("lower_voice") ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
-                  }`}>Lower Ranges</button>
+                  }`}>Lower Range</button>
               </div>
             </div>
             <Select id="travelWillingness" label="Travel Willingness" value={travelWillingness} onChange={(e) => setTravelWillingness(e.target.value)} placeholder="Select travel willingness" options={[

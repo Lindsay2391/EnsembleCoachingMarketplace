@@ -11,17 +11,21 @@ const PREDEFINED_SKILLS: Record<string, string[]> = {
     "Barbershop Style", "Rhythm & Groove", "Rubato Phrasing",
     "Interpretive Planning", "Dynamic Contrast",
   ],
-  "Singing": [
-    "Tuning", "Balance & Blend", "Just Intonation", "Vocal Expression",
-    "Resonance Matching", "Vocal Health", "Vowel Unity",
-  ],
   "Performance": [
     "Characterisation", "Storytelling", "Audience Connection",
     "Stage Presence", "Emotional Arc", "Blocking", "Visual Unity",
   ],
+  "Singing": [
+    "Tuning", "Balance & Blend", "Just Intonation", "Vocal Expression",
+    "Resonance Matching", "Vocal Health", "Vowel Unity",
+  ],
   "Learning & Process": [
     "Repertoire Selection", "Rehearsal Methods", "Contest Preparation",
     "Goal Setting", "Deliberate Practice", "Feedback Loops", "Culture Development",
+  ],
+  "Coaching Activities": [
+    "Workshops & Classes", "Arranger Circle", "PVIs",
+    "Director Coaching", "Riser Placement",
   ],
 };
 

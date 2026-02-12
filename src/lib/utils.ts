@@ -33,15 +33,6 @@ export const COACH_SKILLS: Record<string, string[]> = {
     "Interpretive Planning",
     "Dynamic Contrast",
   ],
-  "Singing": [
-    "Tuning",
-    "Balance & Blend",
-    "Just Intonation",
-    "Vocal Expression",
-    "Resonance Matching",
-    "Vocal Health",
-    "Vowel Unity",
-  ],
   "Performance": [
     "Characterisation",
     "Storytelling",
@@ -51,6 +42,15 @@ export const COACH_SKILLS: Record<string, string[]> = {
     "Blocking",
     "Visual Unity",
   ],
+  "Singing": [
+    "Tuning",
+    "Balance & Blend",
+    "Just Intonation",
+    "Vocal Expression",
+    "Resonance Matching",
+    "Vocal Health",
+    "Vowel Unity",
+  ],
   "Learning & Process": [
     "Repertoire Selection",
     "Rehearsal Methods",
@@ -59,6 +59,13 @@ export const COACH_SKILLS: Record<string, string[]> = {
     "Deliberate Practice",
     "Feedback Loops",
     "Culture Development",
+  ],
+  "Coaching Activities": [
+    "Workshops & Classes",
+    "Arranger Circle",
+    "PVIs",
+    "Director Coaching",
+    "Riser Placement",
   ],
 };
 
@@ -96,9 +103,9 @@ export const ENSEMBLE_TYPES = [
 ];
 
 export const VOICE_RANGES = [
-  "Upper Ranges",
-  "Mixed Ranges",
-  "Lower Ranges",
+  "Upper Range",
+  "Mixed Range",
+  "Lower Range",
 ];
 
 export const SESSION_TYPES = [

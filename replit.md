@@ -62,6 +62,8 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-12: Admin panel: added sortable column headers and filter controls (search, status, country, category, type) to all 7 tabs
+- 2026-02-12: Coach skills UI redesigned: top 4 skills visually highlighted as "Profile Card Skills" with coral styling, divider separates remaining skills; drag-to-reorder preserved
 - 2026-02-12: Added 5 new skills under "Coaching Activities" category: Workshops & Classes, Arranger Circle, PVIs, Director Coaching, Riser Placement
 - 2026-02-12: Ensemble dashboard: decline button on review invites, submitted reviews section with status badges, edit/recall actions for pending reviews
 - 2026-02-12: New edit review page at /reviews/edit for editing pending ensemble-initiated reviews

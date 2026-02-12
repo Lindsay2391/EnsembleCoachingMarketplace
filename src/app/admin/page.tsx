@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb, MessageSquare, ArrowLeft, ChevronRight, Clock, User, Music, Search } from "lucide-react";
+import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, ClipboardList, Star, Eye, EyeOff, Lightbulb, MessageSquare, ArrowLeft, ChevronRight, ChevronUp, ChevronDown, Clock, User, Music, Search } from "lucide-react";
 import StarRating from "@/components/ui/StarRating";
 import { Card, CardContent } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -33,6 +33,7 @@ interface Coach {
   fullName: string;
   city: string;
   state: string;
+  country: string;
   specialties: string;
   verified: boolean;
   approved: boolean;
@@ -145,6 +146,153 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"coaches" | "users" | "ensembles" | "reviews" | "skills" | "feedback" | "audit">("coaches");
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const [sortCol, setSortCol] = useState<string>("");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [coachSearch, setCoachSearch] = useState("");
+  const [coachStatus, setCoachStatus] = useState<"all" | "approved" | "pending">("all");
+  const [userSearch, setUserSearch] = useState("");
+  const [userVerified, setUserVerified] = useState<"all" | "verified" | "unverified">("all");
+  const [userProfile, setUserProfile] = useState<"all" | "coach" | "ensemble" | "admin">("all");
+  const [ensembleCountry, setEnsembleCountry] = useState("");
+  const [reviewSearch, setReviewSearch] = useState("");
+  const [skillCategory, setSkillCategory] = useState("");
+  const [skillType, setSkillType] = useState<"all" | "predefined" | "custom">("all");
+  const [feedbackCategory, setFeedbackCategory] = useState("");
+  const [auditSearch, setAuditSearch] = useState("");
+  const [auditAction, setAuditAction] = useState("");
+
+  const switchTab = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setSortCol("");
+    setSortDir("asc");
+  };
+
+  const toggleSort = (col: string) => {
+    if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col); setSortDir("asc"); }
+  };
+
+  const SortHeader = ({ col, children }: { col: string; children: React.ReactNode }) => (
+    <th
+      onClick={() => toggleSort(col)}
+      className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700"
+    >
+      <span className="inline-flex items-center gap-1">
+        {children}
+        {sortCol === col ? (sortDir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : null}
+      </span>
+    </th>
+  );
+
+  const sortFn = <T,>(data: T[], getter: (item: T) => string | number | boolean) => {
+    if (!sortCol) return data;
+    return [...data].sort((a, b) => {
+      const va = getter(a);
+      const vb = getter(b);
+      if (typeof va === "string" && typeof vb === "string") {
+        return sortDir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+      }
+      return sortDir === "asc" ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+    });
+  };
+
+  const filteredCoaches = useMemo(() => {
+    let d = coaches;
+    if (coachSearch) {
+      const s = coachSearch.toLowerCase();
+      d = d.filter(c => c.fullName.toLowerCase().includes(s) || c.user.email.toLowerCase().includes(s));
+    }
+    if (coachStatus === "approved") d = d.filter(c => c.approved);
+    if (coachStatus === "pending") d = d.filter(c => !c.approved);
+    const getters: Record<string, (c: Coach) => string | number | boolean> = {
+      name: c => c.fullName.toLowerCase(), location: c => `${c.city} ${c.state}`.toLowerCase(),
+      approved: c => c.approved ? 1 : 0,
+    };
+    return getters[sortCol] ? sortFn(d, getters[sortCol]) : d;
+  }, [coaches, coachSearch, coachStatus, sortCol, sortDir]);
+
+  const filteredUsers = useMemo(() => {
+    let d = users;
+    if (userSearch) {
+      const s = userSearch.toLowerCase();
+      d = d.filter(u => u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s));
+    }
+    if (userVerified === "verified") d = d.filter(u => u.emailVerified);
+    if (userVerified === "unverified") d = d.filter(u => !u.emailVerified);
+    if (userProfile === "coach") d = d.filter(u => u.hasCoachProfile);
+    if (userProfile === "ensemble") d = d.filter(u => u.hasEnsembleProfile);
+    if (userProfile === "admin") d = d.filter(u => u.userType === "admin");
+    const getters: Record<string, (u: UserItem) => string | number | boolean> = {
+      name: u => u.name.toLowerCase(), email: u => u.email.toLowerCase(),
+      verified: u => u.emailVerified ? 1 : 0, created: u => u.createdAt,
+    };
+    return getters[sortCol] ? sortFn(d, getters[sortCol]) : d;
+  }, [users, userSearch, userVerified, userProfile, sortCol, sortDir]);
+
+  const ensembleCountries = useMemo(() => Array.from(new Set(ensembles.map(e => e.country).filter(Boolean))).sort(), [ensembles]);
+
+  const filteredEnsembles = useMemo(() => {
+    let d = ensembles;
+    if (ensembleCountry) d = d.filter(e => e.country === ensembleCountry);
+    const getters: Record<string, (e: EnsembleItem) => string> = {
+      name: e => e.ensembleName.toLowerCase(), type: e => e.ensembleType.toLowerCase(),
+      location: e => `${e.city} ${e.state}`.toLowerCase(), owner: e => e.user.name.toLowerCase(),
+    };
+    return getters[sortCol] ? sortFn(d, getters[sortCol]) : d;
+  }, [ensembles, ensembleCountry, sortCol, sortDir]);
+
+  const filteredReviews = useMemo(() => {
+    let d = adminReviews;
+    if (reviewSearch) {
+      const s = reviewSearch.toLowerCase();
+      d = d.filter(r => r.coachProfile.fullName.toLowerCase().includes(s) || r.reviewer.ensembleName.toLowerCase().includes(s));
+    }
+    const getters: Record<string, (r: ReviewItem) => string | number> = {
+      coach: r => r.coachProfile.fullName.toLowerCase(), ensemble: r => r.reviewer.ensembleName.toLowerCase(),
+      rating: r => r.rating, date: r => r.createdAt,
+    };
+    return getters[sortCol] ? sortFn(d, getters[sortCol]) : d;
+  }, [adminReviews, reviewSearch, sortCol, sortDir]);
+
+  const skillCategories = useMemo(() => Array.from(new Set(adminSkills.map(s => s.category).filter(Boolean))).sort(), [adminSkills]);
+
+  const filteredSkills = useMemo(() => {
+    let d = adminSkills;
+    if (skillCategory) d = d.filter(s => s.category === skillCategory);
+    if (skillType === "predefined") d = d.filter(s => !s.isCustom);
+    if (skillType === "custom") d = d.filter(s => s.isCustom);
+    const getters: Record<string, (s: AdminSkillItem) => string | number | boolean> = {
+      skill: s => s.name.toLowerCase(), category: s => s.category.toLowerCase(),
+      type: s => s.isCustom ? 1 : 0, coaches: s => s.coachCount,
+    };
+    return getters[sortCol] ? sortFn(d, getters[sortCol]) : d;
+  }, [adminSkills, skillCategory, skillType, sortCol, sortDir]);
+
+  const feedbackCategories = useMemo(() => Array.from(new Set(feedbackItems.map(f => f.category).filter(Boolean))).sort(), [feedbackItems]);
+
+  const filteredFeedback = useMemo(() => {
+    let d = feedbackItems;
+    if (feedbackFilter !== "all") d = d.filter(f => f.status === feedbackFilter);
+    if (feedbackCategory) d = d.filter(f => f.category === feedbackCategory);
+    return d;
+  }, [feedbackItems, feedbackFilter, feedbackCategory]);
+
+  const auditActions = useMemo(() => Array.from(new Set(auditLogs.map(l => l.action).filter(Boolean))).sort(), [auditLogs]);
+
+  const filteredAuditLogs = useMemo(() => {
+    let d = auditLogs;
+    if (auditSearch) {
+      const s = auditSearch.toLowerCase();
+      d = d.filter(l => l.adminName.toLowerCase().includes(s) || (l.targetName || "").toLowerCase().includes(s) || (l.details || "").toLowerCase().includes(s));
+    }
+    if (auditAction) d = d.filter(l => l.action === auditAction);
+    const getters: Record<string, (l: AuditLogEntry) => string> = {
+      date: l => l.createdAt, admin: l => l.adminName.toLowerCase(),
+      target: l => (l.targetName || "").toLowerCase(),
+    };
+    return getters[sortCol] ? sortFn(d, getters[sortCol]) : d;
+  }, [auditLogs, auditSearch, auditAction, sortCol, sortDir]);
 
   const fetchReviews = useCallback(async () => {
     try {
@@ -489,7 +637,7 @@ export default function AdminDashboard() {
 
       <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-6">
         <button
-          onClick={() => setActiveTab("coaches")}
+          onClick={() => switchTab("coaches")}
           className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
             activeTab === "coaches"
               ? "bg-coral-500 text-white"
@@ -499,7 +647,7 @@ export default function AdminDashboard() {
           Coaches
         </button>
         <button
-          onClick={() => setActiveTab("users")}
+          onClick={() => switchTab("users")}
           className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
             activeTab === "users"
               ? "bg-coral-500 text-white"
@@ -509,7 +657,7 @@ export default function AdminDashboard() {
           Users
         </button>
         <button
-          onClick={() => setActiveTab("ensembles")}
+          onClick={() => switchTab("ensembles")}
           className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1 sm:gap-1.5 ${
             activeTab === "ensembles"
               ? "bg-coral-500 text-white"
@@ -520,7 +668,7 @@ export default function AdminDashboard() {
           Ensembles
         </button>
         <button
-          onClick={() => setActiveTab("reviews")}
+          onClick={() => switchTab("reviews")}
           className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1 sm:gap-1.5 ${
             activeTab === "reviews"
               ? "bg-coral-500 text-white"
@@ -531,7 +679,7 @@ export default function AdminDashboard() {
           Reviews
         </button>
         <button
-          onClick={() => setActiveTab("skills")}
+          onClick={() => switchTab("skills")}
           className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 ${
             activeTab === "skills"
               ? "bg-coral-500 text-white"
@@ -542,7 +690,7 @@ export default function AdminDashboard() {
           Skills
         </button>
         <button
-          onClick={() => setActiveTab("feedback")}
+          onClick={() => switchTab("feedback")}
           className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5 ${
             activeTab === "feedback"
               ? "bg-coral-500 text-white"
@@ -558,7 +706,7 @@ export default function AdminDashboard() {
           )}
         </button>
         <button
-          onClick={() => setActiveTab("audit")}
+          onClick={() => switchTab("audit")}
           className={`px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors flex items-center gap-1 sm:gap-1.5 ${
             activeTab === "audit"
               ? "bg-coral-500 text-white"
@@ -572,26 +720,37 @@ export default function AdminDashboard() {
 
       {activeTab === "coaches" && (
         <Card>
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input type="text" placeholder="Search by name or email..." value={coachSearch} onChange={(e) => setCoachSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-transparent" />
+            </div>
+            <select value={coachStatus} onChange={(e) => setCoachStatus(e.target.value as "all" | "approved" | "pending")} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral-500">
+              <option value="all">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                  <SortHeader col="name">Name</SortHeader>
+                  <SortHeader col="location">Location</SortHeader>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Skills</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Approved</th>
+                  <SortHeader col="approved">Approved</SortHeader>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {coaches.length === 0 ? (
+                {filteredCoaches.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                       No coaches found
                     </td>
                   </tr>
                 ) : (
-                  coaches.map((coach) => (
+                  filteredCoaches.map((coach) => (
                     <tr key={coach.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <Link href={`/coaches/${coach.id}`} target="_blank" className="font-medium text-coral-600 hover:text-coral-700 hover:underline">{coach.fullName}</Link>
@@ -652,27 +811,44 @@ export default function AdminDashboard() {
 
       {activeTab === "users" && (
         <Card>
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input type="text" placeholder="Search by name or email..." value={userSearch} onChange={(e) => setUserSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-transparent" />
+            </div>
+            <select value={userVerified} onChange={(e) => setUserVerified(e.target.value as "all" | "verified" | "unverified")} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral-500">
+              <option value="all">All Verified</option>
+              <option value="verified">Verified</option>
+              <option value="unverified">Unverified</option>
+            </select>
+            <select value={userProfile} onChange={(e) => setUserProfile(e.target.value as "all" | "coach" | "ensemble" | "admin")} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral-500">
+              <option value="all">All Profiles</option>
+              <option value="coach">Has Coach</option>
+              <option value="ensemble">Has Ensemble</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Verified</th>
+                  <SortHeader col="name">Name</SortHeader>
+                  <SortHeader col="email">Email</SortHeader>
+                  <SortHeader col="verified">Verified</SortHeader>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Profiles</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                  <SortHeader col="created">Created</SortHeader>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {users.length === 0 ? (
+                {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                       No users found
                     </td>
                   </tr>
                 ) : (
-                  users.map((user) => (
+                  filteredUsers.map((user) => (
                     <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">{user.name}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{user.email}</td>
@@ -741,38 +917,36 @@ export default function AdminDashboard() {
 
       {activeTab === "ensembles" && (
         <Card>
-          <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
-            <div className="relative">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search ensembles by name..."
-                value={ensembleSearch}
-                onChange={(e) => setEnsembleSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-transparent"
-              />
+              <input type="text" placeholder="Search ensembles by name..." value={ensembleSearch} onChange={(e) => setEnsembleSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-transparent" />
             </div>
+            <select value={ensembleCountry} onChange={(e) => setEnsembleCountry(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral-500">
+              <option value="">All Countries</option>
+              {ensembleCountries.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Ensemble Name</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                  <SortHeader col="name">Ensemble Name</SortHeader>
+                  <SortHeader col="type">Type</SortHeader>
+                  <SortHeader col="location">Location</SortHeader>
+                  <SortHeader col="owner">Owner</SortHeader>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {ensembles.length === 0 ? (
+                {filteredEnsembles.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                      {ensembleSearch ? "No ensembles match your search" : "No ensembles found"}
+                      {ensembleSearch || ensembleCountry ? "No ensembles match your filters" : "No ensembles found"}
                     </td>
                   </tr>
                 ) : (
-                  ensembles.map((ensemble) => (
+                  filteredEnsembles.map((ensemble) => (
                     <tr key={ensemble.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="font-medium text-gray-900">{ensemble.ensembleName}</span>
@@ -808,26 +982,32 @@ export default function AdminDashboard() {
 
       {activeTab === "reviews" && (
         <Card>
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input type="text" placeholder="Search by coach or ensemble name..." value={reviewSearch} onChange={(e) => setReviewSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-transparent" />
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Coach</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Ensemble</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <SortHeader col="coach">Coach</SortHeader>
+                  <SortHeader col="ensemble">Ensemble</SortHeader>
+                  <SortHeader col="rating">Rating</SortHeader>
+                  <SortHeader col="date">Date</SortHeader>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {adminReviews.length === 0 ? (
+                {filteredReviews.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                       No reviews found
                     </td>
                   </tr>
                 ) : (
-                  adminReviews.map((review) => (
+                  filteredReviews.map((review) => (
                     <tr key={review.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900">{review.coachProfile.fullName}</td>
                       <td className="px-6 py-4 text-sm text-gray-600">{review.reviewer.ensembleName}</td>
@@ -863,28 +1043,39 @@ export default function AdminDashboard() {
               Predefined skills always show in the filter. Custom skills appear automatically when 5+ coaches have them.
               You can manually hide any skill from the filter or delete custom skills.
             </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <select value={skillCategory} onChange={(e) => setSkillCategory(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral-500">
+                <option value="">All Categories</option>
+                {skillCategories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <select value={skillType} onChange={(e) => setSkillType(e.target.value as "all" | "predefined" | "custom")} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral-500">
+                <option value="all">All Types</option>
+                <option value="predefined">Predefined</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
           </CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Skill</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Coaches</th>
+                  <SortHeader col="skill">Skill</SortHeader>
+                  <SortHeader col="category">Category</SortHeader>
+                  <SortHeader col="type">Type</SortHeader>
+                  <SortHeader col="coaches">Coaches</SortHeader>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">In Filter</th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {adminSkills.length === 0 ? (
+                {filteredSkills.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                       No skills found
                     </td>
                   </tr>
                 ) : (
-                  adminSkills.map((skill) => {
+                  filteredSkills.map((skill) => {
                     const meetsThreshold = !skill.isCustom || skill.coachCount >= 5;
                     const effectivelyInFilter = skill.showInFilter && meetsThreshold;
                     return (
@@ -1027,7 +1218,7 @@ export default function AdminDashboard() {
           <Card>
             <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-medium text-gray-600 mr-2">Filter:</span>
+                <span className="text-sm font-medium text-gray-600 mr-2">Status:</span>
                 {(["all", "new", "reviewed", "archived"] as const).map((f) => (
                   <button
                     key={f}
@@ -1044,19 +1235,20 @@ export default function AdminDashboard() {
                     )}
                   </button>
                 ))}
+                <span className="text-sm font-medium text-gray-600 ml-4 mr-2">Category:</span>
+                <select value={feedbackCategory} onChange={(e) => setFeedbackCategory(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-coral-500">
+                  <option value="">All</option>
+                  {feedbackCategories.map(c => <option key={c} value={c}>{(CATEGORY_LABELS[c]?.label) || c}</option>)}
+                </select>
               </div>
             </div>
             <div className="divide-y divide-gray-100">
-              {feedbackItems
-                .filter(f => feedbackFilter === "all" || f.status === feedbackFilter)
-                .length === 0 ? (
+              {filteredFeedback.length === 0 ? (
                 <div className="px-6 py-8 text-center text-gray-500">
-                  No feedback {feedbackFilter !== "all" ? `with status "${feedbackFilter}"` : "submitted yet"}
+                  No feedback {feedbackFilter !== "all" || feedbackCategory ? "matching filters" : "submitted yet"}
                 </div>
               ) : (
-                feedbackItems
-                  .filter(f => feedbackFilter === "all" || f.status === feedbackFilter)
-                  .map((fb) => {
+                filteredFeedback.map((fb) => {
                     const catInfo = CATEGORY_LABELS[fb.category] || { label: fb.category, color: "bg-gray-100 text-gray-800" };
                     const statusInfo = STATUS_LABELS[fb.status] || { label: fb.status, color: "bg-gray-100 text-gray-800" };
                     const previewText = fb.message.length > 80 ? fb.message.slice(0, 80) + "..." : fb.message;
@@ -1096,26 +1288,36 @@ export default function AdminDashboard() {
 
       {activeTab === "audit" && (
         <Card>
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input type="text" placeholder="Search logs..." value={auditSearch} onChange={(e) => setAuditSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-transparent" />
+            </div>
+            <select value={auditAction} onChange={(e) => setAuditAction(e.target.value)} className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral-500">
+              <option value="">All Actions</option>
+              {auditActions.map(a => <option key={a} value={a}>{(ACTION_LABELS[a]?.label) || a}</option>)}
+            </select>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                  <SortHeader col="date">Date</SortHeader>
+                  <SortHeader col="admin">Admin</SortHeader>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
+                  <SortHeader col="target">Target</SortHeader>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {auditLogs.length === 0 ? (
+                {filteredAuditLogs.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                       No activity recorded yet
                     </td>
                   </tr>
                 ) : (
-                  auditLogs.map((log) => {
+                  filteredAuditLogs.map((log) => {
                     const actionInfo = ACTION_LABELS[log.action] || {
                       label: log.action,
                       color: "bg-gray-100 text-gray-800",

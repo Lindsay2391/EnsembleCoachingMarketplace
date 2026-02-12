@@ -598,42 +598,64 @@ export default function CoachProfileForm() {
 
             {selectedSkillIds.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Selected Skills (drag to reorder)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Skill Order</label>
+                <p className="text-xs text-gray-500 mb-3">Drag to reorder. Your <strong>top 4 skills</strong> are shown on your profile card when coaches browse. All skills remain searchable.</p>
+
+                {selectedSkillIds.length >= 4 && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-px flex-1 bg-coral-200"></div>
+                    <span className="text-xs font-semibold text-coral-600 uppercase tracking-wider">Profile Card Skills</span>
+                    <div className="h-px flex-1 bg-coral-200"></div>
+                  </div>
+                )}
+
                 <div className="space-y-0">
                   {selectedSkillIds.map((skillId, index) => {
                     const skill = getSkillById(skillId);
                     if (!skill) return null;
+                    const isFeatured = index < 4;
                     const isDragging = draggingIndex === index;
                     const isOver = dragOverIndex === index && draggingIndex !== null && draggingIndex !== index;
                     const dropAbove = isOver && draggingIndex !== null && draggingIndex > index;
                     const dropBelow = isOver && draggingIndex !== null && draggingIndex < index;
+                    const showDivider = index === 3 && selectedSkillIds.length > 4;
                     return (
-                      <div
-                        key={skillId}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, index)}
-                        onDragEnd={handleDragEnd}
-                        onDragOver={(e) => handleDragOver(e, index)}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        className={`flex items-center gap-2 rounded-lg px-3 py-2.5 transition-all duration-150 select-none ${
-                          isDragging
-                            ? "opacity-40 scale-95 bg-gray-100 shadow-inner"
-                            : "bg-gray-50 hover:bg-gray-100 cursor-grab active:cursor-grabbing active:shadow-md active:scale-[1.02] active:bg-white active:ring-2 active:ring-coral-300"
-                        } ${dropAbove ? "border-t-2 border-t-coral-500 mt-0.5" : ""} ${dropBelow ? "border-b-2 border-b-coral-500 mb-0.5" : ""} ${!isDragging && !isOver ? "border-t-2 border-t-transparent border-b-2 border-b-transparent" : ""}`}
-                      >
-                        <GripVertical className={`h-4 w-4 flex-shrink-0 transition-colors ${isDragging ? "text-coral-400" : "text-gray-300 group-hover:text-gray-500"}`} />
-                        <span className="text-xs text-gray-400 w-5 font-mono">{index + 1}.</span>
-                        <span className="flex-1 text-sm text-gray-800 font-medium">{skill.name}</span>
-                        <span className="text-xs text-gray-400 hidden sm:inline">{skill.category}</span>
-                        <button type="button" onClick={() => moveSkill(index, "up")} disabled={index === 0}
-                          className="p-1 text-gray-400 hover:text-coral-500 disabled:opacity-30 transition-colors">
-                          <ChevronUp className="h-4 w-4" />
-                        </button>
-                        <button type="button" onClick={() => moveSkill(index, "down")} disabled={index === selectedSkillIds.length - 1}
-                          className="p-1 text-gray-400 hover:text-coral-500 disabled:opacity-30 transition-colors">
-                          <ChevronDown className="h-4 w-4" />
-                        </button>
+                      <div key={skillId}>
+                        <div
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, index)}
+                          onDragEnd={handleDragEnd}
+                          onDragOver={(e) => handleDragOver(e, index)}
+                          onDragLeave={handleDragLeave}
+                          onDrop={handleDrop}
+                          className={`flex items-center gap-2 rounded-lg px-3 py-2.5 transition-all duration-150 select-none ${
+                            isDragging
+                              ? "opacity-40 scale-95 bg-gray-100 shadow-inner"
+                              : isFeatured
+                                ? "bg-coral-50 hover:bg-coral-100 cursor-grab active:cursor-grabbing active:shadow-md active:scale-[1.02] active:bg-white active:ring-2 active:ring-coral-300 border-l-2 border-l-coral-400"
+                                : "bg-gray-50 hover:bg-gray-100 cursor-grab active:cursor-grabbing active:shadow-md active:scale-[1.02] active:bg-white active:ring-2 active:ring-coral-300"
+                          } ${dropAbove ? "border-t-2 border-t-coral-500 mt-0.5" : ""} ${dropBelow ? "border-b-2 border-b-coral-500 mb-0.5" : ""} ${!isDragging && !isOver ? "border-t-2 border-t-transparent border-b-2 border-b-transparent" : ""}`}
+                        >
+                          <GripVertical className={`h-4 w-4 flex-shrink-0 transition-colors ${isDragging ? "text-coral-400" : isFeatured ? "text-coral-300" : "text-gray-300"}`} />
+                          <span className={`text-xs w-5 font-mono ${isFeatured ? "text-coral-500 font-semibold" : "text-gray-400"}`}>{index + 1}.</span>
+                          <span className={`flex-1 text-sm font-medium ${isFeatured ? "text-gray-900" : "text-gray-700"}`}>{skill.name}</span>
+                          <span className="text-xs text-gray-400 hidden sm:inline">{skill.category}</span>
+                          <button type="button" onClick={() => moveSkill(index, "up")} disabled={index === 0}
+                            className="p-1 text-gray-400 hover:text-coral-500 disabled:opacity-30 transition-colors">
+                            <ChevronUp className="h-4 w-4" />
+                          </button>
+                          <button type="button" onClick={() => moveSkill(index, "down")} disabled={index === selectedSkillIds.length - 1}
+                            className="p-1 text-gray-400 hover:text-coral-500 disabled:opacity-30 transition-colors">
+                            <ChevronDown className="h-4 w-4" />
+                          </button>
+                        </div>
+                        {showDivider && (
+                          <div className="flex items-center gap-2 my-2">
+                            <div className="h-px flex-1 bg-gray-200"></div>
+                            <span className="text-xs text-gray-400">Other Skills</span>
+                            <div className="h-px flex-1 bg-gray-200"></div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

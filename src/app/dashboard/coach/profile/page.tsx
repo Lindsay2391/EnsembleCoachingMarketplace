@@ -582,7 +582,10 @@ export default function CoachProfileForm() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Skills *</label>
               <div className="space-y-3">
-                {Object.entries(availableSkills).map(([category, categorySkills]) => {
+                {["Musicality", "Performance", "Singing", "Learning & Process", "Coaching Activities"]
+                .filter(category => availableSkills[category])
+                .map(category => [category, availableSkills[category]] as [string, typeof availableSkills[string]])
+                .map(([category, categorySkills]) => {
                   const selectedCount = categorySkills.filter(s => selectedSkillIds.includes(s.id)).length;
                   const isExpanded = expandedCategories[category] !== false;
                   return (

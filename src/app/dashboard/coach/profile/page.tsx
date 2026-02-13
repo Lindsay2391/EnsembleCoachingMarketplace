@@ -78,6 +78,11 @@ export default function CoachProfileForm() {
   const [travelSupplement, setTravelSupplement] = useState("");
   const [customSkillInputs, setCustomSkillInputs] = useState<Record<string, string>>({});
   const [addingCustomCategory, setAddingCustomCategory] = useState<string | null>(null);
+  const [skillSuggestions, setSkillSuggestions] = useState<Array<{ id: string; name: string; category: string; isCustom: boolean; coachCount: number }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const skillSearchTimeout = useRef<NodeJS.Timeout | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   const [savingCustomSkill, setSavingCustomSkill] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -223,6 +228,61 @@ export default function CoachProfileForm() {
 
   const allSkillsList = Object.values(availableSkills).flat();
   const getSkillById = (id: string) => allSkillsList.find(s => s.id === id);
+
+  const searchSkills = useCallback((query: string) => {
+    if (skillSearchTimeout.current) clearTimeout(skillSearchTimeout.current);
+    if (!query.trim() || query.trim().length < 2) {
+      setSkillSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    setLoadingSuggestions(true);
+    skillSearchTimeout.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/skills?mode=search&search=${encodeURIComponent(query.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          const visibleIds = new Set(allSkillsList.map(s => s.id));
+          const filtered = data.results.filter((s: { id: string }) => !visibleIds.has(s.id));
+          setSkillSuggestions(filtered);
+          setShowSuggestions(filtered.length > 0);
+        }
+      } catch {
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300);
+  }, [allSkillsList]);
+
+  const handleSelectSuggestion = (suggestion: { id: string; name: string; category: string; isCustom: boolean; coachCount: number }) => {
+    const cat = suggestion.category;
+    setAvailableSkills(prev => {
+      const updated = { ...prev };
+      if (!updated[cat]) updated[cat] = [];
+      const alreadyInList = updated[cat].some((s: { id: string }) => s.id === suggestion.id);
+      if (!alreadyInList) {
+        updated[cat] = [...updated[cat], { ...suggestion, totalEndorsements: 0 }];
+      }
+      return updated;
+    });
+    if (!selectedSkillIds.includes(suggestion.id)) {
+      setSelectedSkillIds(prev => [...prev, suggestion.id]);
+    }
+    setCustomSkillInputs(prev => ({ ...prev, [addingCustomCategory || ""]: "" }));
+    setSkillSuggestions([]);
+    setShowSuggestions(false);
+    setAddingCustomCategory(null);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleAddCustomSkill = async (category: string) => {
     const name = customSkillInputs[category]?.trim();
@@ -553,23 +613,50 @@ export default function CoachProfileForm() {
                               </button>
                             ))}
                             {addingCustomCategory === category ? (
-                              <div className="flex items-center gap-1.5">
-                                <input
-                                  type="text"
-                                  value={customSkillInputs[category] || ""}
-                                  onChange={(e) => setCustomSkillInputs(prev => ({ ...prev, [category]: e.target.value }))}
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") { e.preventDefault(); handleAddCustomSkill(category); }
-                                    if (e.key === "Escape") setAddingCustomCategory(null);
-                                  }}
-                                  placeholder="Skill name..."
-                                  autoFocus
-                                  className="px-3 py-1.5 rounded-full text-sm border border-coral-300 focus:outline-none focus:ring-2 focus:ring-coral-200 w-40"
-                                  disabled={savingCustomSkill}
-                                />
+                              <div className="relative flex items-center gap-1.5" ref={suggestionsRef}>
+                                <div className="relative">
+                                  <input
+                                    type="text"
+                                    value={customSkillInputs[category] || ""}
+                                    onChange={(e) => {
+                                      setCustomSkillInputs(prev => ({ ...prev, [category]: e.target.value }));
+                                      searchSkills(e.target.value);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") { e.preventDefault(); setShowSuggestions(false); handleAddCustomSkill(category); }
+                                      if (e.key === "Escape") { setShowSuggestions(false); setAddingCustomCategory(null); }
+                                    }}
+                                    onFocus={() => { if (skillSuggestions.length > 0) setShowSuggestions(true); }}
+                                    placeholder="Search or add skill..."
+                                    autoFocus
+                                    className="px-3 py-1.5 rounded-full text-sm border border-coral-300 focus:outline-none focus:ring-2 focus:ring-coral-200 w-52"
+                                    disabled={savingCustomSkill}
+                                  />
+                                  {showSuggestions && skillSuggestions.length > 0 && (
+                                    <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                                      <div className="px-3 py-1.5 text-xs text-gray-400 border-b">Existing skills</div>
+                                      {skillSuggestions.map(s => (
+                                        <button
+                                          key={s.id}
+                                          type="button"
+                                          onClick={() => handleSelectSuggestion(s)}
+                                          className="w-full text-left px-3 py-2 hover:bg-coral-50 transition-colors flex items-center justify-between"
+                                        >
+                                          <span className="text-sm text-gray-700">{s.name}</span>
+                                          <span className="text-xs text-gray-400">{s.category} · {s.coachCount} coach{s.coachCount !== 1 ? "es" : ""}</span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {loadingSuggestions && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                      <div className="h-3 w-3 border-2 border-coral-300 border-t-transparent rounded-full animate-spin" />
+                                    </div>
+                                  )}
+                                </div>
                                 <button
                                   type="button"
-                                  onClick={() => handleAddCustomSkill(category)}
+                                  onClick={() => { setShowSuggestions(false); handleAddCustomSkill(category); }}
                                   disabled={savingCustomSkill || !customSkillInputs[category]?.trim()}
                                   className="px-2.5 py-1.5 rounded-full text-sm bg-coral-500 text-white border border-coral-500 hover:bg-coral-600 disabled:opacity-50 transition-colors"
                                 >
@@ -577,7 +664,7 @@ export default function CoachProfileForm() {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => setAddingCustomCategory(null)}
+                                  onClick={() => { setShowSuggestions(false); setAddingCustomCategory(null); }}
                                   className="p-1.5 text-gray-400 hover:text-gray-600"
                                 >
                                   <X className="h-3.5 w-3.5" />

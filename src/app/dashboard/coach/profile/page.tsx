@@ -694,7 +694,7 @@ export default function CoachProfileForm() {
             {selectedSkillIds.length > 0 && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Skill Order</label>
-                <p className="text-xs text-gray-500 mb-3">Drag to reorder your <strong>top 4 skills</strong> — these are featured on your profile card in search results. The remaining skills don&apos;t need reordering — they&apos;ll all appear on your full profile page.</p>
+                <p className="text-xs text-gray-500 mb-3">Drag to reorder — your <strong>top 4 skills</strong> are featured on your profile card in search results. All your skills are searchable and visible on your full profile regardless of order.</p>
 
                 {selectedSkillIds.length >= 4 && (
                   <div className="flex items-center gap-2 mb-2">

@@ -30,16 +30,33 @@ const PREDEFINED_SKILLS: Record<string, string[]> = {
 };
 
 async function ensurePredefinedSkills() {
-  const count = await prisma.skill.count({ where: { isCustom: false } });
-  if (count > 0) return;
+  const existing = await prisma.skill.findMany({
+    where: { isCustom: false },
+    select: { name: true, category: true },
+  });
+  const existingSet = new Set(existing.map(s => `${s.category}::${s.name}`));
+
+  let missing = false;
+  for (const [category, skills] of Object.entries(PREDEFINED_SKILLS)) {
+    for (const name of skills) {
+      if (!existingSet.has(`${category}::${name}`)) {
+        missing = true;
+        break;
+      }
+    }
+    if (missing) break;
+  }
+  if (!missing) return;
 
   for (const [category, skills] of Object.entries(PREDEFINED_SKILLS)) {
     for (const name of skills) {
-      await prisma.skill.upsert({
-        where: { name_category: { name, category } },
-        update: {},
-        create: { name, category, isCustom: false, showInFilter: true },
-      });
+      if (!existingSet.has(`${category}::${name}`)) {
+        await prisma.skill.upsert({
+          where: { name_category: { name, category } },
+          update: {},
+          create: { name, category, isCustom: false, showInFilter: true },
+        });
+      }
     }
   }
 }

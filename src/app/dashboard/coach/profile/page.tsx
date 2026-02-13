@@ -586,7 +586,7 @@ export default function CoachProfileForm() {
                   const selectedCount = categorySkills.filter(s => selectedSkillIds.includes(s.id)).length;
                   const isExpanded = expandedCategories[category] !== false;
                   return (
-                    <div key={category} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div key={category} className="border border-gray-200 rounded-lg overflow-visible">
                       <button
                         type="button"
                         onClick={() => setExpandedCategories(prev => ({ ...prev, [category]: !isExpanded }))}

@@ -8,6 +8,7 @@ import { Shield, Users, UserCheck, CheckCircle, XCircle, BarChart3, Trash2, Clip
 import StarRating from "@/components/ui/StarRating";
 import { Card, CardContent } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
+import { COACH_SKILLS } from "@/lib/utils";
 
 interface Stats {
   totalUsers: number;
@@ -126,6 +127,7 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   skill_hidden: { label: "Hidden Skill", color: "bg-yellow-100 text-yellow-800" },
   skill_shown: { label: "Shown Skill", color: "bg-green-100 text-green-800" },
   skill_deleted: { label: "Deleted Skill", color: "bg-red-100 text-red-800" },
+  skill_recategorized: { label: "Recategorized Skill", color: "bg-blue-100 text-blue-800" },
   ensemble_deleted: { label: "Deleted Ensemble", color: "bg-red-100 text-red-800" },
 };
 
@@ -493,6 +495,26 @@ export default function AdminDashboard() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, showInFilter }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setAdminSkills(prev => prev.map(s => s.id === id ? updated : s));
+        await refreshAuditLog();
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const reassignSkillCategory = async (id: string, newCategory: string) => {
+    setUpdatingId(id);
+    try {
+      const res = await fetch("/api/admin/skills", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, category: newCategory }),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -1081,7 +1103,19 @@ export default function AdminDashboard() {
                     return (
                       <tr key={skill.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-3 font-medium text-gray-900 text-sm">{skill.name}</td>
-                        <td className="px-6 py-3 text-sm text-gray-600">{skill.category}</td>
+                        <td className="px-6 py-3 text-sm text-gray-600">
+                          <select
+                            value={skill.category}
+                            onChange={(e) => reassignSkillCategory(skill.id, e.target.value)}
+                            disabled={updatingId === skill.id}
+                            className="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-coral-500 disabled:opacity-50 bg-white"
+                          >
+                            {Object.keys(COACH_SKILLS).map(c => <option key={c} value={c}>{c}</option>)}
+                            {!Object.keys(COACH_SKILLS).includes(skill.category) && (
+                              <option value={skill.category}>{skill.category}</option>
+                            )}
+                          </select>
+                        </td>
                         <td className="px-6 py-3">
                           {skill.isCustom ? (
                             <Badge variant="warning">Custom</Badge>

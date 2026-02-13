@@ -14,6 +14,7 @@ export type AuditAction =
   | "skill_hidden"
   | "skill_shown"
   | "skill_deleted"
+  | "skill_recategorized"
   | "ensemble_deleted";
 
 export type AuditTargetType = "coach" | "user" | "review" | "skill" | "ensemble";

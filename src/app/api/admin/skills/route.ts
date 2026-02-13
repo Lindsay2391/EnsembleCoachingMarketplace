@@ -4,6 +4,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAdminAction } from "@/lib/audit";
+import { COACH_SKILLS } from "@/lib/utils";
+
+const ALLOWED_CATEGORIES = Object.keys(COACH_SKILLS);
 
 export async function GET() {
   try {
@@ -48,28 +51,61 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { id, showInFilter } = body;
+    const { id, showInFilter, category } = body;
 
-    if (!id || typeof showInFilter !== "boolean") {
-      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: "Skill ID required" }, { status: 400 });
+    }
+
+    const updateData: { showInFilter?: boolean; category?: string } = {};
+    if (typeof showInFilter === "boolean") updateData.showInFilter = showInFilter;
+    if (typeof category === "string" && category.trim()) {
+      if (!ALLOWED_CATEGORIES.includes(category.trim())) {
+        return NextResponse.json({ error: "Invalid category" }, { status: 400 });
+      }
+      updateData.category = category.trim();
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+    }
+
+    const oldSkill = await prisma.skill.findUnique({ where: { id } });
+    if (!oldSkill) {
+      return NextResponse.json({ error: "Skill not found" }, { status: 404 });
     }
 
     const skill = await prisma.skill.update({
       where: { id },
-      data: { showInFilter },
+      data: updateData,
       include: { _count: { select: { coachSkills: true } } },
     });
 
     const user = session.user as { id: string; name?: string };
-    await logAdminAction({
-      adminId: user.id,
-      adminName: user.name || "Admin",
-      action: showInFilter ? "skill_shown" : "skill_hidden",
-      targetType: "skill",
-      targetId: skill.id,
-      targetName: skill.name,
-      details: `${showInFilter ? "Shown" : "Hidden"} skill "${skill.name}" in filter`,
-    });
+
+    if (typeof showInFilter === "boolean") {
+      await logAdminAction({
+        adminId: user.id,
+        adminName: user.name || "Admin",
+        action: showInFilter ? "skill_shown" : "skill_hidden",
+        targetType: "skill",
+        targetId: skill.id,
+        targetName: skill.name,
+        details: `${showInFilter ? "Shown" : "Hidden"} skill "${skill.name}" in filter`,
+      });
+    }
+
+    if (updateData.category && updateData.category !== oldSkill.category) {
+      await logAdminAction({
+        adminId: user.id,
+        adminName: user.name || "Admin",
+        action: "skill_recategorized",
+        targetType: "skill",
+        targetId: skill.id,
+        targetName: skill.name,
+        details: `Moved skill "${skill.name}" from "${oldSkill.category}" to "${updateData.category}"`,
+      });
+    }
 
     return NextResponse.json({
       id: skill.id,

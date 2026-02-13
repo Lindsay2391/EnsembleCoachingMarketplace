@@ -184,7 +184,6 @@ export async function POST(request: Request) {
     const existing = await prisma.skill.findFirst({
       where: {
         name: { equals: name.trim(), mode: "insensitive" as const },
-        category: { equals: category.trim(), mode: "insensitive" as const },
       },
     });
 

@@ -78,7 +78,7 @@ export default function CoachProfileForm() {
   const [travelSupplement, setTravelSupplement] = useState("");
   const [customSkillInputs, setCustomSkillInputs] = useState<Record<string, string>>({});
   const [addingCustomCategory, setAddingCustomCategory] = useState<string | null>(null);
-  const [skillSuggestions, setSkillSuggestions] = useState<Array<{ id: string; name: string; category: string; isCustom: boolean; coachCount: number }>>([]);
+  const [skillSuggestions, setSkillSuggestions] = useState<Array<{ id: string; name: string; category: string; isCustom: boolean }>>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const skillSearchTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -229,7 +229,7 @@ export default function CoachProfileForm() {
   const allSkillsList = Object.values(availableSkills).flat();
   const getSkillById = (id: string) => allSkillsList.find(s => s.id === id);
 
-  const searchSkills = useCallback((query: string) => {
+  const searchSkills = useCallback((query: string, category: string) => {
     if (skillSearchTimeout.current) clearTimeout(skillSearchTimeout.current);
     if (!query.trim() || query.trim().length < 2) {
       setSkillSuggestions([]);
@@ -239,7 +239,7 @@ export default function CoachProfileForm() {
     setLoadingSuggestions(true);
     skillSearchTimeout.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/skills?mode=search&search=${encodeURIComponent(query.trim())}`);
+        const res = await fetch(`/api/skills?mode=search&search=${encodeURIComponent(query.trim())}&category=${encodeURIComponent(category)}`);
         if (res.ok) {
           const data = await res.json();
           const visibleIds = new Set(allSkillsList.map(s => s.id));
@@ -254,7 +254,7 @@ export default function CoachProfileForm() {
     }, 300);
   }, [allSkillsList]);
 
-  const handleSelectSuggestion = (suggestion: { id: string; name: string; category: string; isCustom: boolean; coachCount: number }) => {
+  const handleSelectSuggestion = (suggestion: { id: string; name: string; category: string; isCustom: boolean }) => {
     const cat = suggestion.category;
     setAvailableSkills(prev => {
       const updated = { ...prev };
@@ -620,7 +620,7 @@ export default function CoachProfileForm() {
                                     value={customSkillInputs[category] || ""}
                                     onChange={(e) => {
                                       setCustomSkillInputs(prev => ({ ...prev, [category]: e.target.value }));
-                                      searchSkills(e.target.value);
+                                      searchSkills(e.target.value, category);
                                     }}
                                     onKeyDown={(e) => {
                                       if (e.key === "Enter") { e.preventDefault(); setShowSuggestions(false); handleAddCustomSkill(category); }
@@ -640,10 +640,9 @@ export default function CoachProfileForm() {
                                           key={s.id}
                                           type="button"
                                           onClick={() => handleSelectSuggestion(s)}
-                                          className="w-full text-left px-3 py-2 hover:bg-coral-50 transition-colors flex items-center justify-between"
+                                          className="w-full text-left px-3 py-2 hover:bg-coral-50 transition-colors"
                                         >
                                           <span className="text-sm text-gray-700">{s.name}</span>
-                                          <span className="text-xs text-gray-400">{s.category} · {s.coachCount} coach{s.coachCount !== 1 ? "es" : ""}</span>
                                         </button>
                                       ))}
                                     </div>

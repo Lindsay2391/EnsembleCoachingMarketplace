@@ -53,13 +53,15 @@ export async function GET(request: Request) {
     const search = searchParams.get("search");
 
     if (mode === "search" && search) {
+      const category = searchParams.get("category");
+      const whereClause: Record<string, unknown> = {
+        name: { contains: search, mode: "insensitive" },
+      };
+      if (category) {
+        whereClause.category = category;
+      }
       const skills = await prisma.skill.findMany({
-        where: {
-          name: { contains: search, mode: "insensitive" },
-        },
-        include: {
-          _count: { select: { coachSkills: true } },
-        },
+        where: whereClause,
         orderBy: { name: "asc" },
         take: 20,
       });
@@ -70,7 +72,6 @@ export async function GET(request: Request) {
           name: s.name,
           category: s.category,
           isCustom: s.isCustom,
-          coachCount: s._count.coachSkills,
         })),
       });
     }

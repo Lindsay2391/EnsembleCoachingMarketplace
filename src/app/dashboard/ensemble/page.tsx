@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { User, Search, MessageSquare, Star, Users, XCircle, Clock, CheckCircle, Pencil, Trash2, MapPin } from "lucide-react";
+import { User, Search, MessageSquare, Star, Users, XCircle, Clock, Pencil, Trash2, MapPin } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";

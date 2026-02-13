@@ -236,12 +236,13 @@ export default function CoachProfileForm() {
       });
       if (res.ok) {
         const newSkill = await res.json();
+        const actualCategory = newSkill.category || category;
         setAvailableSkills(prev => {
           const updated = { ...prev };
-          if (!updated[category]) updated[category] = [];
-          const alreadyInList = updated[category].some((s: { id: string }) => s.id === newSkill.id);
+          if (!updated[actualCategory]) updated[actualCategory] = [];
+          const alreadyInList = updated[actualCategory].some((s: { id: string }) => s.id === newSkill.id);
           if (!alreadyInList) {
-            updated[category] = [...updated[category], { ...newSkill, totalEndorsements: 0 }];
+            updated[actualCategory] = [...updated[actualCategory], { ...newSkill, totalEndorsements: 0 }];
           }
           return updated;
         });

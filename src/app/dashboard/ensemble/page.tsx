@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { User, Search, MessageSquare, Star, Users, XCircle, Clock, Pencil, Trash2, MapPin } from "lucide-react";
+import { User, Search, Star, Users, XCircle, Clock, Pencil, Trash2, MapPin, ClipboardList } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -286,14 +286,6 @@ function EnsembleDashboardContent() {
             </CardContent>
           </Card>
         </Link>
-        <Link href="/messages">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="py-4 flex items-center gap-3">
-              <MessageSquare className="h-5 w-5 text-coral-500" />
-              <span className="font-medium text-gray-900">Messages</span>
-            </CardContent>
-          </Card>
-        </Link>
       </div>
     </div>
   );
@@ -376,7 +368,7 @@ function ReviewsSection({
     <Card className="mb-6">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-coral-500" />
+          <ClipboardList className="h-5 w-5 text-coral-500" />
           <h2 className="text-lg font-semibold text-gray-900">Your Submitted Reviews</h2>
         </div>
         <p className="text-sm text-gray-500 mt-1">Reviews you have submitted to coaches</p>

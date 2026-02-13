@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import CoachAvatar from "@/components/ui/CoachAvatar";
-import { MapPin, Clock, DollarSign, Star, Shield, MessageSquare, Mail, Globe, Users } from "lucide-react";
+import { MapPin, Clock, DollarSign, Star, Shield, Mail, Globe, Users, Phone as PhoneIcon } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import StarRating from "@/components/ui/StarRating";
@@ -223,7 +223,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
         <div className="space-y-6">
           {coach.contactMethod && coach.contactDetail && (
             <Card>
-              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><MessageSquare className="h-4 w-4 inline mr-1" />Contact</h2></CardHeader>
+              <CardHeader><h2 className="text-lg font-semibold text-gray-900"><PhoneIcon className="h-4 w-4 inline mr-1" />Contact</h2></CardHeader>
               <CardContent>
                 {coach.contactMethod === "email" ? (
                   <a href={`mailto:${coach.contactDetail}`} className="inline-flex items-center justify-center gap-2 w-full text-sm font-medium text-white bg-coral-500 hover:bg-coral-600 px-4 py-2.5 rounded-lg transition-colors">

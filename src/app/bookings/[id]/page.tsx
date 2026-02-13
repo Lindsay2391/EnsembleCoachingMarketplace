@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Calendar, MapPin, MessageSquare } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
@@ -204,12 +204,6 @@ export default function BookingDetailPage() {
             </Link>
           )}
 
-          <Link href={`/messages?to=${isCoach ? booking.ensemble.userId : booking.coach.userId}`}>
-            <Button variant="outline">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Send Message
-            </Button>
-          </Link>
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { Pencil, Heart, MessageSquareText, Phone } from "lucide-react";
+import { Pencil, Heart, MessageSquareText, Clock, Phone } from "lucide-react";
 
 export function FavoriteButton({ coachId }: { coachId: string }) {
   const { data: session } = useSession();
@@ -60,6 +60,61 @@ export function FavoriteButton({ coachId }: { coachId: string }) {
   );
 }
 
+function ReviewButton({ coachId }: { coachId: string }) {
+  const [reviewStatus, setReviewStatus] = useState<string | null>(null);
+  const [monthsLeft, setMonthsLeft] = useState(0);
+
+  useEffect(() => {
+    fetch(`/api/reviews/check-status?coachId=${coachId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setReviewStatus(data.status);
+        if (data.monthsLeft) setMonthsLeft(data.monthsLeft);
+      })
+      .catch(() => setReviewStatus("can_review"));
+  }, [coachId]);
+
+  if (reviewStatus === null) return null;
+
+  if (reviewStatus === "cooldown") {
+    return (
+      <Button variant="outline" disabled className="opacity-60 cursor-not-allowed">
+        <Clock className="h-4 w-4 mr-2" />
+        Review update available in {monthsLeft} month{monthsLeft !== 1 ? "s" : ""}
+      </Button>
+    );
+  }
+
+  if (reviewStatus === "pending") {
+    return (
+      <Button variant="outline" disabled className="opacity-60 cursor-not-allowed">
+        <Clock className="h-4 w-4 mr-2" />
+        Review pending approval
+      </Button>
+    );
+  }
+
+  if (reviewStatus === "can_update") {
+    return (
+      <Link href={`/reviews/submit?coachId=${coachId}`}>
+        <Button variant="outline">
+          <MessageSquareText className="h-4 w-4 mr-2" />
+          Update Review
+        </Button>
+      </Link>
+    );
+  }
+
+  return (
+    <Link href={`/reviews/submit?coachId=${coachId}`}>
+      <Button variant="outline">
+        <MessageSquareText className="h-4 w-4 mr-2" />
+        Submit a Review
+      </Button>
+    </Link>
+  );
+}
+
 export function CoachProfileActionButtons({
   coachId,
   coachUserId,
@@ -74,7 +129,7 @@ export function CoachProfileActionButtons({
   const isOwner = session.user?.id === coachUserId;
 
   return (
-    <div className="flex gap-3 mt-4">
+    <div className="flex flex-wrap gap-3 mt-4">
       {isOwner && (
         <Link href="/dashboard/coach/profile">
           <Button>
@@ -85,12 +140,7 @@ export function CoachProfileActionButtons({
       )}
       {!isOwner && <FavoriteButton coachId={coachId} />}
       {!isOwner && session.user?.ensembleProfileIds?.length > 0 && (
-        <Link href={`/reviews/submit?coachId=${coachId}`}>
-          <Button variant="outline">
-            <MessageSquareText className="h-4 w-4 mr-2" />
-            Submit a Review
-          </Button>
-        </Link>
+        <ReviewButton coachId={coachId} />
       )}
     </div>
   );

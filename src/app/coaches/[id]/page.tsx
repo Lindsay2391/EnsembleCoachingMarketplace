@@ -62,7 +62,6 @@ export default async function CoachProfilePage({ params }: PageProps) {
         },
       },
       orderBy: { createdAt: "desc" },
-      take: 10,
     }),
   ]);
 

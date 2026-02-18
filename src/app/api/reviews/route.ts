@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { recalculateCoachRating } from "@/lib/reviewUtils";
 
 const reviewSchema = z.object({
   inviteId: z.string().min(1, "Invite ID is required"),
@@ -126,22 +127,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const aggregation = await prisma.review.aggregate({
-      where: { coachProfileId: invite.coachProfileId },
-      _avg: { rating: true },
-      _count: { rating: true },
-    });
-
-    const avgRating = aggregation._avg.rating ?? 0;
-    const totalReviews = aggregation._count.rating;
-
-    await prisma.coachProfile.update({
-      where: { id: invite.coachProfileId },
-      data: {
-        rating: Math.round(avgRating * 10) / 10,
-        totalReviews,
-      },
-    });
+    await recalculateCoachRating(invite.coachProfileId);
 
     return NextResponse.json(review, { status: 201 });
   } catch (error) {

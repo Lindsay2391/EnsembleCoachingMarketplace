@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logAdminAction } from "@/lib/audit";
+import { recalculateCoachRating } from "@/lib/reviewUtils";
 
 export async function DELETE(
   request: Request,
@@ -41,22 +42,7 @@ export async function DELETE(
 
     await prisma.review.delete({ where: { id } });
 
-    const remainingReviews = await prisma.review.findMany({
-      where: { coachProfileId: review.coachProfileId },
-      select: { rating: true },
-    });
-
-    const avgRating = remainingReviews.length > 0
-      ? remainingReviews.reduce((sum, r) => sum + r.rating, 0) / remainingReviews.length
-      : 0;
-
-    await prisma.coachProfile.update({
-      where: { id: review.coachProfileId },
-      data: {
-        rating: Math.round(avgRating * 10) / 10,
-        totalReviews: remainingReviews.length,
-      },
-    });
+    await recalculateCoachRating(review.coachProfileId);
 
     await logAdminAction({
       adminId: user.id,

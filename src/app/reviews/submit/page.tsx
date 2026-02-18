@@ -62,6 +62,7 @@ function SubmitReviewContent() {
   const [sessionYear, setSessionYear] = useState(new Date().getFullYear());
   const [sessionFormat, setSessionFormat] = useState<"in_person" | "virtual">("in_person");
   const [validatedSkills, setValidatedSkills] = useState<string[]>([]);
+  const [isUpdate, setIsUpdate] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -95,9 +96,10 @@ function SubmitReviewContent() {
           }
         }
 
-        const [coachRes, ensemblesRes] = await Promise.all([
+        const [coachRes, ensemblesRes, statusRes] = await Promise.all([
           fetch(`/api/coaches/${coachId}`),
           fetch("/api/ensembles/me"),
+          fetch(`/api/reviews/check-status?coachId=${coachId}`),
         ]);
 
         if (coachRes.ok) {
@@ -109,12 +111,33 @@ function SubmitReviewContent() {
           return;
         }
 
+        let eligibleProfiles: EnsembleInfo[] = [];
         if (ensemblesRes.ok) {
           const ensemblesData = await ensemblesRes.json();
-          const profiles = ensemblesData.profiles || [];
-          setEnsembles(profiles);
-          if (profiles.length === 1) {
-            setSelectedEnsembleId(profiles[0].id);
+          const profiles: EnsembleInfo[] = ensemblesData.profiles || [];
+
+          if (statusRes.ok) {
+            const statusData = await statusRes.json();
+            const ensembleStatuses: Record<string, { status: string }> = statusData.ensembleStatuses || {};
+            eligibleProfiles = profiles.filter(p => {
+              const s = ensembleStatuses[p.id];
+              return !s || s.status === "can_review" || s.status === "can_update";
+            });
+            const hasUpdate = eligibleProfiles.some(p => {
+              const s = ensembleStatuses[p.id];
+              return s && s.status === "can_update";
+            });
+            if (hasUpdate) setIsUpdate(true);
+          } else {
+            eligibleProfiles = profiles;
+          }
+
+          setEnsembles(eligibleProfiles);
+          if (eligibleProfiles.length === 1) {
+            setSelectedEnsembleId(eligibleProfiles[0].id);
+          }
+          if (eligibleProfiles.length === 0 && profiles.length > 0) {
+            setError("All your ensembles have already reviewed this coach recently. You can submit an updated review after the 9-month cooldown period.");
           }
         }
       } catch {
@@ -200,8 +223,8 @@ function SubmitReviewContent() {
         <div className="flex justify-center mb-4">
           <CheckCircle className="h-16 w-16 text-green-500" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Review Submitted!</h2>
-        <p className="text-gray-600">Your review has been submitted! The coach will be notified and can approve it.</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">{isUpdate ? "Review Updated!" : "Review Submitted!"}</h2>
+        <p className="text-gray-600">{isUpdate ? "Your updated review has been submitted! The coach will be notified and can approve it." : "Your review has been submitted! The coach will be notified and can approve it."}</p>
         <p className="text-sm text-gray-500 mt-2">Redirecting to the coach profile...</p>
       </div>
     );
@@ -228,7 +251,15 @@ function SubmitReviewContent() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Submit a Review</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">{isUpdate ? "Update Your Review" : "Submit a Review"}</h1>
+
+      {isUpdate && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <p className="text-sm text-blue-800">
+            You&apos;re submitting an updated review for this coach. Your previous review will remain visible on their profile, and this new review will reflect your latest experience.
+          </p>
+        </div>
+      )}
 
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
         <p className="text-sm text-amber-800">
@@ -388,7 +419,7 @@ function SubmitReviewContent() {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={submitting} size="lg">
-            {submitting ? "Submitting..." : "Submit Review"}
+            {submitting ? "Submitting..." : isUpdate ? "Submit Updated Review" : "Submit Review"}
           </Button>
           <Button type="button" variant="outline" size="lg" onClick={() => router.back()}>
             Cancel

@@ -262,6 +262,6 @@ model EnsembleReview {
   createdAt         DateTime        @default(now())
   approvedAt        DateTime?
 
-  @@unique([ensembleProfileId, coachProfileId])
+  @@index([ensembleProfileId, coachProfileId])
   @@index([coachProfileId, status])
 }

@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { recalculateCoachRating } from "@/lib/reviewUtils";
 
 const approveSchema = z.object({
   action: z.enum(["approve", "reject"]),
@@ -120,20 +121,7 @@ export async function POST(
       }
     }
 
-    const allReviews = await prisma.review.findMany({
-      where: { coachProfileId: ensembleReview.coachProfileId },
-      select: { rating: true },
-    });
-
-    const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
-
-    await prisma.coachProfile.update({
-      where: { id: ensembleReview.coachProfileId },
-      data: {
-        rating: Math.round(avgRating * 10) / 10,
-        totalReviews: allReviews.length,
-      },
-    });
+    await recalculateCoachRating(ensembleReview.coachProfileId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

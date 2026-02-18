@@ -5,6 +5,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
+const REVIEW_COOLDOWN_MONTHS = 9;
+
 const ensembleSubmitSchema = z.object({
   coachProfileId: z.string().min(1),
   ensembleProfileId: z.string().min(1),
@@ -66,48 +68,70 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "You cannot review your own coach profile" }, { status: 400 });
     }
 
-    const existing = await prisma.ensembleReview.findUnique({
+    const existingPending = await prisma.ensembleReview.findFirst({
       where: {
-        ensembleProfileId_coachProfileId: {
-          ensembleProfileId,
-          coachProfileId,
-        },
+        ensembleProfileId,
+        coachProfileId,
+        status: "pending",
       },
     });
 
-    if (existing && (existing.status === "pending" || existing.status === "approved")) {
-      return NextResponse.json({ error: "A review from this ensemble for this coach already exists" }, { status: 400 });
+    if (existingPending) {
+      return NextResponse.json({ error: "You already have a pending review for this coach" }, { status: 400 });
     }
 
-    if (existing && existing.status === "rejected") {
-      await prisma.ensembleReview.update({
-        where: { id: existing.id },
-        data: {
-          rating,
-          reviewText: reviewText ?? null,
-          sessionMonth,
-          sessionYear,
-          sessionFormat,
-          validatedSkills: JSON.stringify(validatedSkills),
-          status: "pending",
-          approvedAt: null,
-          createdAt: new Date(),
-        },
-      });
-    } else {
-      await prisma.ensembleReview.create({
-        data: {
-          ensembleProfileId,
-          coachProfileId,
-          rating,
-          reviewText: reviewText ?? null,
-          sessionMonth,
-          sessionYear,
-          sessionFormat,
-          validatedSkills: JSON.stringify(validatedSkills),
-        },
-      });
+    const cooldownDate = new Date();
+    cooldownDate.setMonth(cooldownDate.getMonth() - REVIEW_COOLDOWN_MONTHS);
+
+    const recentReview = await prisma.ensembleReview.findFirst({
+      where: {
+        ensembleProfileId,
+        coachProfileId,
+        status: "approved",
+        createdAt: { gte: cooldownDate },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (recentReview) {
+      const nextDate = new Date(recentReview.createdAt);
+      nextDate.setMonth(nextDate.getMonth() + REVIEW_COOLDOWN_MONTHS);
+      const monthsLeft = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30));
+      return NextResponse.json({
+        error: `You can submit an updated review in ${monthsLeft} month${monthsLeft !== 1 ? "s" : ""}`,
+      }, { status: 400 });
     }
+
+    const recentApprovedReview = await prisma.review.findFirst({
+      where: {
+        reviewerId: ensembleProfileId,
+        coachProfileId,
+        createdAt: { gte: cooldownDate },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (recentApprovedReview) {
+      const nextDate = new Date(recentApprovedReview.createdAt);
+      nextDate.setMonth(nextDate.getMonth() + REVIEW_COOLDOWN_MONTHS);
+      const monthsLeft = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30));
+      return NextResponse.json({
+        error: `You can submit an updated review in ${monthsLeft} month${monthsLeft !== 1 ? "s" : ""}`,
+      }, { status: 400 });
+    }
+
+    await prisma.ensembleReview.create({
+      data: {
+        ensembleProfileId,
+        coachProfileId,
+        rating,
+        reviewText: reviewText ?? null,
+        sessionMonth,
+        sessionYear,
+        sessionFormat,
+        validatedSkills: JSON.stringify(validatedSkills),
+      },
+    });
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {

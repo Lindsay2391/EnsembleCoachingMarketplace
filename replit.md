@@ -62,6 +62,12 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-18: Review update system: same ensemble can now submit updated reviews for the same coach after a 9-month cooldown period
+- 2026-02-18: Rating calculation uses only the latest review per ensemble for average rating; skill endorsements accumulate from all reviews
+- 2026-02-18: Review button states: "Submit a Review" (new), "Update Review" (after 9 months), greyed out with cooldown timer (within 9 months), "Review pending approval" (pending)
+- 2026-02-18: New `/api/reviews/check-status` endpoint for review button state management
+- 2026-02-18: Shared `recalculateCoachRating()` utility in `src/lib/reviewUtils.ts` used across all review flows
+- 2026-02-18: Submit review page adapts title, messaging, and button text for update vs. new review
 - 2026-02-12: Admin panel: added sortable column headers and filter controls (search, status, country, category, type) to all 7 tabs
 - 2026-02-12: Coach skills UI redesigned: top 4 skills visually highlighted as "Profile Card Skills" with coral styling, divider separates remaining skills; drag-to-reorder preserved
 - 2026-02-12: Added 5 new skills under "Coaching Activities" category: Workshops & Classes, Arranger Circle, PVIs, Director Coaching, Riser Placement

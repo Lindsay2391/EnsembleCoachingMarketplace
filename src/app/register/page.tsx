@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
+import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
@@ -136,10 +137,9 @@ function RegisterForm() {
                 required
               />
 
-              <Input
+              <PasswordInput
                 id="password"
                 label="Password"
-                type="password"
                 placeholder="At least 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -147,10 +147,9 @@ function RegisterForm() {
                 required
               />
 
-              <Input
+              <PasswordInput
                 id="confirmPassword"
                 label="Confirm Password"
-                type="password"
                 placeholder="Re-enter your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

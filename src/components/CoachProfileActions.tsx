@@ -48,15 +48,18 @@ export function FavoriteButton({ coachId }: { coachId: string }) {
   if (!session) return null;
 
   return (
-    <Button
-      variant="outline"
+    <button
       onClick={toggle}
       disabled={toggling}
-      className={isFavorite ? "border-coral-300 text-coral-600" : ""}
+      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+        isFavorite
+          ? "bg-coral-50 border-2 border-coral-400 text-coral-600 hover:bg-coral-100"
+          : "bg-white border-2 border-coral-300 text-coral-500 hover:bg-coral-50 hover:border-coral-400"
+      } ${toggling ? "opacity-50 cursor-not-allowed" : ""}`}
     >
-      <Heart className={`h-4 w-4 mr-2 ${isFavorite ? "fill-coral-500 text-coral-500" : ""}`} />
+      <Heart className={`h-5 w-5 ${isFavorite ? "fill-coral-500 text-coral-500" : ""}`} />
       {isFavorite ? "Favourited" : "Favourite"}
-    </Button>
+    </button>
   );
 }
 
@@ -78,39 +81,39 @@ function ReviewButton({ coachId }: { coachId: string }) {
 
   if (reviewStatus === "cooldown") {
     return (
-      <Button variant="outline" disabled className="opacity-60 cursor-not-allowed">
-        <Clock className="h-4 w-4 mr-2" />
-        Review update available in {monthsLeft} month{monthsLeft !== 1 ? "s" : ""}
-      </Button>
+      <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed">
+        <Clock className="h-5 w-5" />
+        Review update in {monthsLeft} month{monthsLeft !== 1 ? "s" : ""}
+      </span>
     );
   }
 
   if (reviewStatus === "pending") {
     return (
-      <Button variant="outline" disabled className="opacity-60 cursor-not-allowed">
-        <Clock className="h-4 w-4 mr-2" />
+      <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-amber-50 border-2 border-amber-200 text-amber-600 cursor-not-allowed">
+        <Clock className="h-5 w-5" />
         Review pending approval
-      </Button>
+      </span>
     );
   }
 
   if (reviewStatus === "can_update") {
     return (
       <Link href={`/reviews/submit?coachId=${coachId}`}>
-        <Button variant="outline">
-          <MessageSquareText className="h-4 w-4 mr-2" />
+        <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-coral-500 text-white hover:bg-coral-600 transition-colors">
+          <MessageSquareText className="h-5 w-5" />
           Update Review
-        </Button>
+        </span>
       </Link>
     );
   }
 
   return (
     <Link href={`/reviews/submit?coachId=${coachId}`}>
-      <Button variant="outline">
-        <MessageSquareText className="h-4 w-4 mr-2" />
+      <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-coral-500 text-white hover:bg-coral-600 transition-colors">
+        <MessageSquareText className="h-5 w-5" />
         Submit a Review
-      </Button>
+      </span>
     </Link>
   );
 }
@@ -129,7 +132,7 @@ export function CoachProfileActionButtons({
   const isOwner = session.user?.id === coachUserId;
 
   return (
-    <div className="flex flex-wrap gap-3 mt-4">
+    <div className="flex flex-wrap gap-3 mt-6">
       {isOwner && (
         <Link href="/dashboard/coach/profile">
           <Button>

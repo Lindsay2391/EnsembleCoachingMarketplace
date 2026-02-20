@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, XCircle } from "lucide-react";
-import Input from "@/components/ui/Input";
+import PasswordInput from "@/components/ui/PasswordInput";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
@@ -132,20 +132,18 @@ function ResetPasswordContent() {
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>
               )}
 
-              <Input
+              <PasswordInput
                 id="password"
                 label="New Password"
-                type="password"
                 placeholder="At least 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
 
-              <Input
+              <PasswordInput
                 id="confirmPassword"
                 label="Confirm New Password"
-                type="password"
                 placeholder="Re-enter your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}

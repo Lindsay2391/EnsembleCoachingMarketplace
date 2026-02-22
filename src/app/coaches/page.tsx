@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import CoachAvatar from "@/components/ui/CoachAvatar";
-import { Search, MapPin, Filter, X, Heart } from "lucide-react";
+import { Search, MapPin, Filter, X, Heart, Users } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
@@ -84,6 +84,21 @@ function CoachBrowseContent() {
   const [skillSearchResults, setSkillSearchResults] = useState<Array<{ id: string; name: string; category: string; coachCount: number }>>([]);
   const [skillSearchLoading, setSkillSearchLoading] = useState(false);
   const [showSkillSearch, setShowSkillSearch] = useState(false);
+  const [ensembleProfiles, setEnsembleProfiles] = useState<Array<{ id: string; ensembleName: string; ensembleType: string; coachingGoals?: string }>>([]);
+  const [selectedEnsembleId, setSelectedEnsembleId] = useState("");
+
+  useEffect(() => {
+    if (session?.user) {
+      fetch("/api/ensembles/me")
+        .then(r => r.json())
+        .then(data => {
+          const profiles = data.profiles || [];
+          setEnsembleProfiles(profiles);
+          if (profiles.length > 0) setSelectedEnsembleId(profiles[0].id);
+        })
+        .catch(() => {});
+    }
+  }, [session]);
 
   useEffect(() => {
     fetch("/api/skills")
@@ -130,6 +145,7 @@ function CoachBrowseContent() {
     if (state) params.set("state", state);
     if (experienceLevel) params.set("experienceLevel", experienceLevel);
     if (coachingFormat) params.set("coachingFormat", coachingFormat);
+    if (selectedEnsembleId) params.set("ensembleId", selectedEnsembleId);
     params.set("page", page.toString());
 
     try {
@@ -147,7 +163,7 @@ function CoachBrowseContent() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, selectedSkills, country, state, experienceLevel, coachingFormat, page]);
+  }, [searchTerm, selectedSkills, country, state, experienceLevel, coachingFormat, selectedEnsembleId, page]);
 
   useEffect(() => {
     fetchCoaches();
@@ -253,6 +269,22 @@ function CoachBrowseContent() {
             )}
           </Button>
         </form>
+
+        {ensembleProfiles.length > 1 && (
+          <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+            <Users className="h-4 w-4 text-gray-500 flex-shrink-0" />
+            <span className="text-sm text-gray-600 flex-shrink-0">Browsing for:</span>
+            <select
+              value={selectedEnsembleId}
+              onChange={(e) => { setSelectedEnsembleId(e.target.value); setPage(1); }}
+              className="text-sm font-medium bg-white border border-gray-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-coral-500 focus:border-coral-500 outline-none"
+            >
+              {ensembleProfiles.map(ep => (
+                <option key={ep.id} value={ep.id}>{ep.ensembleName} ({ep.ensembleType})</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {selectedSkills.length > 0 && !showFilters && (
           <div className="flex flex-wrap items-center gap-2">

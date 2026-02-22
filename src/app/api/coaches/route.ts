@@ -118,16 +118,23 @@ export async function GET(request: Request) {
     let ensembleProfile: { ensembleType: string; experienceLevel: string; state: string; city: string; country: string; coachingGoals: string } | null = null;
 
     if (session?.user?.id) {
+      const ensembleId = searchParams.get("ensembleId");
       const [favs, ensembles] = await Promise.all([
         prisma.favoriteCoach.findMany({
           where: { userId: session.user.id },
           select: { coachProfileId: true },
         }),
-        prisma.ensembleProfile.findMany({
-          where: { userId: session.user.id },
-          select: { ensembleType: true, experienceLevel: true, state: true, city: true, country: true, coachingGoals: true },
-          take: 1,
-        }),
+        ensembleId
+          ? prisma.ensembleProfile.findMany({
+              where: { id: ensembleId, userId: session.user.id },
+              select: { ensembleType: true, experienceLevel: true, state: true, city: true, country: true, coachingGoals: true },
+              take: 1,
+            })
+          : prisma.ensembleProfile.findMany({
+              where: { userId: session.user.id },
+              select: { ensembleType: true, experienceLevel: true, state: true, city: true, country: true, coachingGoals: true },
+              take: 1,
+            }),
       ]);
       favs.forEach((f) => favoriteIds.add(f.coachProfileId));
       ensembleProfile = ensembles[0] || null;

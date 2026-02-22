@@ -149,20 +149,21 @@ export default function Dashboard() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-2 border-gray-100">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-coral-50 rounded-lg">
-                  <Music className="h-6 w-6 text-coral-500" />
+      {/* Profile cards: side-by-side if both exist, full-width if only one */}
+      <div className={`grid grid-cols-1 ${coachProfile && ensembleProfiles.length > 0 ? "md:grid-cols-2" : ""} gap-6`}>
+        {coachProfile && (
+          <Card className="border-2 border-gray-100">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-coral-50 rounded-lg">
+                    <Music className="h-6 w-6 text-coral-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Coach Profile</h2>
+                    <p className="text-sm text-gray-500">Offer your coaching services</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Coach Profile</h2>
-                  <p className="text-sm text-gray-500">Offer your coaching services</p>
-                </div>
-              </div>
-              {coachProfile && (
                 <div className="flex gap-1">
                   {coachProfile.approved ? (
                     <Badge variant="success">Active</Badge>
@@ -170,11 +171,9 @@ export default function Dashboard() {
                     <Badge variant="warning">Pending</Badge>
                   )}
                 </div>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {coachProfile ? (
+              </div>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-4">
                 <div>
                   <p className="font-medium text-gray-900">{coachProfile.fullName}</p>
@@ -201,37 +200,27 @@ export default function Dashboard() {
                   </Link>
                 </div>
               </div>
-            ) : (
-              <div className="flex items-center justify-between py-1">
-                <p className="text-sm text-gray-400">No coach profile yet</p>
-                <Link href="/dashboard/coach/profile">
-                  <Button variant="outline" size="sm">
-                    <Plus className="h-3.5 w-3.5 mr-1" />
-                    Create
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        <Card className="border-2 border-gray-100">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-coral-50 rounded-lg">
-                  <Users className="h-6 w-6 text-coral-500" />
+        {ensembleProfiles.length > 0 && (
+          <Card className="border-2 border-gray-100">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-coral-50 rounded-lg">
+                    <Users className="h-6 w-6 text-coral-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Ensemble Profiles</h2>
+                    <p className="text-sm text-gray-500">Find coaches for your groups</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Ensemble Profiles</h2>
-                  <p className="text-sm text-gray-500">Find coaches for your groups</p>
-                </div>
+                <Badge variant="success">{ensembleProfiles.length} Active</Badge>
               </div>
-              {ensembleProfiles.length > 0 && <Badge variant="success">{ensembleProfiles.length} Active</Badge>}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {ensembleProfiles.length > 0 ? (
+            </CardHeader>
+            <CardContent>
               <div className="space-y-3">
                 {ensembleProfiles.map((ep) => (
                   <div key={ep.id} className="border border-gray-100 rounded-lg p-3">
@@ -272,20 +261,38 @@ export default function Dashboard() {
                   </Button>
                 </Link>
               </div>
-            ) : (
-              <div className="flex items-center justify-between py-1">
-                <p className="text-sm text-gray-400">No ensemble profile yet</p>
-                <Link href="/dashboard/ensemble/profile">
-                  <Button variant="outline" size="sm">
-                    <Plus className="h-3.5 w-3.5 mr-1" />
-                    Create
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      {/* Compact prompts to create the other profile type */}
+      {(!coachProfile || ensembleProfiles.length === 0) && (
+        <div className="mt-4 flex flex-wrap gap-3">
+          {!coachProfile && (
+            <Link href="/dashboard/coach/profile" className="flex-1 min-w-[200px]">
+              <div className="flex items-center gap-3 border border-dashed border-gray-300 rounded-lg px-4 py-3 hover:border-coral-300 hover:bg-coral-50/50 transition-colors cursor-pointer">
+                <div className="p-1.5 bg-coral-50 rounded-md">
+                  <Music className="h-4 w-4 text-coral-500" />
+                </div>
+                <span className="text-sm text-gray-600">Create a Coach Profile</span>
+                <Plus className="h-4 w-4 text-gray-400 ml-auto" />
+              </div>
+            </Link>
+          )}
+          {ensembleProfiles.length === 0 && (
+            <Link href="/dashboard/ensemble/profile" className="flex-1 min-w-[200px]">
+              <div className="flex items-center gap-3 border border-dashed border-gray-300 rounded-lg px-4 py-3 hover:border-coral-300 hover:bg-coral-50/50 transition-colors cursor-pointer">
+                <div className="p-1.5 bg-coral-50 rounded-md">
+                  <Users className="h-4 w-4 text-coral-500" />
+                </div>
+                <span className="text-sm text-gray-600">Create an Ensemble Profile</span>
+                <Plus className="h-4 w-4 text-gray-400 ml-auto" />
+              </div>
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="mt-8 space-y-3">
         <Link href="/coaches">

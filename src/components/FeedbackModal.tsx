@@ -11,8 +11,14 @@ const CATEGORIES = [
   { value: "general", label: "General Feedback", description: "Any other thoughts or comments" },
 ];
 
-export default function FeedbackModal() {
-  const [open, setOpen] = useState(false);
+interface FeedbackModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isOpen !== undefined ? isOpen : internalOpen;
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -27,7 +33,11 @@ export default function FeedbackModal() {
   };
 
   const handleClose = () => {
-    setOpen(false);
+    if (onClose) {
+      onClose();
+    } else {
+      setInternalOpen(false);
+    }
     setTimeout(reset, 300);
   };
 
@@ -70,13 +80,15 @@ export default function FeedbackModal() {
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-coral-200 hover:text-coral-600 transition-colors shadow-sm"
-      >
-        <MessageSquare className="h-4 w-4" />
-        Send Feedback
-      </button>
+      {isOpen === undefined && (
+        <button
+          onClick={() => setInternalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-coral-200 hover:text-coral-600 transition-colors shadow-sm"
+        >
+          <MessageSquare className="h-4 w-4" />
+          Send Feedback
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

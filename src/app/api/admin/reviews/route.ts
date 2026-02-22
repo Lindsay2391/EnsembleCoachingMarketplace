@@ -16,19 +16,33 @@ export async function GET() {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
-    const reviews = await prisma.review.findMany({
-      include: {
-        coachProfile: {
-          select: { id: true, fullName: true },
+    const [reviews, pendingEnsembleReviews] = await Promise.all([
+      prisma.review.findMany({
+        include: {
+          coachProfile: {
+            select: { id: true, fullName: true },
+          },
+          reviewer: {
+            select: { ensembleName: true },
+          },
         },
-        reviewer: {
-          select: { ensembleName: true },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.ensembleReview.findMany({
+        where: { status: "pending" },
+        include: {
+          coachProfile: {
+            select: { id: true, fullName: true },
+          },
+          ensembleProfile: {
+            select: { ensembleName: true },
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
 
-    return NextResponse.json(reviews);
+    return NextResponse.json({ reviews, pendingEnsembleReviews });
   } catch (error) {
     console.error("Error fetching reviews:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

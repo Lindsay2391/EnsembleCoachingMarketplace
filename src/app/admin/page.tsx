@@ -77,6 +77,19 @@ interface ReviewItem {
   reviewer: { ensembleName: string };
 }
 
+interface PendingEnsembleReviewItem {
+  id: string;
+  rating: number;
+  reviewText: string | null;
+  sessionMonth: number;
+  sessionYear: number;
+  sessionFormat: string;
+  status: string;
+  createdAt: string;
+  coachProfile: { id: string; fullName: string };
+  ensembleProfile: { ensembleName: string };
+}
+
 interface AdminSkillItem {
   id: string;
   name: string;
@@ -139,6 +152,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [adminReviews, setAdminReviews] = useState<ReviewItem[]>([]);
+  const [pendingEnsembleReviews, setPendingEnsembleReviews] = useState<PendingEnsembleReviewItem[]>([]);
   const [adminSkills, setAdminSkills] = useState<AdminSkillItem[]>([]);
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [ensembles, setEnsembles] = useState<EnsembleItem[]>([]);
@@ -299,7 +313,11 @@ export default function AdminDashboard() {
   const fetchReviews = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/reviews");
-      if (res.ok) setAdminReviews(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        setAdminReviews(data.reviews || data);
+        setPendingEnsembleReviews(data.pendingEnsembleReviews || []);
+      }
     } catch (err) {
       console.error("Error fetching reviews:", err);
     }
@@ -1003,59 +1021,102 @@ export default function AdminDashboard() {
       )}
 
       {activeTab === "reviews" && (
-        <Card>
-          <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input type="text" placeholder="Search by coach or ensemble name..." value={reviewSearch} onChange={(e) => setReviewSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-transparent" />
+        <div className="space-y-6">
+          {pendingEnsembleReviews.length > 0 && (
+            <Card>
+              <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-amber-500" />
+                  Pending Coach Confirmation ({pendingEnsembleReviews.length})
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">These reviews were submitted by ensembles and are waiting for the coach to confirm them.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Coach</th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Ensemble</th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                      <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {pendingEnsembleReviews.map((review) => (
+                      <tr key={review.id} className="hover:bg-amber-50/50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-gray-900">{review.coachProfile.fullName}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{review.ensembleProfile.ensembleName}</td>
+                        <td className="px-6 py-4">
+                          <StarRating rating={review.rating} size={14} />
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {new Date(review.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant="warning">Awaiting confirmation</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+          <Card>
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input type="text" placeholder="Search by coach or ensemble name..." value={reviewSearch} onChange={(e) => setReviewSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-coral-500 focus:border-transparent" />
+              </div>
             </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <SortHeader col="coach">Coach</SortHeader>
-                  <SortHeader col="ensemble">Ensemble</SortHeader>
-                  <SortHeader col="rating">Rating</SortHeader>
-                  <SortHeader col="date">Date</SortHeader>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filteredReviews.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                      No reviews found
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <SortHeader col="coach">Coach</SortHeader>
+                    <SortHeader col="ensemble">Ensemble</SortHeader>
+                    <SortHeader col="rating">Rating</SortHeader>
+                    <SortHeader col="date">Date</SortHeader>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
-                ) : (
-                  filteredReviews.map((review) => (
-                    <tr key={review.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">{review.coachProfile.fullName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600">{review.reviewer.ensembleName}</td>
-                      <td className="px-6 py-4">
-                        <StarRating rating={review.rating} size={14} />
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => deleteReview(review.id, review.coachProfile.fullName, review.reviewer.ensembleName)}
-                          disabled={updatingId === review.id}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Delete
-                        </button>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredReviews.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        No published reviews found
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                  ) : (
+                    filteredReviews.map((review) => (
+                      <tr key={review.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-gray-900">{review.coachProfile.fullName}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{review.reviewer.ensembleName}</td>
+                        <td className="px-6 py-4">
+                          <StarRating rating={review.rating} size={14} />
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {new Date(review.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <button
+                            onClick={() => deleteReview(review.id, review.coachProfile.fullName, review.reviewer.ensembleName)}
+                            disabled={updatingId === review.id}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
       )}
 
       {activeTab === "skills" && (

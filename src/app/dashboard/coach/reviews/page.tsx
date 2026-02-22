@@ -176,7 +176,7 @@ export default function CoachReviewsPage() {
         body: JSON.stringify({ action }),
       });
       if (res.ok) {
-        setSuccess(action === "approve" ? "Review approved and published!" : "Review rejected.");
+        setSuccess(action === "approve" ? "Review confirmed and published!" : "Review declined.");
         fetchPendingEnsembleReviews();
         if (action === "approve") fetchInvites();
       } else {
@@ -264,9 +264,9 @@ export default function CoachReviewsPage() {
           <CardHeader>
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Users className="h-5 w-5 text-coral-500" />
-              Pending Review Approvals
+              Reviews Pending Confirmation
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Ensembles have submitted reviews of your coaching. Approve to publish them on your profile.</p>
+            <p className="text-sm text-gray-500 mt-1">Ensembles have submitted reviews of your coaching. You can confirm or decline them without seeing the content first.</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -297,7 +297,7 @@ export default function CoachReviewsPage() {
                         className="bg-green-600 hover:bg-green-700 text-white"
                       >
                         <Check className="h-4 w-4 mr-1" />
-                        Approve
+                        Confirm
                       </Button>
                       <Button
                         size="sm"
@@ -307,7 +307,7 @@ export default function CoachReviewsPage() {
                         className="text-red-600 border-red-300 hover:bg-red-50"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
-                        Reject
+                        Decline
                       </Button>
                     </div>
                   </div>

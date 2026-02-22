@@ -151,9 +151,9 @@ function EnsembleDashboardContent() {
       rejected: "danger",
     };
     const labels: Record<string, string> = {
-      pending: "Pending Approval",
+      pending: "Pending Confirmation",
       approved: "Published",
-      rejected: "Rejected",
+      rejected: "Declined",
     };
     return <Badge variant={variants[s] || "default"}>{labels[s] || s}</Badge>;
   };
@@ -408,7 +408,7 @@ function ReviewsSection({
                     <p className="text-sm text-gray-600 mt-2 line-clamp-2">&ldquo;{review.reviewText}&rdquo;</p>
                   )}
                   {review.status === "rejected" && (
-                    <p className="text-sm text-red-600 mt-2">This review was not approved by the coach.</p>
+                    <p className="text-sm text-red-600 mt-2">This review was declined by the coach.</p>
                   )}
                 </div>
                 {review.status === "pending" && (

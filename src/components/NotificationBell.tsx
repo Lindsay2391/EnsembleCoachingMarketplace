@@ -145,7 +145,7 @@ export default function NotificationBell({ isAdmin = false, hasCoachProfile = fa
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm text-gray-900">
-                          <span className="font-medium">{pendingEnsembleReviews} ensemble review{pendingEnsembleReviews === 1 ? "" : "s"}</span> pending your approval
+                          <span className="font-medium">{pendingEnsembleReviews} ensemble review{pendingEnsembleReviews === 1 ? "" : "s"}</span> pending your confirmation
                         </p>
                         <p className="text-xs text-gray-500 mt-0.5">
                           Review in Coach Dashboard

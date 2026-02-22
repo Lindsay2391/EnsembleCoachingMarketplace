@@ -224,7 +224,7 @@ function SubmitReviewContent() {
           <CheckCircle className="h-16 w-16 text-green-500" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">{isUpdate ? "Review Updated!" : "Review Submitted!"}</h2>
-        <p className="text-gray-600">{isUpdate ? "Your updated review has been submitted! The coach will be notified and can approve it." : "Your review has been submitted! The coach will be notified and can approve it."}</p>
+        <p className="text-gray-600">{isUpdate ? "Your updated review has been submitted! The coach will be notified and can confirm it." : "Your review has been submitted! The coach will be notified and can confirm it."}</p>
         <p className="text-sm text-gray-500 mt-2">Redirecting to the coach profile...</p>
       </div>
     );
@@ -263,7 +263,7 @@ function SubmitReviewContent() {
 
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
         <p className="text-sm text-amber-800">
-          <strong>Please note:</strong> Because this review is unprompted, the coach will need to approve it before it goes live. However, they will <strong>not</strong> be able to see your rating, comments, or selected skills before deciding — they will only see your ensemble name and the coaching period.
+          <strong>Please note:</strong> Because this review is unprompted, the coach will need to confirm it before it goes live. They will <strong>not</strong> be able to see your rating, comments, or selected skills before deciding — they will only see your ensemble name and the coaching period.
         </p>
       </div>
 
@@ -290,7 +290,7 @@ function SubmitReviewContent() {
 
       <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 mb-6">
         <p className="text-sm text-blue-800">
-          This review will be sent to the coach for approval. The coach will not see the review content until they approve it.
+          This review will be sent to the coach for confirmation. The coach will not see the review content before deciding.
         </p>
       </div>
 

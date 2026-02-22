@@ -67,6 +67,8 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - 2026-02-22: Coaching format filter (In-Person / Virtual) added to Find Coaches browse page with server-side filtering
 - 2026-02-22: Dashboard compacted: empty profile sections (no coach or no ensemble) now show a minimal inline prompt instead of a large card
 - 2026-02-22: PasswordInput component with show/hide eye toggle added to all password fields (login, register, reset password, admin register)
+- 2026-02-22: Admin Reviews tab now shows pending ensemble-initiated reviews awaiting coach confirmation, separate from published reviews
+- 2026-02-22: Changed review wording from "approve/reject" to "confirm/decline" across all coach review flows — clearer that coaches can't see review content before deciding
 - 2026-02-22: Favourite and Review Coach buttons restyled for better visibility on coach profile pages
 - 2026-02-18: Review update system: same ensemble can now submit updated reviews for the same coach after a 9-month cooldown period
 - 2026-02-18: Rating calculation uses only the latest review per ensemble for average rating; skill endorsements accumulate from all reviews

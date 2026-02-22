@@ -92,7 +92,7 @@ function ReviewButton({ coachId }: { coachId: string }) {
     return (
       <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-amber-50 border-2 border-amber-200 text-amber-600 cursor-not-allowed">
         <Clock className="h-5 w-5" />
-        Review pending approval
+        Review pending confirmation
       </span>
     );
   }

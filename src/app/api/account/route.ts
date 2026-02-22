@@ -3,6 +3,54 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    const userId = (session.user as { id: string }).id;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error("Account fetch error:", error);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+    const userId = (session.user as { id: string }).id;
+    const body = await request.json();
+    const name = body.name?.trim();
+    if (!name || name.length < 2) {
+      return NextResponse.json({ error: "Name must be at least 2 characters" }, { status: 400 });
+    }
+    if (name.length > 100) {
+      return NextResponse.json({ error: "Name is too long" }, { status: 400 });
+    }
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { name },
+      select: { name: true, email: true },
+    });
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("Account update error:", error);
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+  }
+}
+
 export async function DELETE() {
   try {
     const session = await getServerSession(authOptions);

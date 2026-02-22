@@ -85,6 +85,11 @@ export async function GET(request: Request) {
       where.experienceLevels = { contains: experienceLevel };
     }
 
+    const coachingFormat = searchParams.get("coachingFormat");
+    if (coachingFormat) {
+      where.coachingFormats = { contains: coachingFormat };
+    }
+
     if (minRate || maxRate) {
       where.rateHourly = {};
       if (minRate) {

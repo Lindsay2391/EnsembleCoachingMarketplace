@@ -76,6 +76,7 @@ function CoachBrowseContent() {
   const [country, setCountry] = useState("");
   const [state, setState] = useState(searchParams.get("state") || "");
   const [experienceLevel, setExperienceLevel] = useState(searchParams.get("experienceLevel") || "");
+  const [coachingFormat, setCoachingFormat] = useState("");
   const [page, setPage] = useState(1);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [skillSearchTerm, setSkillSearchTerm] = useState("");
@@ -127,6 +128,7 @@ function CoachBrowseContent() {
     if (country) params.set("country", country);
     if (state) params.set("state", state);
     if (experienceLevel) params.set("experienceLevel", experienceLevel);
+    if (coachingFormat) params.set("coachingFormat", coachingFormat);
     params.set("page", page.toString());
 
     try {
@@ -144,7 +146,7 @@ function CoachBrowseContent() {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, selectedSkills, country, state, experienceLevel, page]);
+  }, [searchTerm, selectedSkills, country, state, experienceLevel, coachingFormat, page]);
 
   useEffect(() => {
     fetchCoaches();
@@ -209,6 +211,7 @@ function CoachBrowseContent() {
     setCountry("");
     setState("");
     setExperienceLevel("");
+    setCoachingFormat("");
     setPage(1);
     router.push("/coaches");
   };
@@ -242,9 +245,9 @@ function CoachBrowseContent() {
           >
             <Filter className="h-4 w-4 mr-2" />
             Filters
-            {(selectedSkills.length > 0 || country || state || experienceLevel) && (
+            {(selectedSkills.length > 0 || country || state || experienceLevel || coachingFormat) && (
               <span className="ml-1.5 bg-coral-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                {(selectedSkills.length > 0 ? 1 : 0) + (country ? 1 : 0) + (state ? 1 : 0) + (experienceLevel ? 1 : 0)}
+                {(selectedSkills.length > 0 ? 1 : 0) + (country ? 1 : 0) + (state ? 1 : 0) + (experienceLevel ? 1 : 0) + (coachingFormat ? 1 : 0)}
               </span>
             )}
           </Button>
@@ -275,7 +278,7 @@ function CoachBrowseContent() {
         {showFilters && (
           <Card>
             <CardContent className="py-4 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Select
                   label="Country"
                   value={country}
@@ -296,6 +299,16 @@ function CoachBrowseContent() {
                   onChange={(e) => { setExperienceLevel(e.target.value); setPage(1); }}
                   placeholder="All Levels"
                   options={EXPERIENCE_LEVELS.map((l) => ({ value: l, label: l }))}
+                />
+                <Select
+                  label="Coaching Format"
+                  value={coachingFormat}
+                  onChange={(e) => { setCoachingFormat(e.target.value); setPage(1); }}
+                  placeholder="All Formats"
+                  options={[
+                    { value: "in_person", label: "In-Person" },
+                    { value: "virtual", label: "Virtual" },
+                  ]}
                 />
               </div>
 

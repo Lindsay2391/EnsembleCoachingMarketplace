@@ -62,6 +62,11 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-22: Account settings page at `/dashboard/account` — users can edit their name; accessible from dashboard
+- 2026-02-22: Coaching format filter (In-Person / Virtual) added to Find Coaches browse page with server-side filtering
+- 2026-02-22: Dashboard compacted: empty profile sections (no coach or no ensemble) now show a minimal inline prompt instead of a large card
+- 2026-02-22: PasswordInput component with show/hide eye toggle added to all password fields (login, register, reset password, admin register)
+- 2026-02-22: Favourite and Review Coach buttons restyled for better visibility on coach profile pages
 - 2026-02-18: Review update system: same ensemble can now submit updated reviews for the same coach after a 9-month cooldown period
 - 2026-02-18: Rating calculation uses only the latest review per ensemble for average rating; skill endorsements accumulate from all reviews
 - 2026-02-18: Review button states: "Submit a Review" (new), "Update Review" (after 9 months), greyed out with cooldown timer (within 9 months), "Review pending approval" (pending)

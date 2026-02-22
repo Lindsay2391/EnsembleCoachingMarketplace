@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Music, Users, Search, User, Settings, Plus, Star, Mail, Trash2 } from "lucide-react";
+import { Music, Users, Search, User, Settings, Plus, Star, Mail, Trash2, UserCog } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -202,14 +202,12 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-4">
-                <p className="text-sm text-gray-500 mb-4">
-                  Set up your coach profile to start connecting with ensembles looking for coaching.
-                </p>
+              <div className="flex items-center justify-between py-1">
+                <p className="text-sm text-gray-400">No coach profile yet</p>
                 <Link href="/dashboard/coach/profile">
-                  <Button className="w-full">
-                    <Plus className="h-4 w-4 mr-1.5" />
-                    Create Coach Profile
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Create
                   </Button>
                 </Link>
               </div>
@@ -275,14 +273,12 @@ export default function Dashboard() {
                 </Link>
               </div>
             ) : (
-              <div className="text-center py-4">
-                <p className="text-sm text-gray-500 mb-4">
-                  Set up your ensemble profile to browse and connect with coaches.
-                </p>
+              <div className="flex items-center justify-between py-1">
+                <p className="text-sm text-gray-400">No ensemble profile yet</p>
                 <Link href="/dashboard/ensemble/profile">
-                  <Button className="w-full">
-                    <Plus className="h-4 w-4 mr-1.5" />
-                    Create Ensemble Profile
+                  <Button variant="outline" size="sm">
+                    <Plus className="h-3.5 w-3.5 mr-1" />
+                    Create
                   </Button>
                 </Link>
               </div>
@@ -291,13 +287,22 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 space-y-3">
         <Link href="/coaches">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="py-4 flex items-center gap-3">
               <Search className="h-5 w-5 text-coral-500" />
               <span className="font-medium text-gray-900">Browse Coaches</span>
               <span className="text-sm text-gray-500 ml-auto">Find the perfect coach for your group</span>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/dashboard/account">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="py-4 flex items-center gap-3">
+              <UserCog className="h-5 w-5 text-coral-500" />
+              <span className="font-medium text-gray-900">Account Settings</span>
+              <span className="text-sm text-gray-500 ml-auto">Update your name and account details</span>
             </CardContent>
           </Card>
         </Link>

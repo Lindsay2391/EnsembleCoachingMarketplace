@@ -266,7 +266,7 @@ export default function CoachReviewsPage() {
               <Users className="h-5 w-5 text-coral-500" />
               Reviews Pending Confirmation
             </h2>
-            <p className="text-sm text-gray-500 mt-1">Ensembles have reviewed your coaching. You'll see who sent each review, but the rating, testimonial, and skills will only be revealed after you confirm.</p>
+            <p className="text-sm text-gray-500 mt-1">Ensembles have reviewed your coaching. You&apos;ll see who sent each review, but the rating, testimonial, and skills will only be revealed after you confirm.</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

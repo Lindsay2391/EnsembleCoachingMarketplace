@@ -176,9 +176,6 @@ export async function GET(request: Request) {
 
       const scoredCoaches = allCoachesLite.map((coach) => {
         const coachSkillNames = coach.coachSkills.map(cs => cs.skill.name);
-        const coachEnsembleTypes = parseJson(coach.ensembleTypes);
-        const coachExpLevels = parseJson(coach.experienceLevels);
-
         const isFavorite = favoriteIds.has(coach.id);
 
         let locationScore = 0;

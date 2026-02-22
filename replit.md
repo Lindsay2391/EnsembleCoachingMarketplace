@@ -9,7 +9,7 @@ I want iterative development.
 Ask before making major changes.
 
 ## System Architecture
-The platform is built with Next.js 14.2 using the App Router, TypeScript, and Tailwind CSS for styling, adhering to a warm coral/salmon color scheme (`coral-500 #e8837c`) to match the `thinkingbarbershop.com` brand. UI components leverage Lucide React icons and `class-variance-authority`.
+The platform is built with Next.js 14.2.35 using the App Router, TypeScript, and Tailwind CSS for styling, adhering to a warm coral/salmon color scheme (`coral-500 #e8837c`) to match the `thinkingbarbershop.com` brand. UI components leverage Lucide React icons and `class-variance-authority`.
 
 **Account Structure and Profiles:**
 - Users register with basic information and can then create both a coach profile and multiple ensemble profiles from a unified dashboard.
@@ -62,6 +62,7 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-22: Security dependency updates — next 14.2.29→14.2.35, glob 10.3.10→11.1.0 (via npm override), eslint-config-next 14.2.29→14.2.35; added allowedDevOrigins config for Next.js 14.2.35 compatibility
 - 2026-02-22: User dropdown menu in top-right navbar — clicking user name opens dropdown with Dashboard, Account Settings, Send Feedback, and Sign Out; replaces separate Dashboard link and Sign Out button; mobile menu also updated with all four options
 - 2026-02-22: Account settings page at `/dashboard/account` — edit name, change email (with re-verification), change password, and delete account; delete account moved from dashboard to account settings
 - 2026-02-22: Coaching goals feature: ensembles can specify skill areas they want coaching on; goals picker in ensemble profile form, goals displayed on dashboard cards, goal-match indicators on coach browse page with relevance scoring (+5 per goal match); ensemble selector on browse page for users with multiple ensembles

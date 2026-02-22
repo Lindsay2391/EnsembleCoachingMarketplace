@@ -1,10 +1,10 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Music, Users, Search, User, Settings, Plus, Star, Mail, Trash2, UserCog } from "lucide-react";
+import { Music, Users, Search, User, Settings, Plus, Star, Mail, UserCog } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
@@ -38,9 +38,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [emailVerified, setEmailVerified] = useState(true);
   const [resending, setResending] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -100,22 +97,6 @@ export default function Dashboard() {
     setResending(false);
   };
 
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText !== "DELETE") return;
-    setDeleting(true);
-    try {
-      const res = await fetch("/api/account", { method: "DELETE" });
-      if (res.ok) {
-        await signOut({ callbackUrl: "/" });
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to delete account.");
-      }
-    } catch {
-      alert("Something went wrong. Please try again.");
-    }
-    setDeleting(false);
-  };
 
   if (status === "loading" || loading) {
     return (
@@ -333,65 +314,6 @@ export default function Dashboard() {
         <BuyMeACoffee variant="inline" />
       </div>
 
-      <div className="mt-10 border-t border-gray-200 pt-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Account</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Permanently delete your account and all data</p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-red-600 border-red-200 hover:bg-red-50"
-            onClick={() => setShowDeleteConfirm(true)}
-          >
-            <Trash2 className="h-4 w-4 mr-1.5" />
-            Delete Account
-          </Button>
-        </div>
-      </div>
-
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Account</h3>
-            <p className="text-sm text-gray-600 mb-1">
-              This will permanently delete your account, including:
-            </p>
-            <ul className="text-sm text-gray-600 list-disc list-inside mb-4 space-y-1">
-              <li>Your coach profile and all reviews</li>
-              <li>All ensemble profiles</li>
-              <li>Your favourites and messages</li>
-            </ul>
-            <p className="text-sm text-gray-600 mb-3">
-              Type <span className="font-mono font-semibold text-red-600">DELETE</span> to confirm:
-            </p>
-            <input
-              type="text"
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder="Type DELETE"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300"
-            />
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}
-              >
-                Cancel
-              </Button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={deleteConfirmText !== "DELETE" || deleting}
-                className="flex-1 bg-red-600 text-white text-sm font-medium rounded-lg px-4 py-2 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {deleting ? "Deleting..." : "Delete My Account"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

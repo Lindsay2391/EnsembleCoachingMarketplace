@@ -62,7 +62,7 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
-- 2026-02-22: Account settings page at `/dashboard/account` — users can edit their name; accessible from dashboard
+- 2026-02-22: Account settings page at `/dashboard/account` — edit name, change email (with re-verification), change password, and delete account; delete account moved from dashboard to account settings
 - 2026-02-22: Coaching goals feature: ensembles can specify skill areas they want coaching on; goals picker in ensemble profile form, goals displayed on dashboard cards, goal-match indicators on coach browse page with relevance scoring (+5 per goal match); ensemble selector on browse page for users with multiple ensembles
 - 2026-02-22: Coaching format filter (In-Person / Virtual) added to Find Coaches browse page with server-side filtering
 - 2026-02-22: Dashboard compacted: empty profile sections (no coach or no ensemble) now show a minimal inline prompt instead of a large card

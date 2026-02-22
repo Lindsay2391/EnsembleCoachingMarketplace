@@ -26,6 +26,7 @@ interface EnsembleInfo {
   ensembleType: string;
   city: string;
   state: string;
+  coachingGoals?: string;
 }
 
 export default function Dashboard() {
@@ -238,6 +239,18 @@ export default function Dashboard() {
                         </span>
                       </div>
                     )}
+                    {(() => {
+                      let goals: string[] = [];
+                      try { goals = JSON.parse(ep.coachingGoals || "[]"); } catch { goals = []; }
+                      return goals.length > 0 ? (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {goals.slice(0, 5).map(g => (
+                            <span key={g} className="px-2 py-0.5 rounded-full text-xs bg-coral-50 text-coral-600 border border-coral-200">{g}</span>
+                          ))}
+                          {goals.length > 5 && <span className="text-xs text-gray-400 self-center">+{goals.length - 5} more</span>}
+                        </div>
+                      ) : null;
+                    })()}
                     <div className="flex gap-2">
                       <Link href={`/dashboard/ensemble?id=${ep.id}`} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full">

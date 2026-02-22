@@ -91,6 +91,7 @@ model EnsembleProfile {
   country         String   @default("Australia")
   genres          String
   experienceLevel String
+  coachingGoals   String   @default("[]")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

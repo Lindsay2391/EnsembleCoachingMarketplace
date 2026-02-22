@@ -101,6 +101,7 @@ export async function PUT(
     if (body.country !== undefined) updateData.country = body.country;
     if (body.genres !== undefined) updateData.genres = JSON.stringify(body.genres);
     if (body.experienceLevel !== undefined) updateData.experienceLevel = body.experienceLevel;
+    if (body.coachingGoals !== undefined) updateData.coachingGoals = JSON.stringify(body.coachingGoals);
 
     const updated = await prisma.ensembleProfile.update({
       where: { id },

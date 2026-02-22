@@ -15,6 +15,7 @@ const ensembleSchema = z.object({
   country: z.string().optional(),
   genres: z.array(z.string()).min(1, "At least one genre is required"),
   experienceLevel: z.string().min(1, "Experience level is required"),
+  coachingGoals: z.array(z.string()).optional(),
 });
 
 export async function POST(request: Request) {
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { ensembleName, ensembleType, voiceRange, size, city, state, country, genres, experienceLevel } =
+    const { ensembleName, ensembleType, voiceRange, size, city, state, country, genres, experienceLevel, coachingGoals } =
       validation.data;
 
     const dbUser = await prisma.user.findUnique({
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
         country: country || "Australia",
         genres: JSON.stringify(genres),
         experienceLevel,
+        coachingGoals: JSON.stringify(coachingGoals || []),
       },
     });
 

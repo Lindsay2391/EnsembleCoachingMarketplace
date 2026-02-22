@@ -115,7 +115,7 @@ export async function GET(request: Request) {
     }
 
     const favoriteIds = new Set<string>();
-    let ensembleProfile: { ensembleType: string; experienceLevel: string; state: string; city: string; country: string } | null = null;
+    let ensembleProfile: { ensembleType: string; experienceLevel: string; state: string; city: string; country: string; coachingGoals: string } | null = null;
 
     if (session?.user?.id) {
       const [favs, ensembles] = await Promise.all([
@@ -125,7 +125,7 @@ export async function GET(request: Request) {
         }),
         prisma.ensembleProfile.findMany({
           where: { userId: session.user.id },
-          select: { ensembleType: true, experienceLevel: true, state: true, city: true, country: true },
+          select: { ensembleType: true, experienceLevel: true, state: true, city: true, country: true, coachingGoals: true },
           take: 1,
         }),
       ]);
@@ -171,19 +171,26 @@ export async function GET(request: Request) {
         const isFavorite = favoriteIds.has(coach.id);
 
         let relevanceScore = 0;
+        let goalMatchCount = 0;
         if (ensembleProfile) {
           if (coach.country === ensembleProfile.country) relevanceScore += 15;
           if (coach.state === ensembleProfile.state) relevanceScore += 10;
           if (coach.city === ensembleProfile.city) relevanceScore += 5;
           if (coachEnsembleTypes.includes(ensembleProfile.ensembleType)) relevanceScore += 10;
           if (coachExpLevels.includes(ensembleProfile.experienceLevel)) relevanceScore += 10;
+
+          const ensembleGoals: string[] = (() => { try { return JSON.parse(ensembleProfile.coachingGoals || "[]"); } catch { return []; } })();
+          if (ensembleGoals.length > 0) {
+            goalMatchCount = ensembleGoals.filter(goal => coachSkillNames.includes(goal)).length;
+            relevanceScore += goalMatchCount * 5;
+          }
         }
 
         const skillMatchCount = skillsList.length > 0
           ? skillsList.filter((skill) => coachSkillNames.includes(skill)).length
           : 0;
 
-        return { id: coach.id, isFavorite, relevanceScore, matchCount: skillMatchCount, rating: coach.rating };
+        return { id: coach.id, isFavorite, relevanceScore, matchCount: skillMatchCount, goalMatchCount, rating: coach.rating };
       });
 
       scoredCoaches.sort((a, b) => {
@@ -222,6 +229,7 @@ export async function GET(request: Request) {
         isFavorite: scoreMap.get(coach.id)?.isFavorite ?? false,
         relevanceScore: scoreMap.get(coach.id)?.relevanceScore ?? 0,
         matchCount: scoreMap.get(coach.id)?.matchCount ?? 0,
+        goalMatchCount: scoreMap.get(coach.id)?.goalMatchCount ?? 0,
       }));
 
       return NextResponse.json({

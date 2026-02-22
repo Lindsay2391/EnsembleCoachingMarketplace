@@ -3,11 +3,18 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Search, X } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Button from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { EXPERIENCE_LEVELS, ENSEMBLE_TYPES, VOICE_RANGES, COUNTRY_NAMES, getRegionsForCountry, getRegionLabel } from "@/lib/utils";
+
+interface SkillItem {
+  id: string;
+  name: string;
+  category: string;
+}
 
 const GENRES = [
   "Barbershop",
@@ -49,10 +56,18 @@ function EnsembleProfileFormContent() {
   const [country, setCountry] = useState("Australia");
   const [genres, setGenres] = useState<string[]>([]);
   const [experienceLevel, setExperienceLevel] = useState("");
+  const [coachingGoals, setCoachingGoals] = useState<string[]>([]);
+  const [skillCategories, setSkillCategories] = useState<Record<string, SkillItem[]>>({});
+  const [goalSearchTerm, setGoalSearchTerm] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
     if (status === "loading") return;
+
+    fetch("/api/skills")
+      .then(r => r.json())
+      .then(data => setSkillCategories(data.skills || {}))
+      .catch(() => {});
 
     async function loadProfile() {
       if (editId) {
@@ -73,6 +88,11 @@ function EnsembleProfileFormContent() {
               setGenres(JSON.parse(data.genres || "[]"));
             } catch {
               setGenres([]);
+            }
+            try {
+              setCoachingGoals(JSON.parse(data.coachingGoals || "[]"));
+            } catch {
+              setCoachingGoals([]);
             }
           }
         } catch {
@@ -105,6 +125,7 @@ function EnsembleProfileFormContent() {
       country,
       genres,
       experienceLevel,
+      coachingGoals,
     };
 
     try {
@@ -176,6 +197,77 @@ function EnsembleProfileFormContent() {
                     genres.includes(genre) ? "bg-coral-500 text-white border-coral-500" : "bg-white text-gray-700 border-gray-300 hover:border-coral-300"
                   }`}>{genre}</button>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <h2 className="text-lg font-semibold">Coaching Goals</h2>
+            <p className="text-sm text-gray-500 mt-1">What areas do you want coaching help with? This helps match you with coaches who have the right skills.</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {coachingGoals.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {coachingGoals.map(goal => (
+                  <button
+                    key={goal}
+                    type="button"
+                    onClick={() => setCoachingGoals(coachingGoals.filter(g => g !== goal))}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-coral-500 text-white hover:bg-coral-600 transition-colors"
+                  >
+                    {goal}
+                    <X className="h-3 w-3" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search skills..."
+                value={goalSearchTerm}
+                onChange={(e) => setGoalSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-coral-500 focus:border-coral-500 outline-none"
+              />
+            </div>
+
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {Object.entries(skillCategories).map(([category, categorySkills]) => {
+                const filtered = goalSearchTerm
+                  ? categorySkills.filter(s => s.name.toLowerCase().includes(goalSearchTerm.toLowerCase()))
+                  : categorySkills;
+                if (filtered.length === 0) return null;
+                return (
+                  <div key={category}>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{category}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {filtered.map(skill => (
+                        <button
+                          key={skill.id}
+                          type="button"
+                          onClick={() => {
+                            if (coachingGoals.includes(skill.name)) {
+                              setCoachingGoals(coachingGoals.filter(g => g !== skill.name));
+                            } else {
+                              setCoachingGoals([...coachingGoals, skill.name]);
+                            }
+                          }}
+                          className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${
+                            coachingGoals.includes(skill.name)
+                              ? "bg-coral-500 text-white border-coral-500"
+                              : "bg-white text-gray-600 border-gray-300 hover:border-coral-300"
+                          }`}
+                        >
+                          {skill.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

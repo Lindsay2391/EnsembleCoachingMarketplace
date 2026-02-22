@@ -20,6 +20,7 @@ export async function GET() {
         city: true,
         state: true,
         size: true,
+        coachingGoals: true,
       },
     });
 

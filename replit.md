@@ -63,6 +63,7 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 
 ## Recent Changes
 - 2026-02-22: Account settings page at `/dashboard/account` — users can edit their name; accessible from dashboard
+- 2026-02-22: Coaching goals feature: ensembles can specify skill areas they want coaching on; goals picker in ensemble profile form, goals displayed on dashboard cards, goal-match indicators on coach browse page with relevance scoring (+5 per goal match)
 - 2026-02-22: Coaching format filter (In-Person / Virtual) added to Find Coaches browse page with server-side filtering
 - 2026-02-22: Dashboard compacted: empty profile sections (no coach or no ensemble) now show a minimal inline prompt instead of a large card
 - 2026-02-22: PasswordInput component with show/hide eye toggle added to all password fields (login, register, reset password, admin register)

@@ -111,6 +111,10 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 4. **Homepage ensemble join button** — "Join as an Ensemble" button added alongside "Join as a Coach" with smart redirects for logged-in users.
 5. **Role-based registration flow** — Registration supports ?role=coach and ?role=ensemble query params directing users to appropriate profile creation.
 
+## Phase 2 Plan
+1. **User & ensemble profiles** — Richer profile pages for users and ensembles with pictures, bios, and additional details.
+2. **Ensemble owner migration or shared ownership** — Ability to transfer ensemble ownership to another user, or allow multiple users to manage the same ensemble profile.
+
 ## External Dependencies
 - **Database**: PostgreSQL (Neon-backed) managed with Prisma ORM 7 (`@prisma/adapter-pg`).
 - **Authentication**: NextAuth.js with a credentials provider (JWT strategy).

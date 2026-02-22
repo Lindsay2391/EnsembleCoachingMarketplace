@@ -288,12 +288,6 @@ function SubmitReviewContent() {
         </CardContent>
       </Card>
 
-      <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 mb-6">
-        <p className="text-sm text-blue-800">
-          This review will be sent to the coach for confirmation. The coach will not see the review content before deciding.
-        </p>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 

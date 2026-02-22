@@ -170,10 +170,6 @@ export async function GET(request: Request) {
 
       const total = allCoachesLite.length;
 
-      const parseJson = (val: string): string[] => {
-        try { return JSON.parse(val); } catch { return []; }
-      };
-
       const scoredCoaches = allCoachesLite.map((coach) => {
         const coachSkillNames = coach.coachSkills.map(cs => cs.skill.name);
         const isFavorite = favoriteIds.has(coach.id);

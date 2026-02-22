@@ -147,7 +147,6 @@ export async function GET(request: Request) {
     const needsRelevanceSort = !!ensembleProfile || favoriteIds.size > 0;
 
     if (needsRelevanceSort) {
-      // Fetch only lightweight fields needed for scoring to reduce memory usage
       const allCoachesLite = await prisma.coachProfile.findMany({
         where,
         select: {
@@ -158,6 +157,7 @@ export async function GET(request: Request) {
           ensembleTypes: true,
           experienceLevels: true,
           rating: true,
+          totalReviews: true,
           coachSkills: {
             select: { skill: { select: { name: true } } },
           },
@@ -181,19 +181,16 @@ export async function GET(request: Request) {
 
         const isFavorite = favoriteIds.has(coach.id);
 
-        let relevanceScore = 0;
+        let locationScore = 0;
         let goalMatchCount = 0;
         if (ensembleProfile) {
-          if (coach.country === ensembleProfile.country) relevanceScore += 15;
-          if (coach.state === ensembleProfile.state) relevanceScore += 10;
-          if (coach.city === ensembleProfile.city) relevanceScore += 5;
-          if (coachEnsembleTypes.includes(ensembleProfile.ensembleType)) relevanceScore += 10;
-          if (coachExpLevels.includes(ensembleProfile.experienceLevel)) relevanceScore += 10;
+          if (coach.country === ensembleProfile.country) locationScore += 15;
+          if (coach.state === ensembleProfile.state) locationScore += 10;
+          if (coach.city === ensembleProfile.city) locationScore += 5;
 
           const ensembleGoals: string[] = (() => { try { return JSON.parse(ensembleProfile.coachingGoals || "[]"); } catch { return []; } })();
           if (ensembleGoals.length > 0) {
             goalMatchCount = ensembleGoals.filter(goal => coachSkillNames.includes(goal)).length;
-            relevanceScore += goalMatchCount * 5;
           }
         }
 
@@ -201,14 +198,18 @@ export async function GET(request: Request) {
           ? skillsList.filter((skill) => coachSkillNames.includes(skill)).length
           : 0;
 
-        return { id: coach.id, isFavorite, relevanceScore, matchCount: skillMatchCount, goalMatchCount, rating: coach.rating };
+        const reviewScore = coach.rating * Math.log2(coach.totalReviews + 1);
+
+        return { id: coach.id, isFavorite, locationScore, matchCount: skillMatchCount, goalMatchCount, rating: coach.rating, totalReviews: coach.totalReviews, reviewScore };
       });
 
       scoredCoaches.sort((a, b) => {
         if (a.isFavorite !== b.isFavorite) return a.isFavorite ? -1 : 1;
-        if (a.relevanceScore !== b.relevanceScore) return b.relevanceScore - a.relevanceScore;
+        if (a.locationScore !== b.locationScore) return b.locationScore - a.locationScore;
+        if (a.goalMatchCount !== b.goalMatchCount) return b.goalMatchCount - a.goalMatchCount;
+        if (a.reviewScore !== b.reviewScore) return b.reviewScore - a.reviewScore;
         if (skillsList.length > 0 && a.matchCount !== b.matchCount) return b.matchCount - a.matchCount;
-        return b.rating - a.rating;
+        return 0;
       });
 
       const paginatedIds = scoredCoaches.slice(skip, skip + limit);
@@ -238,7 +239,7 @@ export async function GET(request: Request) {
       const paginatedCoaches = fullCoaches.map(coach => ({
         ...coach,
         isFavorite: scoreMap.get(coach.id)?.isFavorite ?? false,
-        relevanceScore: scoreMap.get(coach.id)?.relevanceScore ?? 0,
+        relevanceScore: scoreMap.get(coach.id)?.locationScore ?? 0,
         matchCount: scoreMap.get(coach.id)?.matchCount ?? 0,
         goalMatchCount: scoreMap.get(coach.id)?.goalMatchCount ?? 0,
       }));

@@ -44,7 +44,7 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - A smart sorting algorithm ranks coaches based on relevance (country, state, city, ensemble type, experience level), skill match count, and rating.
 
 **Feedback System:**
-- In-app feedback form accessible from the dashboard via a "Send Feedback" button and modal.
+- In-app feedback form accessible from the user dropdown menu in the navbar (and dashboard) via a "Send Feedback" option and modal.
 - Coaches/users can submit categorized feedback (Bug Report, Feature Request, Usability, General) with a 2000-character message.
 - Admin panel has a "Feedback" tab with status filter pills (All, New, Reviewed, Archived), category/status badges, and actions to mark feedback as reviewed, archived, or new.
 - Feedback tab shows a count badge on the tab button for unread ("new") items.
@@ -62,6 +62,7 @@ The platform is built with Next.js 14.2 using the App Router, TypeScript, and Ta
 - Email utility at `src/lib/email.ts` with coral-branded HTML templates.
 
 ## Recent Changes
+- 2026-02-22: User dropdown menu in top-right navbar — clicking user name opens dropdown with Dashboard, Account Settings, Send Feedback, and Sign Out; replaces separate Dashboard link and Sign Out button; mobile menu also updated with all four options
 - 2026-02-22: Account settings page at `/dashboard/account` — edit name, change email (with re-verification), change password, and delete account; delete account moved from dashboard to account settings
 - 2026-02-22: Coaching goals feature: ensembles can specify skill areas they want coaching on; goals picker in ensemble profile form, goals displayed on dashboard cards, goal-match indicators on coach browse page with relevance scoring (+5 per goal match); ensemble selector on browse page for users with multiple ensembles
 - 2026-02-22: Coaching format filter (In-Person / Virtual) added to Find Coaches browse page with server-side filtering

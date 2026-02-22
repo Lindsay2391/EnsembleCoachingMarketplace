@@ -59,6 +59,10 @@ export async function GET(request: Request) {
       approved: true,
     };
 
+    if (session?.user?.id) {
+      where.userId = { not: session.user.id };
+    }
+
     if (skillsList.length > 0) {
       where.coachSkills = {
         some: {
